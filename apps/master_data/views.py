@@ -1,0 +1,459 @@
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
+
+from .models import *
+from .serializers import *
+from apps.authentication.permissions import IsAdminUser
+from utils.pagination import *
+
+# Company Views
+class CompanyListCreateView(ListCreateAPIView):
+    queryset = CompanyInformation.objects.all()
+    serializer_class = CompanyInformationSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class CompanyDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = CompanyInformation.objects.all()
+    serializer_class = CompanyInformationSerializer
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    
+
+class EmployeeCompanyDetailView(RetrieveUpdateDestroyAPIView):
+    serializer_class = CompanyInformationSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get_object(self):
+        user = self.request.user
+        employee = getattr(user, 'user', None)
+        return employee.company
+
+class DepartmentListCreateView(ListCreateAPIView):
+    queryset = DepartmentMaster.objects.select_related('company').all()
+    serializer_class = DepartmentSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['company']
+    search_fields = ['dept_name']
+
+class DepartmentDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = DepartmentMaster.objects.select_related('company').all()
+    serializer_class = DepartmentSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+
+class DesignationListCreateView(ListCreateAPIView):
+    queryset = DesignationMaster.objects.all()
+    serializer_class = DesignationSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class DesignationDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = DesignationMaster.objects.select_related('department').all()
+    serializer_class = DesignationSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class EmployeeTypeListCreateView(ListCreateAPIView):
+    queryset = EmployeeTypeMaster.objects.all()
+    serializer_class = EmployeeTypeSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class EmployeeTypeDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = EmployeeTypeMaster.objects.all()
+    serializer_class = EmployeeTypeSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+
+# Geography Views
+class CityCategoryAssignmentViewSet(viewsets.ModelViewSet):
+    queryset = CityCategoryAssignment.objects.all()
+    serializer_class = CityCategoryAssignmentSerializer
+    lookup_field = "id"
+
+    # optional: allow simple filtering by query params (country/state/city)
+    def get_queryset(self):
+        qs = super().get_queryset()
+        country = self.request.query_params.get("country")
+        state = self.request.query_params.get("state")
+        city = self.request.query_params.get("city")
+        if country:
+            qs = qs.filter(country_name__iexact=country)
+        if state:
+            qs = qs.filter(state_name__iexact=state)
+        if city:
+            qs = qs.filter(city_name__iexact=city)
+        return qs
+
+    @action(detail=False, methods=["delete"])
+    def bulk_delete(self, request):
+        ids = request.data.get("ids", [])
+        if not isinstance(ids, list) or not ids:
+            return Response({"detail": "Provide a non-empty list of ids in request body."}, status=status.HTTP_400_BAD_REQUEST)
+        CityCategoryAssignment.objects.filter(id__in=ids).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class CountryListCreateView(ListCreateAPIView):
+    queryset = CountryMaster.objects.all()
+    serializer_class = CountrySerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = FlexiblePagination
+    pagination_class = None
+
+class CountryDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = CountryMaster.objects.all()
+    serializer_class = CountrySerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class StateListCreateView(ListCreateAPIView):
+    queryset = StateMaster.objects.select_related('country').all()
+    serializer_class = StateSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['country']
+    pagination_class = FlexiblePagination
+    pagination_class = None
+
+class StateDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = StateMaster.objects.select_related('country').all()
+    serializer_class = StateSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class CityListCreateView(ListCreateAPIView):
+    queryset = CityMaster.objects.select_related('state__country', 'category').all()
+    serializer_class = CitySerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['state', 'category']
+    search_fields = ['city_name']
+    pagination_class = FlexiblePagination
+    pagination_class = None
+
+class CityDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = CityMaster.objects.select_related('state__country', 'category').all()
+    serializer_class = CitySerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class CityDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = CityMaster.objects.select_related('state__country', 'category').all()
+    serializer_class = CitySerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class CityCategoriesListCreateView(ListCreateAPIView):
+    queryset = CityCategoriesMaster.objects.all()
+    serializer_class = CityCategoriesSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['name']         
+    search_fields = ['name', 'description']
+    pagination_class = FlexiblePagination
+
+class CityCategoriesDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = CityCategoriesMaster.objects.all()
+    serializer_class = CityCategoriesSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class LocationListCreateView(ListCreateAPIView):
+    queryset = LocationMaster.objects.select_related(
+        'company', 'city', 'state', 'country'
+    ).filter(is_active=True)
+    serializer_class = LocationSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['company', 'city', 'state']
+    search_fields = ['location_name', 'location_code']
+
+class LocationDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = LocationMaster.objects.select_related(
+        'company', 'city', 'state', 'country'
+    ).all()
+    serializer_class = LocationSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+
+# Other Master Data
+class GLCodeListCreateView(ListCreateAPIView):
+    queryset = GLCodeMaster.objects.filter(is_active=True).order_by('sorting_no')
+    serializer_class = GLCodeSerializer
+    permission_classes = [IsAuthenticated]
+
+class GLCodeDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = GLCodeMaster.objects.all()
+    serializer_class = GLCodeSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class GradeListCreateView(ListCreateAPIView):
+    queryset = GradeMaster.objects.filter(is_active=True)
+    serializer_class = GradeSerializer
+    permission_classes = [IsAuthenticated]
+
+class GradeDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = GradeMaster.objects.all()
+    serializer_class = GradeSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class TravelModeListCreateView(ListCreateAPIView):
+    # queryset = TravelModeMaster.objects.filter(is_active=True)
+    queryset = TravelModeMaster.objects.all()
+    serializer_class = TravelModeSerializer
+    permission_classes = [IsAuthenticated]
+
+class TravelModeDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = TravelModeMaster.objects.all()
+    serializer_class = TravelModeSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class TravelSubOptionListCreateView(ListCreateAPIView):
+    # queryset = TravelSubOptionMaster.objects.select_related('mode').filter(is_active=True
+    queryset = TravelSubOptionMaster.objects.select_related('mode').all()
+    serializer_class = TravelSubOptionSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['mode']
+
+class TravelSubOptionDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = TravelSubOptionMaster.objects.select_related('mode').all()
+    serializer_class = TravelSubOptionSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class GradeEntitlementListCreateView(ListCreateAPIView):
+    queryset = GradeEntitlementMaster.objects.select_related(
+        'grade', 'sub_option__mode', 'city_category'
+    ).filter(is_allowed=True)
+    serializer_class = GradeEntitlementSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['grade', 'sub_option__mode', 'city_category']
+    pagination_class = LargePagination
+
+class GradeEntitlementDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = GradeEntitlementMaster.objects.select_related(
+        'grade', 'sub_option__mode', 'city_category'
+    ).all()
+    serializer_class = GradeEntitlementSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+
+# Accommodation Views
+class GuestHouseMasterViewSet(viewsets.ModelViewSet):
+    queryset = GuestHouseMaster.objects.select_related('city', 'state', 'country', 'gl_code', 'manager').all()
+    serializer_class = GuestHouseMasterSerializer
+    permission_classes = [IsAuthenticated]
+    filterset_fields = ['city', 'state', 'country', 'property_type', 'ownership_type', 'is_active']
+    search_fields = ['name', 'address', 'contact_person', 'phone_number', 'email']
+    ordering_fields = ['name', 'city', 'created_at', 'updated_at']
+    ordering = ['-created_at']
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search = self.request.query_params.get('search', None)
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(address__icontains=search) |
+                Q(contact_person__icontains=search) |
+                Q(phone_number__icontains=search)
+            )
+        return queryset
+    
+    from rest_framework.decorators import action
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        # Check if hard delete is requested
+        if request.query_params.get('hard_delete') == 'true':
+            instance.delete()  # Permanent delete
+            return Response({'message': 'Guest house deleted permanently'}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            # Soft delete (deactivate)
+            instance.is_active = False
+            instance.save()
+            return Response({'message': 'Guest house deactivated successfully'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def activate(self, request, pk=None):
+        instance = self.get_object()
+        instance.is_active = not instance.is_active
+        instance.save()
+        status_text = 'activated' if instance.is_active else 'deactivated'
+        return Response(
+            {'message': f'Guest house {status_text} successfully', 'is_active': instance.is_active},
+            status=status.HTTP_200_OK
+        )
+    
+
+# Annual Rate Contract Hotels
+class ARCHotelListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for list views"""
+    
+    city_name = serializers.CharField(source='city.city_name', read_only=True)
+    state_name = serializers.CharField(source='state.state_name', read_only=True)
+    hotel_type_display = serializers.CharField(source='get_hotel_type_display', read_only=True)
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
+    total_rate_with_tax = serializers.SerializerMethodField()
+    contract_valid = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ARCHotelMaster
+        fields = [
+            'id', 'name', 'hotel_type', 'hotel_type_display', 'star_rating',
+            'city', 'city_name', 'state_name', 'category', 'category_display',
+            'phone_number', 'email', 'total_rooms',
+            'rate_per_night', 'tax_percentage', 'total_rate_with_tax',
+            'contract_start_date', 'contract_end_date', 'contract_valid',
+            'is_active'
+        ]
+    
+    def get_total_rate_with_tax(self, obj):
+        return float(obj.get_total_rate_with_tax())
+    
+    def get_contract_valid(self, obj):
+        return obj.is_contract_valid()
+
+
+# Views
+class ARCHotelListCreateView(ListCreateAPIView):
+    """
+    List all active ARC hotels or create a new hotel.
+    
+    Supports filtering by:
+    - city: Filter by city ID
+    - state: Filter by state ID
+    - category: Filter by hotel category
+    - hotel_type: Filter by hotel type (resort, business, boutique)
+    - star_rating: Filter by star rating
+    
+    Supports searching by:
+    - name, group_name, address, email
+    """
+    queryset = ARCHotelMaster.objects.select_related(
+        'city', 'state', 'country', 'created_by', 'updated_by'
+    ).filter(is_active=True)
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['city', 'state', 'category', 'hotel_type', 'star_rating']
+    search_fields = ['name', 'group_name', 'address', 'email']
+    ordering_fields = ['name', 'rate_per_night', 'star_rating', 'created_at']
+    ordering = ['city', 'category', 'rate_per_night']
+    
+    def get_serializer_class(self):
+        """Use lightweight serializer for list view"""
+        if self.request.method == 'GET':
+            return ARCHotelListSerializer
+        return ARCHotelSerializer
+
+
+class ARCHotelDetailView(RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete an ARC hotel.
+    
+    Requires admin permissions for update and delete operations.
+    """
+    queryset = ARCHotelMaster.objects.select_related(
+        'city', 'state', 'country', 'created_by', 'updated_by'
+    ).all()
+    serializer_class = ARCHotelSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_permissions(self):
+        """Allow read for authenticated users, write for admin only"""
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            return [IsAuthenticated(), IsAdminUser()]
+        return [IsAuthenticated()]
+    
+    def perform_destroy(self, instance):
+        """Soft delete by setting is_active to False"""
+        instance.is_active = False
+        instance.updated_by = self.request.user
+        instance.save()
+
+# Location-wise Single Point of Contact for vehicle bookings
+class LocationSPOCListCreateView(ListCreateAPIView):
+    queryset = LocationSPOC.objects.select_related('location', 'spoc_user').filter(is_active=True)
+    serializer_class = LocationSPOCSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]     
+    filterset_fields = ['location', 'spoc_type']
+
+class LocationSPOCDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = LocationSPOC.objects.select_related('location', 'spoc_user').all()
+    serializer_class = LocationSPOCSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+
+# Approval and Policy Views
+class ApprovalMatrixListCreateView(ListCreateAPIView):
+    queryset = ApprovalMatrix.objects.select_related('travel_mode', 'employee_grade').all()
+    serializer_class = ApprovalMatrixSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['travel_mode', 'employee_grade']
+
+class ApprovalMatrixDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = ApprovalMatrix.objects.select_related('travel_mode', 'employee_grade').all()
+    serializer_class = ApprovalMatrixSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class DAIncidentalListCreateView(ListCreateAPIView):
+    queryset = DAIncidentalMaster.objects.select_related('grade', 'city_category').filter(is_active=True)
+    serializer_class = DAIncidentalSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['grade', 'city_category']
+
+class DAIncidentalDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = DAIncidentalMaster.objects.select_related('grade', 'city_category').all()
+    serializer_class = DAIncidentalSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class ConveyanceRateListCreateView(ListCreateAPIView):
+    queryset = ConveyanceRateMaster.objects.filter(is_active=True)
+    serializer_class = ConveyanceRateSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['conveyance_type']
+
+class ConveyanceRateDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = ConveyanceRateMaster.objects.all()
+    serializer_class = ConveyanceRateSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class VehicleTypeListCreateView(ListCreateAPIView):
+    queryset = VehicleTypeMaster.objects.filter(is_active=True)
+    serializer_class = VehicleTypeSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['category']
+
+class VehicleTypeDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = VehicleTypeMaster.objects.all()
+    serializer_class = VehicleTypeSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class TravelPolicyListCreateView(ListCreateAPIView):
+    queryset = TravelPolicyMaster.objects.select_related('travel_mode', 'employee_grade').filter(is_active=True)
+    serializer_class = TravelPolicySerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['policy_type', 'travel_mode', 'employee_grade']
+
+class TravelPolicyDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = TravelPolicyMaster.objects.select_related('travel_mode', 'employee_grade').all()
+    serializer_class = TravelPolicySerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+class EmailTemplateListCreateView(ListCreateAPIView):
+    queryset = EmailTemplateMaster.objects.filter(is_active=True)
+    serializer_class = EmailTemplateSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['template_type']
+
+class EmailTemplateDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = EmailTemplateMaster.objects.all()
+    serializer_class = EmailTemplateSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
