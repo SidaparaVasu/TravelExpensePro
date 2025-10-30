@@ -1,0 +1,35 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+__pycache__/
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Django stuff:
+*.pyc
+*.log
+
+
+# Backup and temporary files
+*.bak
+*.tmp
+*.temp
+*.old
+
+# VS Code / IDE
+.vscode/
+.idea/
+*.swp
+
+# Jupyter / Notebooks
+.ipynb_checkpoints
+
+# Project-specific
+logs/
+tmp/
+uploads/

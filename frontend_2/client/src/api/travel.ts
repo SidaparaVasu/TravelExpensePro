@@ -1,0 +1,243 @@
+import { apiClient } from './client';
+import {
+  TravelApplication,
+  TravelApplicationRequest,
+  TravelStats,
+  Location,
+  TravelMode,
+  TravelSubOption,
+  GLCode
+} from '@/src/types/travel.types';
+
+export const travelAPI = {
+  // Statistics
+  getStats: async (): Promise<TravelStats> => {
+    const { data } = await apiClient.get('/travel/applications/stats/');
+    return data.data;
+  },
+
+  // Applications
+  getMyApplications: async (filter: string): Promise<TravelApplication[]> => {
+    const { data } = await apiClient.get(`/travel/my-applications/?status=${filter}`);
+    return data.data;
+  },
+
+  getApplication: async (id: number): Promise<TravelApplication> => {
+    const { data } = await apiClient.get(`/travel/applications/${id}/`);
+    return data;
+  },
+
+  createApplication: async (request: TravelApplicationRequest): Promise<TravelApplication> => {
+    const { data } = await apiClient.post('/travel/applications/', request);
+    return data;
+  },
+
+  updateApplication: async (id: number, request: Partial<TravelApplicationRequest>): Promise<TravelApplication> => {
+    const { data } = await apiClient.put(`/travel/applications/${id}/`, request);
+    return data;
+  },
+
+  deleteApplication: async (id: number): Promise<void> => {
+    await apiClient.delete(`/travel/applications/${id}/`);
+  },
+
+  validateApplication: async (id: number) => {
+    const { data } = await apiClient.post(`/travel/applications/${id}/validate/`);
+    return data;
+  },
+
+  // Real-time validation
+  realTimeValidate: async (validationType: string, payload: any) => {
+    const { data } = await apiClient.post('/travel/validate/', {
+      type: validationType,
+      ...payload
+    });
+    return data;
+  },
+
+  // submitApplication: async (id: number) => {
+  //   try {
+  //     const { data } = await apiClient.post(`/travel/applications/${id}/submit/`);
+  //     return data;
+  //   } catch (error: any) {
+  //     console.log(error);
+  //     const data = error.response?.data;
+  //     console.error("Server Error Data:", error.response?.data);
+  //     let messages: string[] = [];
+
+  //     if (data?.details) {
+  //       const cleaned = data.details
+  //         .replace(/ErrorDetail\(string=/g, "")
+  //         .replace(/, code='invalid'\)/g, "")
+  //         .replace(/['"\[\]]/g, "");
+  //       messages = cleaned.split(",").map((m) => m.trim());
+  //     } else if (data?.error) {
+  //       messages.push(data.error);
+  //     } else {
+  //       messages.push("Unknown error occurred");
+  //     }
+
+  //     throw new Error(messages.join("\n")); // throw instead of toast
+  //   }
+  // },
+  submitApplication: async (id: number) => {
+    try {
+      const { data } = await apiClient.post(`/travel/applications/${id}/submit/`);
+      return data;
+    } catch (error: any) {
+      const responseData = error.response?.data?.errors;
+      console.error("Server Error Data:", responseData);
+      throw new Error(responseData);
+      // let messages: string[] = [];
+
+      // // Handle DRF-style errors (dict of arrays)
+      // if (responseData && typeof responseData === "object") {
+      //   // Flatten nested validation errors
+      //   for (const key in responseData) {
+      //     const value = responseData[key];
+      //     if (Array.isArray(value)) {
+      //       messages.push(`${key}: ${value.join(", ")}`);
+      //     } else if (typeof value === "object") {
+      //       for (const subKey in value) {
+      //         if (subKey == "validation_error") {
+      //           messages.push(`${value[subKey]}`);
+      //           console.log(value[subKey]);
+      //         }
+      //       }
+      //     } else if (typeof value === "string") {
+      //       messages.push(value);
+      //     }
+      //   }
+      // }
+
+      // if (messages.length === 0) {
+      //   messages.push("Validation error occurred");
+      // }
+
+      // throw new Error(messages.join("\n"));
+    }
+  },
+
+  getCostEstimate: async (id: number) => {
+    const { data } = await apiClient.get(`/travel/applications/${id}/cost-estimate/`);
+    return data;
+  },
+
+  checkEntitlement: async (subOptionId: number, cityCategoryId: number) => {
+    const { data } = await apiClient.post('/travel/bookings/check-entitlement/', {
+      sub_option_id: subOptionId,
+      city_category_id: cityCategoryId,
+    });
+    return data;
+  },
+
+  // Master data
+  getLocations: async (): Promise<Location[]> => {
+    const { data } = await apiClient.get('/master/locations/');
+    return data.data;
+  },
+
+  // Travel Mode & Travel Sub-option Master
+  getTravelModes: async () => {
+    const { data } = await apiClient.get('/master/travel-modes/');
+    return data.data;
+  },
+
+  getTravelSubOptions: async (modeId?: number) => {
+    const { data } = await apiClient.get('/master/travel-sub-options/');
+    return data.data;
+  },
+
+  createTravelModes: async (payload: any) => {
+    const { data } = await apiClient.post('/master/travel-modes/', payload);
+    return data;
+  },
+
+  updateTravelModes: async (id: number, payload: any) => {
+    const { data } = await apiClient.put(`/master/travel-modes/${id}/`, payload);
+    return data;
+  },
+
+  deleteTravelModes: async (id: number) => {
+    const { data } = await apiClient.delete(`/master/travel-modes/${id}/`);
+    return data;
+  },
+
+  toggleTravelModeActive: async (id: number, isActive: boolean) => {
+    const { data } = await apiClient.patch(`/master/travel-modes/${id}/`, { is_active: isActive });
+    return data;
+  },
+
+  createTravelSubOption: async (payload: any) => {
+    const { data } = await apiClient.post('/master/travel-sub-options/', payload);
+    return data;
+  },
+
+  updateTravelSubOption: async (id: number, payload: any) => {
+    const { data } = await apiClient.put(`/master/travel-sub-options/${id}/`, payload);
+    return data;
+  },
+
+  deleteTravelSubOption: async (id: number) => {
+    const { data } = await apiClient.delete(`/master/travel-sub-options/${id}/`);
+    return data;
+  },
+
+  toggleSubOptionActive: async (id: number, isActive: boolean) => {
+    const { data } = await apiClient.patch(`/master/travel-sub-options/${id}/`, { is_active: isActive });
+    return data;
+  },
+
+  // Guest house endpoints
+  getGuestHouses: async () => {
+    const response = await apiClient.get('/master/guest-houses/');
+    return response.data;
+  },
+
+  getARCHotels: async () => {
+    const response = await apiClient.get('/master/arc-hotels/');
+    return response.data;
+  },
+
+  // GL code endpoints
+  getGLCodes: async (): Promise<GLCode[]> => {
+    const { data } = await apiClient.get('/master/gl-codes/');
+    return data.data;
+  },
+
+  createGLCodes: async (payload: any): Promise<GLCode[]> => {
+    const { data } = await apiClient.post('/master/gl-codes/', payload);
+    return data;
+  },
+
+  updateGLCodes: async (id: number, payload: any): Promise<GLCode[]> => {
+    const { data } = await apiClient.put(`/master/gl-codes/${id}/`, payload);
+    return data;
+  },
+
+  deleteGLCode: async (id: number): Promise<GLCode[]> => {
+    const { data } = await apiClient.delete(`/master/gl-codes/${id}/`);
+    return data;
+  },
+
+  // Grade Entitlement
+  getGradeEntitlement: async (): Promise<GLCode[]> => {
+    const { data } = await apiClient.get('/master/grade-entitlements/');
+    return data;
+  },
+
+  createGradeEntitlement: async (payload: any): Promise<GLCode[]> => {
+    const { data } = await apiClient.post('/master/grade-entitlements/', payload);
+    return data;
+  },
+
+  updateGradeEntitlement: async (id: number, payload: any): Promise<GLCode[]> => {
+    const { data } = await apiClient.put(`/master/grade-entitlements/${id}/`, payload);
+    return data;
+  },
+
+  deleteGradeEntitlement: async (id: number): Promise<GLCode[]> => {
+    const { data } = await apiClient.delete(`/master/grade-entitlements/${id}/`);
+    return data;
+  },
+};
