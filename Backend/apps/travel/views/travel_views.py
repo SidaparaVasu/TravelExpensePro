@@ -275,7 +275,7 @@ class MyTravelApplicationsView(APIView):
     """
     Dashboard view for employee's travel applications
     """
-    permission_classes = [IsAuthenticated, IsEmployee or IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser or IsEmployee]
     
     def get(self, request):
         user = request.user

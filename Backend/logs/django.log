@@ -1,0 +1,810 @@
+INFO 2025-10-30 16:50:40,511 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:50:54,721 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:50:55,520 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:53:44,290 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:54:05,159 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:54:22,025 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:54:22,835 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:54:32,232 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:54:33,026 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:54:53,031 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:54:53,868 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:54:55,631 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:54:56,461 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:54:59,273 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:55:00,090 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:55:15,913 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:55:16,789 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:55:42,222 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:55:43,066 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:55:44,839 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:55:45,757 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:55:48,647 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:55:49,511 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:56:04,432 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:56:05,462 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:56:15,786 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:56:16,584 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 16:56:27,948 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 16:56:28,790 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:01:49,878 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:01:59,126 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 17:01:59,938 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:02:01,745 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 17:02:02,559 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:02:32,328 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 17:02:33,149 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:02:38,166 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 17:02:38,969 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:03:19,423 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 17:03:20,200 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:03:34,846 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 17:03:35,669 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:03:39,603 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 17:03:40,528 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:03:52,119 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 17:03:53,034 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:03:58,104 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 17:03:59,090 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:04:08,538 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\settings.py changed, reloading.
+INFO 2025-10-30 17:04:09,358 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:11:26,416 basehttp "OPTIONS /api/travel/my-applications/?status=all HTTP/1.1" 200 0
+INFO 2025-10-30 17:11:26,419 basehttp "OPTIONS /api/travel/applications/stats/ HTTP/1.1" 200 0
+ERROR 2025-10-30 17:11:26,450 exception_handler Exception in MyTravelApplicationsView: InvalidToken - {'detail': ErrorDetail(string='Given token not valid for any token type', code='token_not_valid'), 'code': ErrorDetail(string='token_not_valid', code='token_not_valid'), 'messages': [{'token_class': ErrorDetail(string='AccessToken', code='token_not_valid'), 'token_type': ErrorDetail(string='access', code='token_not_valid'), 'message': ErrorDetail(string='Token is expired', code='token_not_valid')}]}
+Path: /api/travel/my-applications/
+Method: GET
+User: Anonymous
+ERROR 2025-10-30 17:11:26,450 exception_handler Exception in TravelApplicationDashboardStatsView: InvalidToken - {'detail': ErrorDetail(string='Given token not valid for any token type', code='token_not_valid'), 'code': ErrorDetail(string='token_not_valid', code='token_not_valid'), 'messages': [{'token_class': ErrorDetail(string='AccessToken', code='token_not_valid'), 'token_type': ErrorDetail(string='access', code='token_not_valid'), 'message': ErrorDetail(string='Token is expired', code='token_not_valid')}]}
+Path: /api/travel/applications/stats/
+Method: GET
+User: Anonymous
+WARNING 2025-10-30 17:11:26,456 log Unauthorized: /api/travel/my-applications/
+WARNING 2025-10-30 17:11:26,457 log Unauthorized: /api/travel/applications/stats/
+WARNING 2025-10-30 17:11:26,457 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 401 264
+WARNING 2025-10-30 17:11:26,457 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 401 264
+INFO 2025-10-30 17:11:26,457 basehttp "OPTIONS /api/token/refresh/ HTTP/1.1" 200 0
+INFO 2025-10-30 17:11:26,457 basehttp "OPTIONS /api/token/refresh/ HTTP/1.1" 200 0
+INFO 2025-10-30 17:11:26,518 basehttp "POST /api/token/refresh/ HTTP/1.1" 200 557
+ERROR 2025-10-30 17:11:26,528 exception_handler Exception in TravelApplicationDashboardStatsView: InvalidToken - {'detail': ErrorDetail(string='Given token not valid for any token type', code='token_not_valid'), 'code': ErrorDetail(string='token_not_valid', code='token_not_valid'), 'messages': [{'token_class': ErrorDetail(string='AccessToken', code='token_not_valid'), 'token_type': ErrorDetail(string='access', code='token_not_valid'), 'message': ErrorDetail(string='Token is invalid', code='token_not_valid')}]}
+Path: /api/travel/applications/stats/
+Method: GET
+User: Anonymous
+WARNING 2025-10-30 17:11:26,533 log Unauthorized: /api/travel/applications/stats/
+WARNING 2025-10-30 17:11:26,533 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 401 264
+INFO 2025-10-30 17:11:26,539 basehttp "POST /api/token/refresh/ HTTP/1.1" 200 557
+ERROR 2025-10-30 17:11:26,549 exception_handler Exception in MyTravelApplicationsView: InvalidToken - {'detail': ErrorDetail(string='Given token not valid for any token type', code='token_not_valid'), 'code': ErrorDetail(string='token_not_valid', code='token_not_valid'), 'messages': [{'token_class': ErrorDetail(string='AccessToken', code='token_not_valid'), 'token_type': ErrorDetail(string='access', code='token_not_valid'), 'message': ErrorDetail(string='Token is invalid', code='token_not_valid')}]}
+Path: /api/travel/my-applications/
+Method: GET
+User: Anonymous
+WARNING 2025-10-30 17:11:26,549 log Unauthorized: /api/travel/my-applications/
+WARNING 2025-10-30 17:11:26,549 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 401 264
+ERROR 2025-10-30 17:11:27,990 exception_handler Exception in MyTravelApplicationsView: InvalidToken - {'detail': ErrorDetail(string='Given token not valid for any token type', code='token_not_valid'), 'code': ErrorDetail(string='token_not_valid', code='token_not_valid'), 'messages': [{'token_class': ErrorDetail(string='AccessToken', code='token_not_valid'), 'token_type': ErrorDetail(string='access', code='token_not_valid'), 'message': ErrorDetail(string='Token is invalid', code='token_not_valid')}]}
+Path: /api/travel/my-applications/
+Method: GET
+User: Anonymous
+ERROR 2025-10-30 17:11:27,996 exception_handler Exception in TravelApplicationDashboardStatsView: InvalidToken - {'detail': ErrorDetail(string='Given token not valid for any token type', code='token_not_valid'), 'code': ErrorDetail(string='token_not_valid', code='token_not_valid'), 'messages': [{'token_class': ErrorDetail(string='AccessToken', code='token_not_valid'), 'token_type': ErrorDetail(string='access', code='token_not_valid'), 'message': ErrorDetail(string='Token is invalid', code='token_not_valid')}]}
+Path: /api/travel/applications/stats/
+Method: GET
+User: Anonymous
+WARNING 2025-10-30 17:11:28,002 log Unauthorized: /api/travel/my-applications/
+WARNING 2025-10-30 17:11:28,006 log Unauthorized: /api/travel/applications/stats/
+WARNING 2025-10-30 17:11:28,006 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 401 264
+WARNING 2025-10-30 17:11:28,007 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 401 264
+ERROR 2025-10-30 17:11:28,062 exception_handler Exception in TokenRefreshView: InvalidToken - {'detail': ErrorDetail(string='Token is blacklisted', code='token_not_valid'), 'code': ErrorDetail(string='token_not_valid', code='token_not_valid')}
+Path: /api/token/refresh/
+Method: POST
+User: Anonymous
+ERROR 2025-10-30 17:11:28,069 exception_handler Exception in TokenRefreshView: InvalidToken - {'detail': ErrorDetail(string='Token is blacklisted', code='token_not_valid'), 'code': ErrorDetail(string='token_not_valid', code='token_not_valid')}
+Path: /api/token/refresh/
+Method: POST
+User: Anonymous
+WARNING 2025-10-30 17:11:28,071 log Unauthorized: /api/token/refresh/
+WARNING 2025-10-30 17:11:28,071 basehttp "POST /api/token/refresh/ HTTP/1.1" 401 130
+WARNING 2025-10-30 17:11:28,075 log Unauthorized: /api/token/refresh/
+WARNING 2025-10-30 17:11:28,075 basehttp "POST /api/token/refresh/ HTTP/1.1" 401 130
+INFO 2025-10-30 17:11:32,645 basehttp "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2025-10-30 17:11:33,275 basehttp "POST /api/auth/login/ HTTP/1.1" 200 888
+INFO 2025-10-30 17:11:33,360 basehttp "OPTIONS /api/travel/approvals/dashboard/ HTTP/1.1" 200 0
+INFO 2025-10-30 17:11:33,397 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 633
+INFO 2025-10-30 17:11:38,305 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 200 180
+INFO 2025-10-30 17:11:38,368 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 200 5522
+INFO 2025-10-30 17:28:25,937 autoreload D:\GitHub Projects\TravelExpensePro\Backend\Main\__init__.py changed, reloading.
+INFO 2025-10-30 17:28:26,970 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 17:36:19,489 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 200 180
+INFO 2025-10-30 17:36:19,574 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 200 5522
+INFO 2025-10-30 17:36:20,452 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 200 180
+INFO 2025-10-30 17:36:20,498 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 200 5522
+INFO 2025-10-30 12:20:28,524 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 12:22:53,929 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 12:43:25,449 autoreload Watching for file changes with StatReloader
+WARNING 2025-10-30 12:44:28,130 log Not Found: /
+WARNING 2025-10-30 12:44:28,131 basehttp "GET / HTTP/1.1" 404 3469
+WARNING 2025-10-30 12:44:28,262 log Not Found: /favicon.ico
+WARNING 2025-10-30 12:44:28,263 basehttp "GET /favicon.ico HTTP/1.1" 404 3520
+WARNING 2025-10-30 12:44:35,099 log Not Found: /api
+WARNING 2025-10-30 12:44:35,100 basehttp "GET /api HTTP/1.1" 404 3496
+INFO 2025-10-30 13:00:44,705 basehttp "GET /admin HTTP/1.1" 301 0
+INFO 2025-10-30 13:00:44,776 basehttp "GET /admin/ HTTP/1.1" 302 0
+INFO 2025-10-30 13:00:44,832 basehttp "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4173
+INFO 2025-10-30 13:00:44,878 basehttp "GET /static/admin/js/theme.js HTTP/1.1" 200 1653
+INFO 2025-10-30 13:00:44,879 basehttp "GET /static/admin/css/base.css HTTP/1.1" 200 22120
+INFO 2025-10-30 13:00:44,879 basehttp "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 2808
+INFO 2025-10-30 13:00:44,880 basehttp "GET /static/admin/css/login.css HTTP/1.1" 200 951
+INFO 2025-10-30 13:00:44,880 basehttp "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2810
+INFO 2025-10-30 13:00:44,880 basehttp "GET /static/admin/css/responsive.css HTTP/1.1" 200 16565
+INFO 2025-10-30 13:00:44,890 basehttp "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+ERROR 2025-10-30 13:02:46,613 log Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/mysql/base.py", line 76, in execute
+    return self.cursor.execute(query, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/MySQLdb/cursors.py", line 179, in execute
+    res = self._query(mogrified_query)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/MySQLdb/cursors.py", line 330, in _query
+    db.query(q)
+  File "/usr/local/lib/python3.11/site-packages/MySQLdb/connections.py", line 280, in query
+    _mysql.connection.query(self, query)
+MySQLdb.ProgrammingError: (1146, "Table 'tsf_db.authentication_user' doesn't exist")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/views/decorators/cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/admin/sites.py", line 449, in login
+    return LoginView.as_view(**defaults)(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/views/decorators/debug.py", line 143, in sensitive_post_parameters_wrapper
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 192, in _view_wrapper
+    result = _process_exception(request, e)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 190, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/views/decorators/cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/auth/views.py", line 89, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/views/generic/base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/views/generic/edit.py", line 150, in post
+    if form.is_valid():
+       ^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/forms/forms.py", line 206, in is_valid
+    return self.is_bound and not self.errors
+                                 ^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/forms/forms.py", line 201, in errors
+    self.full_clean()
+  File "/usr/local/lib/python3.11/site-packages/django/forms/forms.py", line 338, in full_clean
+    self._clean_form()
+  File "/usr/local/lib/python3.11/site-packages/django/forms/forms.py", line 354, in _clean_form
+    cleaned_data = self.clean()
+                   ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/views/decorators/debug.py", line 75, in sensitive_variables_wrapper
+    return func(*func_args, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/auth/forms.py", line 366, in clean
+    self.user_cache = authenticate(
+                      ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/views/decorators/debug.py", line 75, in sensitive_variables_wrapper
+    return func(*func_args, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/auth/__init__.py", line 114, in authenticate
+    user = backend.authenticate(request, **credentials)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/auth/backends.py", line 65, in authenticate
+    user = UserModel._default_manager.get_by_natural_key(username)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/contrib/auth/base_user.py", line 37, in get_by_natural_key
+    return self.get(**{self.model.USERNAME_FIELD: username})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/query.py", line 629, in get
+    num = len(clone)
+          ^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/query.py", line 366, in __len__
+    self._fetch_all()
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/query.py", line 1949, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/models/sql/compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/usr/local/lib/python3.11/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/django/db/backends/mysql/base.py", line 76, in execute
+    return self.cursor.execute(query, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/MySQLdb/cursors.py", line 179, in execute
+    res = self._query(mogrified_query)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/MySQLdb/cursors.py", line 330, in _query
+    db.query(q)
+  File "/usr/local/lib/python3.11/site-packages/MySQLdb/connections.py", line 280, in query
+    _mysql.connection.query(self, query)
+django.db.utils.ProgrammingError: (1146, "Table 'tsf_db.authentication_user' doesn't exist")
+ERROR 2025-10-30 13:02:46,619 basehttp "POST /admin/login/?next=/admin/ HTTP/1.1" 500 288192
+INFO 2025-10-30 13:03:00,672 basehttp "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4173
+INFO 2025-10-30 13:03:01,181 basehttp "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4173
+WARNING 2025-10-30 13:03:02,116 log Not Found: /api
+WARNING 2025-10-30 13:03:02,116 basehttp "GET /api HTTP/1.1" 404 3496
+WARNING 2025-10-30 13:03:08,496 log Not Found: /docs
+WARNING 2025-10-30 13:03:08,496 basehttp "GET /docs HTTP/1.1" 404 3499
+INFO 2025-10-30 13:03:15,225 logging_middleware ➡️  GET /api/docs | User: Anonymous
+INFO 2025-10-30 13:03:15,228 logging_middleware ❌ GET /api/docs | Status: 404 | Duration: 0.00s
+INFO 2025-10-30 13:03:15,229 basehttp "GET /api/docs HTTP/1.1" 301 0
+INFO 2025-10-30 13:03:15,232 logging_middleware ➡️  GET /api/docs/ | User: Anonymous
+INFO 2025-10-30 13:03:15,238 logging_middleware ✅ GET /api/docs/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 13:03:15,239 basehttp "GET /api/docs/ HTTP/1.1" 200 4658
+INFO 2025-10-30 13:03:15,851 logging_middleware ➡️  GET /api/schema/ | User: Anonymous
+INFO 2025-10-30 13:03:16,531 logging_middleware ✅ GET /api/schema/ | Status: 200 | Duration: 0.68s
+INFO 2025-10-30 13:03:16,532 basehttp "GET /api/schema/ HTTP/1.1" 200 547922
+INFO 2025-10-30 13:03:32,243 logging_middleware ➡️  GET /api/auth/profile/ | User: Anonymous
+ERROR 2025-10-30 13:03:32,252 exception_handler Exception in UserProfileView: NotAuthenticated - Authentication credentials were not provided.
+Path: /api/auth/profile/
+Method: GET
+User: Anonymous
+INFO 2025-10-30 13:03:32,252 logging_middleware ❌ GET /api/auth/profile/ | Status: 401 | Duration: 0.01s
+WARNING 2025-10-30 13:03:32,253 log Unauthorized: /api/auth/profile/
+WARNING 2025-10-30 13:03:32,254 basehttp "GET /api/auth/profile/ HTTP/1.1" 401 155
+INFO 2025-10-30 13:03:59,754 logging_middleware ➡️  GET /api/auth/profile/ | User: Anonymous
+ERROR 2025-10-30 13:03:59,776 exception_handler Exception in UserProfileView: InvalidToken - {'detail': ErrorDetail(string='Given token not valid for any token type', code='token_not_valid'), 'code': ErrorDetail(string='token_not_valid', code='token_not_valid'), 'messages': [{'token_class': ErrorDetail(string='AccessToken', code='token_not_valid'), 'token_type': ErrorDetail(string='access', code='token_not_valid'), 'message': ErrorDetail(string='Token is invalid', code='token_not_valid')}]}
+Path: /api/auth/profile/
+Method: GET
+User: Anonymous
+INFO 2025-10-30 13:03:59,777 logging_middleware ❌ GET /api/auth/profile/ | Status: 401 | Duration: 0.02s
+WARNING 2025-10-30 13:03:59,777 log Unauthorized: /api/auth/profile/
+WARNING 2025-10-30 13:03:59,778 basehttp "GET /api/auth/profile/ HTTP/1.1" 401 264
+INFO 2025-10-30 13:07:56,902 basehttp "GET /admin/ HTTP/1.1" 302 0
+INFO 2025-10-30 13:07:56,910 basehttp "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4173
+INFO 2025-10-30 13:07:56,954 basehttp "GET /static/admin/css/login.css HTTP/1.1" 200 951
+WARNING 2025-10-30 13:07:57,081 log Not Found: /favicon.ico
+WARNING 2025-10-30 13:07:57,081 basehttp "GET /favicon.ico HTTP/1.1" 404 3520
+INFO 2025-10-30 13:08:04,526 basehttp "POST /admin/login/?next=/admin/ HTTP/1.1" 302 0
+INFO 2025-10-30 13:08:04,562 basehttp "GET /admin/ HTTP/1.1" 200 42393
+INFO 2025-10-30 13:08:04,598 basehttp "GET /static/admin/css/dashboard.css HTTP/1.1" 200 441
+INFO 2025-10-30 13:08:04,645 basehttp "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 380
+INFO 2025-10-30 13:08:12,933 basehttp "GET /admin/master_data/citymaster/ HTTP/1.1" 200 34423
+INFO 2025-10-30 13:08:12,970 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:08:15,370 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 38091
+INFO 2025-10-30 13:08:15,403 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:10:54,018 basehttp "GET /admin/authentication/user/1/change/ HTTP/1.1" 200 93311
+INFO 2025-10-30 13:10:54,058 basehttp "GET /static/admin/css/forms.css HTTP/1.1" 200 8525
+INFO 2025-10-30 13:10:54,065 basehttp "GET /static/admin/js/calendar.js HTTP/1.1" 200 9141
+INFO 2025-10-30 13:10:54,068 basehttp "GET /static/admin/js/inlines.js HTTP/1.1" 200 15628
+INFO 2025-10-30 13:10:54,070 basehttp "GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 200 19319
+INFO 2025-10-30 13:10:54,071 basehttp "GET /static/admin/js/SelectBox.js HTTP/1.1" 200 4530
+INFO 2025-10-30 13:10:54,074 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:10:54,074 basehttp "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 200 15845
+INFO 2025-10-30 13:10:54,075 basehttp "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 200 586
+INFO 2025-10-30 13:10:54,105 basehttp "GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 200 392
+INFO 2025-10-30 13:10:54,106 basehttp "GET /static/admin/css/widgets.css HTTP/1.1" 200 11991
+INFO 2025-10-30 13:10:54,122 basehttp "GET /static/admin/js/change_form.js HTTP/1.1" 200 606
+INFO 2025-10-30 13:10:54,197 basehttp "GET /static/admin/img/inline-delete.svg HTTP/1.1" 200 537
+INFO 2025-10-30 13:10:54,288 basehttp "GET /static/admin/img/selector-icons.svg HTTP/1.1" 200 3291
+INFO 2025-10-30 13:10:54,288 basehttp "GET /static/admin/img/icon-calendar.svg HTTP/1.1" 200 1086
+INFO 2025-10-30 13:11:03,598 basehttp "POST /admin/authentication/user/1/change/ HTTP/1.1" 200 94294
+INFO 2025-10-30 13:11:03,637 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:14:26,994 logging_middleware ➡️  POST /api/system/initialize/ | User: Anonymous
+ERROR 2025-10-30 13:14:26,995 exception_handler Exception in InitializeSystemView: InvalidToken - {'detail': ErrorDetail(string='Given token not valid for any token type', code='token_not_valid'), 'code': ErrorDetail(string='token_not_valid', code='token_not_valid'), 'messages': [{'token_class': ErrorDetail(string='AccessToken', code='token_not_valid'), 'token_type': ErrorDetail(string='access', code='token_not_valid'), 'message': ErrorDetail(string='Token is invalid', code='token_not_valid')}]}
+Path: /api/system/initialize/
+Method: POST
+User: Anonymous
+INFO 2025-10-30 13:14:26,996 logging_middleware ❌ POST /api/system/initialize/ | Status: 401 | Duration: 0.00s
+WARNING 2025-10-30 13:14:26,997 log Unauthorized: /api/system/initialize/
+WARNING 2025-10-30 13:14:26,998 basehttp "POST /api/system/initialize/ HTTP/1.1" 401 264
+INFO 2025-10-30 13:14:29,590 logging_middleware ➡️  POST /api/system/initialize/ | User: Anonymous
+ERROR 2025-10-30 13:14:29,591 exception_handler Exception in InitializeSystemView: InvalidToken - {'detail': ErrorDetail(string='Given token not valid for any token type', code='token_not_valid'), 'code': ErrorDetail(string='token_not_valid', code='token_not_valid'), 'messages': [{'token_class': ErrorDetail(string='AccessToken', code='token_not_valid'), 'token_type': ErrorDetail(string='access', code='token_not_valid'), 'message': ErrorDetail(string='Token is invalid', code='token_not_valid')}]}
+Path: /api/system/initialize/
+Method: POST
+User: Anonymous
+INFO 2025-10-30 13:14:29,592 logging_middleware ❌ POST /api/system/initialize/ | Status: 401 | Duration: 0.00s
+WARNING 2025-10-30 13:14:29,592 log Unauthorized: /api/system/initialize/
+WARNING 2025-10-30 13:14:29,593 basehttp "POST /api/system/initialize/ HTTP/1.1" 401 264
+INFO 2025-10-30 13:15:19,476 logging_middleware ➡️  POST /api/system/initialize/ | User: Anonymous
+INFO 2025-10-30 13:15:19,746 logging_middleware ✅ POST /api/system/initialize/ | Status: 200 | Duration: 0.27s
+INFO 2025-10-30 13:15:19,747 basehttp "POST /api/system/initialize/ HTTP/1.1" 200 113
+INFO 2025-10-30 13:15:47,082 basehttp "GET /admin/authentication/user/1/change/ HTTP/1.1" 200 93759
+INFO 2025-10-30 13:15:52,862 basehttp "GET /admin/authentication/role/ HTTP/1.1" 200 40523
+INFO 2025-10-30 13:15:52,888 basehttp "GET /static/admin/img/icon-yes.svg HTTP/1.1" 200 436
+INFO 2025-10-30 13:15:52,892 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:15:57,470 basehttp "GET /admin/authentication/userrole/ HTTP/1.1" 200 34096
+INFO 2025-10-30 13:15:57,500 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:15:58,765 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 38091
+INFO 2025-10-30 13:15:58,792 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:16:00,586 basehttp "GET /admin/authentication/user/1/change/ HTTP/1.1" 200 93759
+INFO 2025-10-30 13:16:00,612 basehttp "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 304 0
+INFO 2025-10-30 13:16:00,616 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:16:11,086 basehttp "POST /admin/authentication/user/1/change/ HTTP/1.1" 200 94750
+INFO 2025-10-30 13:16:11,115 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:17:42,597 basehttp "POST /admin/authentication/user/1/change/ HTTP/1.1" 200 94924
+INFO 2025-10-30 13:17:42,629 basehttp "GET /static/admin/css/forms.css HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:42,636 basehttp "GET /static/admin/js/calendar.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:42,637 basehttp "GET /static/admin/js/SelectBox.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:42,637 basehttp "GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:42,638 basehttp "GET /static/admin/js/inlines.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:42,640 basehttp "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:42,641 basehttp "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:42,645 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:17:42,675 basehttp "GET /static/admin/css/widgets.css HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:42,689 basehttp "GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:42,721 basehttp "GET /static/admin/js/change_form.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:42,780 basehttp "GET /static/admin/img/inline-delete.svg HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:42,842 basehttp "GET /static/admin/img/icon-calendar.svg HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:42,843 basehttp "GET /static/admin/img/selector-icons.svg HTTP/1.1" 304 0
+INFO 2025-10-30 13:17:46,824 basehttp "GET /admin/master_data/gradeentitlementmaster/ HTTP/1.1" 200 66768
+INFO 2025-10-30 13:17:46,857 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:17:54,133 basehttp "GET /admin/master_data/citymaster/ HTTP/1.1" 200 35194
+INFO 2025-10-30 13:17:54,162 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:17:57,953 basehttp "GET /admin/master_data/citycategoryassignment/ HTTP/1.1" 200 34187
+INFO 2025-10-30 13:17:57,981 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:18:03,191 basehttp "GET /admin/master_data/citycategoriesmaster/ HTTP/1.1" 200 36084
+INFO 2025-10-30 13:18:03,223 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:18:50,549 basehttp "GET /admin/master_data/countrymaster/ HTTP/1.1" 200 35943
+INFO 2025-10-30 13:18:50,592 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:18:55,304 basehttp "GET /admin/master_data/statemaster/ HTTP/1.1" 200 49274
+INFO 2025-10-30 13:18:55,339 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:19:03,667 basehttp "GET /admin/master_data/citymaster/ HTTP/1.1" 200 83882
+INFO 2025-10-30 13:19:03,698 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:19:36,001 basehttp "GET /admin/master_data/statemaster/ HTTP/1.1" 200 49274
+INFO 2025-10-30 13:19:36,035 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:20:11,949 basehttp "GET /admin/authentication/rolepermission/ HTTP/1.1" 200 46370
+INFO 2025-10-30 13:20:11,987 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:20:13,578 basehttp "GET /admin/authentication/role/ HTTP/1.1" 200 40523
+INFO 2025-10-30 13:20:13,609 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:20:15,096 basehttp "GET /admin/authentication/userrole/ HTTP/1.1" 200 34096
+INFO 2025-10-30 13:20:15,123 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:20:16,045 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 38091
+INFO 2025-10-30 13:20:16,074 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:20:17,676 basehttp "GET /admin/authentication/userrole/ HTTP/1.1" 200 34096
+INFO 2025-10-30 13:20:17,703 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:20:18,704 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 38091
+INFO 2025-10-30 13:20:18,732 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:20:19,923 basehttp "GET /admin/authentication/user/1/change/ HTTP/1.1" 200 93933
+INFO 2025-10-30 13:20:19,956 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:21:31,901 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 38091
+INFO 2025-10-30 13:21:31,939 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:21:33,858 basehttp "GET /admin/authentication/user/add/ HTTP/1.1" 200 48878
+INFO 2025-10-30 13:21:33,888 basehttp "GET /static/admin/css/unusable_password_field.css HTTP/1.1" 200 663
+INFO 2025-10-30 13:21:33,892 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:21:33,906 basehttp "GET /static/admin/js/unusable_password_field.js HTTP/1.1" 200 1480
+INFO 2025-10-30 13:21:46,859 basehttp "GET /admin/master_data/companyinformation/ HTTP/1.1" 200 34154
+INFO 2025-10-30 13:21:46,888 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:21:48,946 basehttp "GET /admin/master_data/companyinformation/add/ HTTP/1.1" 200 40490
+INFO 2025-10-30 13:21:48,974 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:22:52,917 basehttp "POST /admin/master_data/companyinformation/add/ HTTP/1.1" 302 0
+INFO 2025-10-30 13:22:52,944 basehttp "GET /admin/master_data/companyinformation/ HTTP/1.1" 200 36667
+INFO 2025-10-30 13:22:52,981 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:22:52,998 basehttp "GET /static/admin/img/icon-yes.svg HTTP/1.1" 304 0
+INFO 2025-10-30 13:23:11,967 basehttp "GET /admin/master_data/departmentmaster/ HTTP/1.1" 200 34465
+INFO 2025-10-30 13:23:12,001 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:23:13,445 basehttp "GET /admin/master_data/departmentmaster/add/ HTTP/1.1" 200 38028
+INFO 2025-10-30 13:23:13,479 basehttp "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 304 0
+INFO 2025-10-30 13:23:13,484 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:24:29,478 basehttp "POST /admin/master_data/departmentmaster/add/ HTTP/1.1" 302 0
+INFO 2025-10-30 13:24:29,503 basehttp "GET /admin/master_data/departmentmaster/ HTTP/1.1" 200 36392
+INFO 2025-10-30 13:24:29,543 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:24:31,616 basehttp "GET /admin/master_data/departmentmaster/add/ HTTP/1.1" 200 38028
+INFO 2025-10-30 13:24:31,643 basehttp "GET /static/admin/css/forms.css HTTP/1.1" 304 0
+INFO 2025-10-30 13:24:31,646 basehttp "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:24:31,650 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:24:31,658 basehttp "GET /static/admin/js/change_form.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:24:31,687 basehttp "GET /static/admin/css/widgets.css HTTP/1.1" 304 0
+INFO 2025-10-30 13:24:40,696 basehttp "GET /admin/master_data/designationmaster/ HTTP/1.1" 200 34147
+INFO 2025-10-30 13:24:40,726 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:24:42,316 basehttp "GET /admin/master_data/designationmaster/add/ HTTP/1.1" 200 38112
+INFO 2025-10-30 13:24:42,349 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:25:42,286 basehttp "POST /admin/master_data/designationmaster/add/ HTTP/1.1" 302 0
+INFO 2025-10-30 13:25:42,310 basehttp "GET /admin/master_data/designationmaster/ HTTP/1.1" 200 35700
+INFO 2025-10-30 13:25:42,349 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:25:51,472 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 38091
+INFO 2025-10-30 13:25:51,503 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:25:53,357 basehttp "GET /admin/authentication/user/1/change/ HTTP/1.1" 200 94067
+INFO 2025-10-30 13:25:53,386 basehttp "GET /static/admin/js/calendar.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:25:53,388 basehttp "GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:25:53,388 basehttp "GET /static/admin/js/inlines.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:25:53,389 basehttp "GET /static/admin/js/SelectBox.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:25:53,390 basehttp "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:25:53,393 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:25:53,396 basehttp "GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 304 0
+INFO 2025-10-30 13:25:53,433 basehttp "GET /static/admin/img/inline-delete.svg HTTP/1.1" 304 0
+INFO 2025-10-30 13:25:53,458 basehttp "GET /static/admin/img/icon-calendar.svg HTTP/1.1" 304 0
+INFO 2025-10-30 13:25:53,459 basehttp "GET /static/admin/img/selector-icons.svg HTTP/1.1" 304 0
+INFO 2025-10-30 13:25:53,461 basehttp "GET /static/admin/img/icon-clock.svg HTTP/1.1" 200 677
+INFO 2025-10-30 13:26:17,445 basehttp "GET /admin/master_data/employeetypemaster/ HTTP/1.1" 200 34159
+INFO 2025-10-30 13:26:17,474 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:26:19,823 basehttp "GET /admin/master_data/employeetypemaster/add/ HTTP/1.1" 200 35574
+INFO 2025-10-30 13:26:19,851 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:26:45,534 basehttp "POST /admin/master_data/employeetypemaster/add/ HTTP/1.1" 302 0
+INFO 2025-10-30 13:26:45,553 basehttp "GET /admin/master_data/employeetypemaster/ HTTP/1.1" 200 35717
+INFO 2025-10-30 13:26:45,583 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:26:53,692 basehttp "GET /admin/master_data/locationmaster/ HTTP/1.1" 200 35134
+INFO 2025-10-30 13:26:53,722 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+WARNING 2025-10-30 13:26:58,073 database_middleware ⚠️  High query count: 3796 queries for /admin/master_data/locationmaster/add/
+INFO 2025-10-30 13:26:58,074 basehttp "GET /admin/master_data/locationmaster/add/ HTTP/1.1" 200 250467
+INFO 2025-10-30 13:26:58,113 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:27:45,373 basehttp "POST /admin/master_data/locationmaster/add/ HTTP/1.1" 302 0
+INFO 2025-10-30 13:27:45,400 basehttp "GET /admin/master_data/locationmaster/ HTTP/1.1" 200 37516
+INFO 2025-10-30 13:27:45,452 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+WARNING 2025-10-30 13:27:54,702 database_middleware ⚠️  High query count: 3795 queries for /admin/master_data/locationmaster/add/
+INFO 2025-10-30 13:27:54,703 basehttp "GET /admin/master_data/locationmaster/add/ HTTP/1.1" 200 250467
+INFO 2025-10-30 13:27:54,739 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:27:55,839 basehttp "GET /admin/master_data/locationmaster/ HTTP/1.1" 200 37284
+INFO 2025-10-30 13:28:00,421 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 38091
+INFO 2025-10-30 13:28:00,450 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:28:02,302 basehttp "GET /admin/authentication/user/1/change/ HTTP/1.1" 200 94156
+INFO 2025-10-30 13:28:02,333 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:28:24,556 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 38091
+INFO 2025-10-30 13:28:24,585 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:28:26,289 basehttp "GET /admin/authentication/user/add/ HTTP/1.1" 200 48878
+INFO 2025-10-30 13:28:26,313 basehttp "GET /static/admin/css/unusable_password_field.css HTTP/1.1" 304 0
+INFO 2025-10-30 13:28:26,318 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:28:26,322 basehttp "GET /static/admin/js/unusable_password_field.js HTTP/1.1" 304 0
+INFO 2025-10-30 13:28:50,438 basehttp "POST /admin/authentication/user/add/ HTTP/1.1" 302 0
+INFO 2025-10-30 13:28:50,540 basehttp "GET /admin/authentication/user/2/change/ HTTP/1.1" 200 98991
+INFO 2025-10-30 13:28:50,577 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:29:30,810 basehttp "POST /admin/authentication/user/2/change/ HTTP/1.1" 302 0
+INFO 2025-10-30 13:29:30,838 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 38777
+INFO 2025-10-30 13:29:30,883 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 13:29:30,931 basehttp "GET /static/admin/img/icon-yes.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:01:14,864 basehttp "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+INFO 2025-10-30 14:01:14,865 logging_middleware ➡️  POST /api/auth/login/ | User: Anonymous
+INFO 2025-10-30 14:01:15,083 logging_middleware ✅ POST /api/auth/login/ | Status: 200 | Duration: 0.22s
+INFO 2025-10-30 14:01:15,084 basehttp "POST /api/auth/login/ HTTP/1.1" 200 977
+INFO 2025-10-30 14:01:15,237 basehttp "OPTIONS /api/travel/approvals/dashboard/ HTTP/1.1" 200 0
+INFO 2025-10-30 14:01:15,239 logging_middleware ➡️  GET /api/travel/approvals/dashboard/ | User: Anonymous
+INFO 2025-10-30 14:01:15,265 logging_middleware ✅ GET /api/travel/approvals/dashboard/ | Status: 200 | Duration: 0.03s
+INFO 2025-10-30 14:01:15,266 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 197
+INFO 2025-10-30 14:01:20,111 basehttp "OPTIONS /api/travel/my-applications/?status=all HTTP/1.1" 200 0
+INFO 2025-10-30 14:01:20,114 logging_middleware ➡️  GET /api/travel/my-applications/ | User: Anonymous
+INFO 2025-10-30 14:01:20,118 basehttp "OPTIONS /api/travel/applications/stats/ HTTP/1.1" 200 0
+INFO 2025-10-30 14:01:20,122 logging_middleware ➡️  GET /api/travel/applications/stats/ | User: Anonymous
+ERROR 2025-10-30 14:01:20,128 exception_handler Exception in MyTravelApplicationsView: PermissionDenied - Employee access required
+Path: /api/travel/my-applications/
+Method: GET
+User: Ankur (0001)
+INFO 2025-10-30 14:01:20,128 logging_middleware ❌ GET /api/travel/my-applications/ | Status: 403 | Duration: 0.01s
+WARNING 2025-10-30 14:01:20,130 log Forbidden: /api/travel/my-applications/
+WARNING 2025-10-30 14:01:20,130 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 403 113
+INFO 2025-10-30 14:01:20,137 logging_middleware ✅ GET /api/travel/applications/stats/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:01:20,138 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 200 180
+INFO 2025-10-30 14:02:36,317 basehttp "GET /admin/authentication/user/1/change/ HTTP/1.1" 200 94285
+INFO 2025-10-30 14:02:36,355 basehttp "GET /static/admin/css/forms.css HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,358 basehttp "GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,359 basehttp "GET /static/admin/js/calendar.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,362 basehttp "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,364 basehttp "GET /static/admin/js/SelectBox.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,365 basehttp "GET /static/admin/js/inlines.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,365 basehttp "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,370 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 14:02:36,398 basehttp "GET /static/admin/css/widgets.css HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,416 basehttp "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,454 basehttp "GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,454 basehttp "GET /static/admin/js/change_form.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,500 basehttp "GET /static/admin/img/inline-delete.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,589 basehttp "GET /static/admin/img/icon-clock.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,590 basehttp "GET /static/admin/img/selector-icons.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:36,590 basehttp "GET /static/admin/img/icon-calendar.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:02:46,740 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 38567
+INFO 2025-10-30 14:02:46,784 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 14:02:48,554 basehttp "GET /admin/authentication/user/2/change/ HTTP/1.1" 200 98825
+INFO 2025-10-30 14:02:48,587 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 14:03:00,541 basehttp "POST /admin/authentication/user/2/change/ HTTP/1.1" 302 0
+INFO 2025-10-30 14:03:00,567 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 38784
+INFO 2025-10-30 14:03:00,598 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 14:03:00,609 basehttp "GET /static/admin/img/icon-yes.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:03:02,697 logging_middleware ➡️  GET /api/travel/my-applications/ | User: Anonymous
+INFO 2025-10-30 14:03:02,698 logging_middleware ➡️  GET /api/travel/applications/stats/ | User: Anonymous
+ERROR 2025-10-30 14:03:02,710 exception_handler Exception in MyTravelApplicationsView: PermissionDenied - Employee access required
+Path: /api/travel/my-applications/
+Method: GET
+User: Ankur (0001)
+INFO 2025-10-30 14:03:02,711 logging_middleware ❌ GET /api/travel/my-applications/ | Status: 403 | Duration: 0.01s
+WARNING 2025-10-30 14:03:02,712 log Forbidden: /api/travel/my-applications/
+WARNING 2025-10-30 14:03:02,713 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 403 113
+INFO 2025-10-30 14:03:02,715 logging_middleware ✅ GET /api/travel/applications/stats/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:03:02,716 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 200 180
+INFO 2025-10-30 14:05:24,686 basehttp "OPTIONS /api/travel/manager-approvals/?status=pending HTTP/1.1" 200 0
+INFO 2025-10-30 14:05:24,686 basehttp "OPTIONS /api/travel/approvals/stats/ HTTP/1.1" 200 0
+INFO 2025-10-30 14:05:24,689 logging_middleware ➡️  GET /api/travel/manager-approvals/ | User: Anonymous
+INFO 2025-10-30 14:05:24,690 logging_middleware ➡️  GET /api/travel/approvals/stats/ | User: Anonymous
+INFO 2025-10-30 14:05:24,710 logging_middleware ✅ GET /api/travel/manager-approvals/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:05:24,712 basehttp "GET /api/travel/manager-approvals/?status=pending HTTP/1.1" 200 203
+INFO 2025-10-30 14:05:24,719 logging_middleware ✅ GET /api/travel/approvals/stats/ | Status: 200 | Duration: 0.03s
+INFO 2025-10-30 14:05:24,720 basehttp "GET /api/travel/approvals/stats/ HTTP/1.1" 200 166
+INFO 2025-10-30 14:05:26,834 logging_middleware ➡️  GET /api/travel/applications/stats/ | User: Anonymous
+INFO 2025-10-30 14:05:26,835 logging_middleware ➡️  GET /api/travel/my-applications/ | User: Anonymous
+ERROR 2025-10-30 14:05:26,848 exception_handler Exception in MyTravelApplicationsView: PermissionDenied - Employee access required
+Path: /api/travel/my-applications/
+Method: GET
+User: Ankur (0001)
+INFO 2025-10-30 14:05:26,849 logging_middleware ❌ GET /api/travel/my-applications/ | Status: 403 | Duration: 0.01s
+WARNING 2025-10-30 14:05:26,850 log Forbidden: /api/travel/my-applications/
+INFO 2025-10-30 14:05:26,851 logging_middleware ✅ GET /api/travel/applications/stats/ | Status: 200 | Duration: 0.02s
+WARNING 2025-10-30 14:05:26,851 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 403 113
+INFO 2025-10-30 14:05:26,852 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 200 180
+INFO 2025-10-30 14:05:27,705 basehttp "OPTIONS /api/master/gl-codes/ HTTP/1.1" 200 0
+INFO 2025-10-30 14:05:27,708 logging_middleware ➡️  GET /api/master/gl-codes/ | User: Anonymous
+INFO 2025-10-30 14:05:27,720 logging_middleware ✅ GET /api/master/gl-codes/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:05:27,721 basehttp "GET /api/master/gl-codes/ HTTP/1.1" 200 178
+INFO 2025-10-30 14:05:27,766 basehttp "OPTIONS /api/master/cities/ HTTP/1.1" 200 0
+INFO 2025-10-30 14:05:27,811 logging_middleware ➡️  GET /api/master/cities/ | User: Anonymous
+INFO 2025-10-30 14:05:28,179 logging_middleware ✅ GET /api/master/cities/ | Status: 200 | Duration: 0.37s
+INFO 2025-10-30 14:05:28,185 basehttp "GET /api/master/cities/ HTTP/1.1" 200 605140
+INFO 2025-10-30 14:05:28,192 basehttp "OPTIONS /api/master/travel-modes/ HTTP/1.1" 200 0
+INFO 2025-10-30 14:05:28,237 logging_middleware ➡️  GET /api/master/travel-modes/ | User: Anonymous
+INFO 2025-10-30 14:05:28,246 logging_middleware ✅ GET /api/master/travel-modes/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:05:28,246 basehttp "GET /api/master/travel-modes/ HTTP/1.1" 200 474
+INFO 2025-10-30 14:05:28,294 basehttp "OPTIONS /api/master/guest-houses/ HTTP/1.1" 200 0
+INFO 2025-10-30 14:05:28,343 logging_middleware ➡️  GET /api/master/guest-houses/ | User: Anonymous
+INFO 2025-10-30 14:05:28,355 logging_middleware ✅ GET /api/master/guest-houses/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:05:28,356 basehttp "GET /api/master/guest-houses/ HTTP/1.1" 200 178
+INFO 2025-10-30 14:05:28,401 basehttp "OPTIONS /api/master/arc-hotels/ HTTP/1.1" 200 0
+INFO 2025-10-30 14:05:28,447 logging_middleware ➡️  GET /api/master/arc-hotels/ | User: Anonymous
+INFO 2025-10-30 14:05:28,458 logging_middleware ✅ GET /api/master/arc-hotels/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:05:28,458 basehttp "GET /api/master/arc-hotels/ HTTP/1.1" 200 178
+INFO 2025-10-30 14:05:41,699 logging_middleware ➡️  GET /api/travel/my-applications/ | User: Anonymous
+INFO 2025-10-30 14:05:41,700 logging_middleware ➡️  GET /api/travel/applications/stats/ | User: Anonymous
+ERROR 2025-10-30 14:05:41,710 exception_handler Exception in MyTravelApplicationsView: PermissionDenied - Employee access required
+Path: /api/travel/my-applications/
+Method: GET
+User: Ankur (0001)
+INFO 2025-10-30 14:05:41,711 logging_middleware ❌ GET /api/travel/my-applications/ | Status: 403 | Duration: 0.01s
+WARNING 2025-10-30 14:05:41,713 log Forbidden: /api/travel/my-applications/
+WARNING 2025-10-30 14:05:41,715 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 403 113
+INFO 2025-10-30 14:05:41,715 logging_middleware ✅ GET /api/travel/applications/stats/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:05:41,716 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 200 180
+INFO 2025-10-30 14:05:43,727 logging_middleware ➡️  GET /api/travel/approvals/stats/ | User: Anonymous
+INFO 2025-10-30 14:05:43,728 logging_middleware ➡️  GET /api/travel/manager-approvals/ | User: Anonymous
+INFO 2025-10-30 14:05:43,739 logging_middleware ✅ GET /api/travel/manager-approvals/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:05:43,740 basehttp "GET /api/travel/manager-approvals/?status=pending HTTP/1.1" 200 203
+INFO 2025-10-30 14:05:43,740 logging_middleware ✅ GET /api/travel/approvals/stats/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:05:43,741 basehttp "GET /api/travel/approvals/stats/ HTTP/1.1" 200 166
+INFO 2025-10-30 14:05:52,503 logging_middleware ➡️  GET /api/travel/approvals/dashboard/ | User: Anonymous
+INFO 2025-10-30 14:05:52,514 logging_middleware ✅ GET /api/travel/approvals/dashboard/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:05:52,515 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 197
+INFO 2025-10-30 14:05:59,934 logging_middleware ➡️  GET /api/master/gl-codes/ | User: Anonymous
+INFO 2025-10-30 14:05:59,944 logging_middleware ✅ GET /api/master/gl-codes/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:05:59,945 basehttp "GET /api/master/gl-codes/ HTTP/1.1" 200 178
+INFO 2025-10-30 14:05:59,950 logging_middleware ➡️  GET /api/master/cities/ | User: Anonymous
+INFO 2025-10-30 14:06:00,064 logging_middleware ✅ GET /api/master/cities/ | Status: 200 | Duration: 0.11s
+INFO 2025-10-30 14:06:00,070 basehttp "GET /api/master/cities/ HTTP/1.1" 200 605140
+INFO 2025-10-30 14:06:00,078 logging_middleware ➡️  GET /api/master/travel-modes/ | User: Anonymous
+INFO 2025-10-30 14:06:00,084 logging_middleware ✅ GET /api/master/travel-modes/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:06:00,085 basehttp "GET /api/master/travel-modes/ HTTP/1.1" 200 474
+INFO 2025-10-30 14:06:00,132 logging_middleware ➡️  GET /api/master/guest-houses/ | User: Anonymous
+INFO 2025-10-30 14:06:00,140 logging_middleware ✅ GET /api/master/guest-houses/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:06:00,140 basehttp "GET /api/master/guest-houses/ HTTP/1.1" 200 178
+INFO 2025-10-30 14:06:00,188 logging_middleware ➡️  GET /api/master/arc-hotels/ | User: Anonymous
+INFO 2025-10-30 14:06:00,198 logging_middleware ✅ GET /api/master/arc-hotels/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:06:00,199 basehttp "GET /api/master/arc-hotels/ HTTP/1.1" 200 178
+INFO 2025-10-30 14:06:01,383 logging_middleware ➡️  GET /api/travel/manager-approvals/ | User: Anonymous
+INFO 2025-10-30 14:06:01,384 logging_middleware ➡️  GET /api/travel/approvals/stats/ | User: Anonymous
+INFO 2025-10-30 14:06:01,394 logging_middleware ✅ GET /api/travel/manager-approvals/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:06:01,396 basehttp "GET /api/travel/manager-approvals/?status=pending HTTP/1.1" 200 203
+INFO 2025-10-30 14:06:01,402 logging_middleware ✅ GET /api/travel/approvals/stats/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:06:01,403 basehttp "GET /api/travel/approvals/stats/ HTTP/1.1" 200 166
+INFO 2025-10-30 14:06:05,616 basehttp "OPTIONS /api/auth/profile/ HTTP/1.1" 200 0
+INFO 2025-10-30 14:06:05,618 logging_middleware ➡️  GET /api/auth/profile/ | User: Anonymous
+INFO 2025-10-30 14:06:05,639 logging_middleware ✅ GET /api/auth/profile/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:06:05,640 basehttp "GET /api/auth/profile/ HTTP/1.1" 200 531
+INFO 2025-10-30 14:06:26,315 logging_middleware ➡️  GET /api/travel/my-applications/ | User: Anonymous
+INFO 2025-10-30 14:06:26,316 logging_middleware ➡️  GET /api/travel/applications/stats/ | User: Anonymous
+ERROR 2025-10-30 14:06:26,327 exception_handler Exception in MyTravelApplicationsView: PermissionDenied - Employee access required
+Path: /api/travel/my-applications/
+Method: GET
+User: Ankur (0001)
+INFO 2025-10-30 14:06:26,328 logging_middleware ❌ GET /api/travel/my-applications/ | Status: 403 | Duration: 0.01s
+WARNING 2025-10-30 14:06:26,329 log Forbidden: /api/travel/my-applications/
+WARNING 2025-10-30 14:06:26,330 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 403 113
+INFO 2025-10-30 14:06:26,330 logging_middleware ✅ GET /api/travel/applications/stats/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:06:26,331 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 200 180
+INFO 2025-10-30 14:06:45,396 basehttp "GET /admin/authentication/user/2/change/ HTTP/1.1" 200 103330
+INFO 2025-10-30 14:06:45,431 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 14:07:21,065 autoreload /app/apps/travel/views/travel_views.py changed, reloading.
+INFO 2025-10-30 14:07:22,704 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 14:08:11,641 autoreload /app/apps/travel/views/travel_views.py changed, reloading.
+INFO 2025-10-30 14:08:12,699 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 14:08:13,660 logging_middleware ➡️  GET /api/travel/my-applications/ | User: Anonymous
+INFO 2025-10-30 14:08:13,661 logging_middleware ➡️  GET /api/travel/applications/stats/ | User: Anonymous
+INFO 2025-10-30 14:08:13,698 logging_middleware ✅ GET /api/travel/applications/stats/ | Status: 200 | Duration: 0.04s
+INFO 2025-10-30 14:08:13,699 logging_middleware ✅ GET /api/travel/my-applications/ | Status: 200 | Duration: 0.04s
+INFO 2025-10-30 14:08:13,700 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 200 180
+INFO 2025-10-30 14:08:13,703 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 200 205
+INFO 2025-10-30 14:08:23,928 logging_middleware ➡️  GET /api/travel/my-applications/ | User: Anonymous
+INFO 2025-10-30 14:08:23,929 logging_middleware ➡️  GET /api/travel/applications/stats/ | User: Anonymous
+INFO 2025-10-30 14:08:23,945 logging_middleware ✅ GET /api/travel/my-applications/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:08:23,945 logging_middleware ✅ GET /api/travel/applications/stats/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:08:23,946 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 200 205
+INFO 2025-10-30 14:08:23,947 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 200 180
+INFO 2025-10-30 14:08:24,075 autoreload /app/apps/travel/views/travel_views.py changed, reloading.
+INFO 2025-10-30 14:08:24,888 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 14:08:25,971 logging_middleware ➡️  GET /api/travel/manager-approvals/ | User: Anonymous
+INFO 2025-10-30 14:08:25,971 logging_middleware ➡️  GET /api/travel/approvals/stats/ | User: Anonymous
+INFO 2025-10-30 14:08:25,989 logging_middleware ✅ GET /api/travel/manager-approvals/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:08:25,991 basehttp "GET /api/travel/manager-approvals/?status=pending HTTP/1.1" 200 203
+INFO 2025-10-30 14:08:25,994 logging_middleware ✅ GET /api/travel/approvals/stats/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:08:25,995 basehttp "GET /api/travel/approvals/stats/ HTTP/1.1" 200 166
+INFO 2025-10-30 14:08:26,779 logging_middleware ➡️  GET /api/travel/my-applications/ | User: Anonymous
+INFO 2025-10-30 14:08:26,780 logging_middleware ➡️  GET /api/travel/applications/stats/ | User: Anonymous
+INFO 2025-10-30 14:08:26,796 logging_middleware ✅ GET /api/travel/applications/stats/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:08:26,797 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 200 180
+ERROR 2025-10-30 14:08:26,800 exception_handler Exception in MyTravelApplicationsView: PermissionDenied - Employee access required
+Path: /api/travel/my-applications/
+Method: GET
+User: Ankur (0001)
+INFO 2025-10-30 14:08:26,800 logging_middleware ❌ GET /api/travel/my-applications/ | Status: 403 | Duration: 0.02s
+WARNING 2025-10-30 14:08:26,802 log Forbidden: /api/travel/my-applications/
+WARNING 2025-10-30 14:08:26,803 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 403 113
+INFO 2025-10-30 14:08:51,294 autoreload /app/apps/travel/views/travel_views.py changed, reloading.
+INFO 2025-10-30 14:08:52,424 autoreload Watching for file changes with StatReloader
+INFO 2025-10-30 14:08:54,835 logging_middleware ➡️  GET /api/travel/my-applications/ | User: Anonymous
+INFO 2025-10-30 14:08:54,836 logging_middleware ➡️  GET /api/travel/applications/stats/ | User: Anonymous
+INFO 2025-10-30 14:08:54,869 logging_middleware ✅ GET /api/travel/applications/stats/ | Status: 200 | Duration: 0.03s
+INFO 2025-10-30 14:08:54,871 basehttp "GET /api/travel/applications/stats/ HTTP/1.1" 200 180
+ERROR 2025-10-30 14:08:54,874 exception_handler Exception in MyTravelApplicationsView: PermissionDenied - Employee access required
+Path: /api/travel/my-applications/
+Method: GET
+User: Ankur (0001)
+INFO 2025-10-30 14:08:54,874 logging_middleware ❌ GET /api/travel/my-applications/ | Status: 403 | Duration: 0.04s
+WARNING 2025-10-30 14:08:54,876 log Forbidden: /api/travel/my-applications/
+WARNING 2025-10-30 14:08:54,876 basehttp "GET /api/travel/my-applications/?status=all HTTP/1.1" 403 113
+INFO 2025-10-30 14:09:13,514 logging_middleware ➡️  GET /api/travel/manager-approvals/ | User: Anonymous
+INFO 2025-10-30 14:09:13,515 logging_middleware ➡️  GET /api/travel/approvals/stats/ | User: Anonymous
+INFO 2025-10-30 14:09:13,529 logging_middleware ✅ GET /api/travel/manager-approvals/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:09:13,532 basehttp "GET /api/travel/manager-approvals/?status=pending HTTP/1.1" 200 203
+INFO 2025-10-30 14:09:13,533 logging_middleware ✅ GET /api/travel/approvals/stats/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:09:13,534 basehttp "GET /api/travel/approvals/stats/ HTTP/1.1" 200 166
+INFO 2025-10-30 14:09:52,189 logging_middleware ➡️  GET /api/travel/manager-approvals/ | User: Anonymous
+INFO 2025-10-30 14:09:52,190 logging_middleware ➡️  GET /api/travel/approvals/stats/ | User: Anonymous
+INFO 2025-10-30 14:09:52,209 logging_middleware ✅ GET /api/travel/manager-approvals/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:09:52,211 logging_middleware ✅ GET /api/travel/approvals/stats/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:09:52,212 basehttp "GET /api/travel/manager-approvals/?status=pending HTTP/1.1" 200 203
+INFO 2025-10-30 14:09:52,213 basehttp "GET /api/travel/approvals/stats/ HTTP/1.1" 200 166
+INFO 2025-10-30 14:09:54,296 logging_middleware ➡️  GET /api/travel/approvals/dashboard/ | User: Anonymous
+INFO 2025-10-30 14:09:54,310 logging_middleware ✅ GET /api/travel/approvals/dashboard/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:09:54,310 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 197
+INFO 2025-10-30 14:10:23,368 logging_middleware ➡️  GET /api/travel/approvals/dashboard/ | User: Anonymous
+INFO 2025-10-30 14:10:23,386 logging_middleware ✅ GET /api/travel/approvals/dashboard/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:10:23,387 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 197
+INFO 2025-10-30 14:11:18,854 logging_middleware ➡️  GET /api/travel/approvals/dashboard/ | User: Anonymous
+INFO 2025-10-30 14:11:18,872 logging_middleware ✅ GET /api/travel/approvals/dashboard/ | Status: 200 | Duration: 0.02s
+INFO 2025-10-30 14:11:18,873 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 197
+INFO 2025-10-30 14:12:21,272 logging_middleware ➡️  GET /api/travel/approvals/dashboard/ | User: Anonymous
+INFO 2025-10-30 14:12:21,298 logging_middleware ✅ GET /api/travel/approvals/dashboard/ | Status: 200 | Duration: 0.03s
+INFO 2025-10-30 14:12:21,299 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 197
+INFO 2025-10-30 14:12:37,430 logging_middleware ➡️  GET /api/travel/approvals/dashboard/ | User: Anonymous
+INFO 2025-10-30 14:12:37,440 logging_middleware ✅ GET /api/travel/approvals/dashboard/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:12:37,441 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 197
+INFO 2025-10-30 14:12:39,391 logging_middleware ➡️  GET /api/travel/approvals/dashboard/ | User: Anonymous
+INFO 2025-10-30 14:12:39,403 logging_middleware ✅ GET /api/travel/approvals/dashboard/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:12:39,404 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 197
+INFO 2025-10-30 14:14:51,882 logging_middleware ➡️  GET /api/master/gl-codes/ | User: Anonymous
+INFO 2025-10-30 14:14:51,893 logging_middleware ✅ GET /api/master/gl-codes/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:14:51,894 basehttp "GET /api/master/gl-codes/ HTTP/1.1" 200 178
+INFO 2025-10-30 14:14:51,898 logging_middleware ➡️  GET /api/master/cities/ | User: Anonymous
+INFO 2025-10-30 14:14:52,004 logging_middleware ✅ GET /api/master/cities/ | Status: 200 | Duration: 0.11s
+INFO 2025-10-30 14:14:52,010 basehttp "GET /api/master/cities/ HTTP/1.1" 200 605140
+INFO 2025-10-30 14:14:52,018 logging_middleware ➡️  GET /api/master/travel-modes/ | User: Anonymous
+INFO 2025-10-30 14:14:52,026 logging_middleware ✅ GET /api/master/travel-modes/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:14:52,027 basehttp "GET /api/master/travel-modes/ HTTP/1.1" 200 474
+INFO 2025-10-30 14:14:52,073 logging_middleware ➡️  GET /api/master/guest-houses/ | User: Anonymous
+INFO 2025-10-30 14:14:52,081 logging_middleware ✅ GET /api/master/guest-houses/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:14:52,081 basehttp "GET /api/master/guest-houses/ HTTP/1.1" 200 178
+INFO 2025-10-30 14:14:52,126 logging_middleware ➡️  GET /api/master/arc-hotels/ | User: Anonymous
+INFO 2025-10-30 14:14:52,135 logging_middleware ✅ GET /api/master/arc-hotels/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:14:52,136 basehttp "GET /api/master/arc-hotels/ HTTP/1.1" 200 178
+INFO 2025-10-30 14:16:02,426 logging_middleware ➡️  GET /api/travel/approvals/dashboard/ | User: Anonymous
+INFO 2025-10-30 14:16:02,439 logging_middleware ✅ GET /api/travel/approvals/dashboard/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:16:02,440 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 197
+INFO 2025-10-30 14:16:14,414 logging_middleware ➡️  GET /api/travel/approvals/dashboard/ | User: Anonymous
+INFO 2025-10-30 14:16:14,428 logging_middleware ✅ GET /api/travel/approvals/dashboard/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:16:14,429 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 197
+INFO 2025-10-30 14:17:34,450 logging_middleware ➡️  GET /api/travel/approvals/dashboard/ | User: Anonymous
+INFO 2025-10-30 14:17:34,463 logging_middleware ✅ GET /api/travel/approvals/dashboard/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:17:34,464 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 197
+INFO 2025-10-30 14:18:16,611 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 38574
+INFO 2025-10-30 14:18:16,646 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 14:18:18,954 basehttp "GET /admin/authentication/user/add/ HTTP/1.1" 200 48964
+INFO 2025-10-30 14:18:18,986 basehttp "GET /static/admin/css/forms.css HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:18,987 basehttp "GET /static/admin/css/unusable_password_field.css HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:18,988 basehttp "GET /static/admin/js/inlines.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:18,988 basehttp "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:18,991 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 14:18:18,995 basehttp "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:19,029 basehttp "GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:19,029 basehttp "GET /static/admin/css/widgets.css HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:19,039 basehttp "GET /static/admin/js/change_form.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:19,039 basehttp "GET /static/admin/js/unusable_password_field.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:19,062 basehttp "GET /static/admin/img/inline-delete.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:38,889 basehttp "POST /admin/authentication/user/add/ HTTP/1.1" 302 0
+INFO 2025-10-30 14:18:38,999 basehttp "GET /admin/authentication/user/3/change/ HTTP/1.1" 200 99175
+INFO 2025-10-30 14:18:39,029 basehttp "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:39,029 basehttp "GET /static/admin/js/SelectBox.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:39,029 basehttp "GET /static/admin/js/calendar.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:39,030 basehttp "GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:39,033 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 14:18:39,048 basehttp "GET /static/admin/img/icon-yes.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:39,106 basehttp "GET /static/admin/img/selector-icons.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:39,106 basehttp "GET /static/admin/img/icon-calendar.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:18:39,107 basehttp "GET /static/admin/img/icon-clock.svg HTTP/1.1" 304 0
+INFO 2025-10-30 14:19:17,075 basehttp "POST /admin/authentication/user/3/change/ HTTP/1.1" 302 0
+INFO 2025-10-30 14:19:17,105 basehttp "GET /admin/authentication/user/ HTTP/1.1" 200 39270
+INFO 2025-10-30 14:19:17,143 basehttp "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-10-30 14:19:25,048 basehttp "OPTIONS /api/auth/logout/ HTTP/1.1" 200 0
+INFO 2025-10-30 14:19:25,050 logging_middleware ➡️  POST /api/auth/logout/ | User: Anonymous
+INFO 2025-10-30 14:19:25,062 logging_middleware ✅ POST /api/auth/logout/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:19:25,063 basehttp "POST /api/auth/logout/ HTTP/1.1" 200 83
+INFO 2025-10-30 14:19:29,011 logging_middleware ➡️  POST /api/auth/login/ | User: Anonymous
+INFO 2025-10-30 14:19:29,180 logging_middleware ✅ POST /api/auth/login/ | Status: 200 | Duration: 0.17s
+INFO 2025-10-30 14:19:29,181 basehttp "POST /api/auth/login/ HTTP/1.1" 200 966
+INFO 2025-10-30 14:19:29,243 logging_middleware ➡️  GET /api/travel/approvals/dashboard/ | User: Anonymous
+INFO 2025-10-30 14:19:29,258 logging_middleware ✅ GET /api/travel/approvals/dashboard/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:19:29,259 basehttp "GET /api/travel/approvals/dashboard/ HTTP/1.1" 200 197
+INFO 2025-10-30 14:19:48,322 logging_middleware ➡️  GET /api/master/gl-codes/ | User: Anonymous
+INFO 2025-10-30 14:19:48,330 logging_middleware ✅ GET /api/master/gl-codes/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:19:48,331 basehttp "GET /api/master/gl-codes/ HTTP/1.1" 200 178
+INFO 2025-10-30 14:20:16,554 logging_middleware ➡️  POST /api/master/gl-codes/ | User: Anonymous
+INFO 2025-10-30 14:20:16,564 logging_middleware ✅ POST /api/master/gl-codes/ | Status: 201 | Duration: 0.01s
+INFO 2025-10-30 14:20:16,565 basehttp "POST /api/master/gl-codes/ HTTP/1.1" 201 190
+INFO 2025-10-30 14:20:16,569 logging_middleware ➡️  GET /api/master/gl-codes/ | User: Anonymous
+INFO 2025-10-30 14:20:16,576 logging_middleware ✅ GET /api/master/gl-codes/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:20:16,577 basehttp "GET /api/master/gl-codes/ HTTP/1.1" 200 303
+INFO 2025-10-30 14:23:22,794 logging_middleware ➡️  GET /api/master/gl-codes/ | User: Anonymous
+INFO 2025-10-30 14:23:22,804 logging_middleware ✅ GET /api/master/gl-codes/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:23:22,805 basehttp "GET /api/master/gl-codes/ HTTP/1.1" 200 303
+INFO 2025-10-30 14:24:16,448 logging_middleware ➡️  GET /api/master/gl-codes/ | User: Anonymous
+INFO 2025-10-30 14:24:16,456 logging_middleware ✅ GET /api/master/gl-codes/ | Status: 200 | Duration: 0.01s
+INFO 2025-10-30 14:24:16,457 basehttp "GET /api/master/gl-codes/ HTTP/1.1" 200 303
