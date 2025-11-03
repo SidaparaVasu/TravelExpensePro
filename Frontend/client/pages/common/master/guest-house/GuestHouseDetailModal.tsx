@@ -14,6 +14,7 @@ const GuestHouseDetailModal = ({ guestHouseId, onClose }) => {
     try {
       setLoading(true);
       const res = await accommodationAPI.guestHouse.get(guestHouseId);
+      console.log(res.data);
       setData(res.data);
     } catch (err) {
       console.error("Error fetching guest house:", err);
@@ -80,12 +81,11 @@ const GuestHouseDetailModal = ({ guestHouseId, onClose }) => {
         {/* Financial */}
         <SectionTable
           title="Financial Details"
-          headers={["GL Code", "GSTIN", "Vendor Code", "Cost Center", "Rate Card", "Billing Type"]}
+          headers={["GL Code", "GSTIN", "Vendor Code", "Rate Card", "Billing Type"]}
           row={[
             data.gl_code_display ,
             data.gstin || "-",
             data.vendor_code || "-",
-            data.cost_center || "-",
             data.rate_card ? `₹${data.rate_card}` : "-",
             data.billing_type?.replace("_", " ") || "-",
           ]}

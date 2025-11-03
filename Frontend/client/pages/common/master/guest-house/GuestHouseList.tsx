@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Edit, Trash2, Plus, Eye, Filter, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { accommodationAPI } from '@/src/api/master_accommodation';
-import { locationAPI } from "@/src/api/master_location";
+import { masterAPI } from "@/src/api/master";
 import GuestHouseDetailModal from './GuestHouseDetailModal';
 
 const GuestHouseList = ({ onEdit }) => {
@@ -10,27 +10,16 @@ const GuestHouseList = ({ onEdit }) => {
   const [loading, setLoading] = useState(true);
   const [viewId, setViewId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    city: '',
-    state: '',
-    property_type: '',
-    ownership_type: '',
-    is_active: ''
-  });
-  const [showFilters, setShowFilters] = useState(false);
-  const [dropdownData, setDropdownData] = useState({ cities: [], states: [] });
 
   useEffect(() => {
     fetchData();
-    fetchDropdowns();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (search = '') => {
     try {
       setLoading(true);
-      // const response = await accommodationAPI.guestHouse.getAll(searchTerm, filters);
-      const response = await accommodationAPI.guestHouse.getAll();
-      setData(response.data.results);
+      const response = await accommodationAPI.guestHouse.getAll(search);
+      setData(response.data.data.results);
     } catch (error) {
       console.error('Error fetching data:', error);
       alert('Failed to load guest houses');
@@ -39,41 +28,8 @@ const GuestHouseList = ({ onEdit }) => {
     }
   };
 
-  const fetchDropdowns = async () => {
-    try {
-      const [cities, states] = await Promise.all([
-        locationAPI.getCities(),
-        locationAPI.fetchAllStates()
-      ]);
-      setDropdownData({ cities: cities.data.data, states: states.data.data });
-    } catch (error) {
-      console.error('Error fetching dropdowns:', error);
-    }
-  };
-
   const handleSearch = () => {
-    fetchData();
-  };
-
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  };
-
-  const applyFilters = () => {
-    fetchData();
-    setShowFilters(false);
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      city: '',
-      state: '',
-      property_type: '',
-      ownership_type: '',
-      is_active: ''
-    });
-    setSearchTerm('');
-    fetchData();
+    fetchData(searchTerm);
   };
 
   const handleToggleActive = async (id, currentStatus, name) => {
@@ -116,7 +72,7 @@ const GuestHouseList = ({ onEdit }) => {
               <h1 className="text-2xl font-bold text-gray-800">Guest Houses</h1>
             </div>
 
-            {/* Search & Filter Bar */}
+            {/* Search Bar */}
             <div className="flex gap-2">
               <div className="flex-1 flex gap-2">
                 <div className="relative flex-1">
@@ -126,7 +82,7 @@ const GuestHouseList = ({ onEdit }) => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder="Search by name, address, contact..."
+                    placeholder="Search by name, city, state, contact person, phone, email, GSTIN, vendor code..."
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
@@ -134,74 +90,20 @@ const GuestHouseList = ({ onEdit }) => {
                   className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-700">
                   Search
                 </button>
+                {searchTerm && (
+                  <button onClick={() => { setSearchTerm(''); fetchData(); }}
+                    className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                    title="Clear Search">
+                    <X size={20} />
+                  </button>
+                )}
               </div>
-              <button onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">
-                <Filter size={20} />
-                Filters
-              </button>
               <button onClick={() => onEdit(null)}
                 className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded">
                 <Plus size={20} />
                 Add New
               </button>
             </div>
-
-            {/* Filter Panel */}
-            {showFilters && (
-              <div className="mt-4 p-4 bg-gray-50 rounded border border-gray-200">
-                <div className="grid grid-cols-5 gap-4">
-                  <select value={filters.city} onChange={(e) => handleFilterChange('city', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded">
-                    <option value="">All Cities</option>
-                    {dropdownData.cities.map(c => (
-                      <option key={c.id} value={c.id}>{c.city_name}</option>
-                    ))}
-                  </select>
-
-                  <select value={filters.state} onChange={(e) => handleFilterChange('state', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded">
-                    <option value="">All States</option>
-                    {dropdownData.states.map(s => (
-                      <option key={s.id} value={s.id}>{s.state_name}</option>
-                    ))}
-                  </select>
-
-                  <select value={filters.property_type} onChange={(e) => handleFilterChange('property_type', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded">
-                    <option value="">All Property Types</option>
-                    <option value="guest_house">Guest House</option>
-                    <option value="service_apartment">Service Apartment</option>
-                    <option value="transit_lodge">Transit Lodge</option>
-                  </select>
-
-                  <select value={filters.ownership_type} onChange={(e) => handleFilterChange('ownership_type', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded">
-                    <option value="">All Ownership</option>
-                    <option value="company_owned">Company-owned</option>
-                    <option value="leased">Leased</option>
-                    <option value="third_party">Third-party</option>
-                  </select>
-
-                  <select value={filters.is_active} onChange={(e) => handleFilterChange('is_active', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded">
-                    <option value="">All Status</option>
-                    <option value="true">Active</option>
-                    <option value="false">Inactive</option>
-                  </select>
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <button onClick={applyFilters}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    Apply Filters
-                  </button>
-                  <button onClick={clearFilters}
-                    className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">
-                    Clear All
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Table */}

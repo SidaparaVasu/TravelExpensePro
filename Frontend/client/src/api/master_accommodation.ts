@@ -7,9 +7,13 @@ export const accommodationAPI = {
             const { data } = await apiClient.get(`/master/guest-houses/${id}/`);
             return data;
         },
-        getAll: async () => {
-            const { data } = await apiClient.get('/master/guest-houses/');
-            return data;
+        // getAll: async () => {
+        //     const { data } = await apiClient.get('/master/guest-houses/');
+        //     return data;
+        // },
+        getAll: (search = '') => {
+            const params = search ? `?search=${encodeURIComponent(search)}` : '';
+            return apiClient.get(`/master/guest-houses/${params}`);
         },
         create: async (payload: any) => {
             const { data } = await apiClient.post('/master/guest-houses/', payload);

@@ -88,6 +88,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",  # Vite
     'http://localhost',
+    "http://192.168.1.171:5173", # Local IP
 ]
 # CORS_ALLOW_ALL_ORIGINS = True   # allows any frontend
 CORS_ALLOW_CREDENTIALS = True

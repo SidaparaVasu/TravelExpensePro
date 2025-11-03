@@ -160,7 +160,7 @@ const ApplicationView: React.FC = () => {
                       <p className="text-sm">
                         <span className="mr-6"></span>
                         <span className="font-medium">Trip purpose: </span>
-                        {trip.trip_purpose || "N/A"}
+                        {trip.trip_purpose || "Not mentioned"}
                       </p>
                     </div>
 

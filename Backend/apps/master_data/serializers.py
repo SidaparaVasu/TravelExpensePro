@@ -135,7 +135,7 @@ class GuestHouseMasterSerializer(serializers.ModelSerializer):
     city_name = serializers.CharField(source='city.city_name', read_only=True)
     state_name = serializers.CharField(source='state.state_name', read_only=True)
     country_name = serializers.CharField(source='country.country_name', read_only=True)
-    gl_code_display = serializers.CharField(source='gl_code.code', read_only=True)
+    gl_code_display = serializers.CharField(source='gl_code.gl_code', read_only=True)
     manager_name = serializers.SerializerMethodField(read_only=True)
     
     class Meta:

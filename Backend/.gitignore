@@ -1,0 +1,94 @@
+# ==========================================
+# Django + Python + VS Code Project .gitignore
+# ==========================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Virtual Environments ---
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# --- Django Specific ---
+*.log
+*.pot
+*.pyc
+*.py.class
+*.sqlite3
+db.sqlite3
+local_settings.py
+settings_local.py
+media/
+staticfiles/
+static_root/
+logs/
+tmp/
+uploads/
+
+# --- IDE / Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# --- OS Files ---
+.DS_Store
+Thumbs.db
+
+# --- Jupyter Notebook ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- Backup / Temp Files ---
+*.bak
+*.tmp
+*.temp
+*.old
+~$*
+
+# --- Migrations (optional) ---
+# Uncomment below if you don’t want to commit migration files during development
+# */migrations/
+# !*/migrations/__init__.py
+
+# --- PyInstaller ---
+*.manifest
+*.spec
+
+# --- Testing / Coverage ---
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# --- MyPy / Pyre / Pytype ---
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+
+# --- Docker / Deployment ---
+*.pid
+*.seed
+*.pid.lock
+docker-compose.override.yml
+
+# --- Node / Frontend (if use React or other frontend) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+build/
+dist/

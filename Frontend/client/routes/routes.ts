@@ -12,8 +12,8 @@ export const ROUTES = {
 
   // Travel Management
   makeTravelApplicationOld: "/travel/make-travel-application-old",
+  // makeTravelApplication: "/travel/make-travel-application",
   makeTravelApplication: "/travel/make-travel-application",
-  makeTravelApplication3: "/travel/make-travel-application-3",
   travelApplicationList: "/travel/travel-application-list",
   travelApplicationView: (id: number | string) => `/travel/travel-application/${id}/`,
   travelRequestApproval: "/travel/travel-request-approval",

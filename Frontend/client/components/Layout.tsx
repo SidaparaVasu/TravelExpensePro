@@ -22,7 +22,6 @@ import {
   Users,
   Settings,
   Reports,
-  Approvals,
 } from "@/assets/icons";
 import { GaugeIcon, FilePlus, ClipboardIcon } from "lucide-react";
 import { authAPI } from "@/src/api/auth";
@@ -38,21 +37,17 @@ export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get user info safely
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const username = user?.username || "User";
   const primaryDashboard = localStorage.getItem("primary_dashboard") || "/dashboard";
 
   const sidebarExpanded = !sidebarCollapsed;
 
-  const checkAdminPermission = () => {
-    console.log(hasRole("Admin"), hasRole("CEO"));
-    if (hasRole("Admin") || hasRole("CEO") || hasRole("CHRO")){
-      return true
-    }
-  }
+  // ✅ Simplified admin permission check
+  const checkAdminPermission = () =>
+    hasRole("Admin") || hasRole("CEO") || hasRole("CHRO");
 
-  // Sidebar sections
+  // ✅ Sidebar sections
   const sections = [
     {
       title: "Dashboard",
@@ -61,9 +56,7 @@ export function Layout({ children }: LayoutProps) {
     {
       title: "Travel Management",
       items: [
-        // { label: "Make Travel OLD", path: ROUTES.makeTravelApplicationOld, Icon: ClipboardIcon },
-        // { label: "Make Travel Request", path: ROUTES.makeTravelApplication, Icon: ClipboardIcon },
-        { label: "Create Travel Request", path: ROUTES.makeTravelApplication3, Icon: FilePlus },
+        { label: "Create Travel Request", path: ROUTES.makeTravelApplication, Icon: FilePlus },
         { label: "My Applications", path: ROUTES.travelApplicationList, Icon: ClipboardIcon },
         { label: "Travel Approvals", path: ROUTES.travelRequestApproval, Icon: CheckCircle },
         { label: "Bookings", path: "/booking", Icon: Calendar },
@@ -147,9 +140,9 @@ export function Layout({ children }: LayoutProps) {
           >
             <div className="space-y-8">
               {sections.map((section) => {
-                // Hide the whole section if it has only admin-only items
+                // ✅ Hide section if it has no visible items
                 const hasVisibleItems = section.items.some(
-                  (item) => !item.adminOnly
+                  (item) => !item.adminOnly || item.adminOnly()
                 );
                 if (!hasVisibleItems) return null;
 
@@ -162,11 +155,13 @@ export function Layout({ children }: LayoutProps) {
                     )}
                     <div className="space-y-1 font-semibold">
                       {section.items.map(({ label, path, Icon, adminOnly }) => {
-                        if (adminOnly) return null;
+                        // ✅ Hide item if adminOnly returns false
+                        if (adminOnly && !adminOnly()) return null;
+
                         return (
                           <NavItem
                             key={label}
-                            icon={<Icon className="h-4 w-4" strokeWidth='2.75'/>}
+                            icon={<Icon className="h-4 w-4" strokeWidth="2.75" />}
                             label={label}
                             active={location.pathname === path}
                             expanded={sidebarExpanded}
@@ -178,7 +173,6 @@ export function Layout({ children }: LayoutProps) {
                   </div>
                 );
               })}
-
             </div>
           </nav>
         </div>
@@ -268,15 +262,11 @@ function NavItem({ icon, label, active = false, expanded, onClick }: NavItemProp
           : "text-secondary-foreground hover:bg-gray-100",
       )}
     >
-      <span className={cn(active ? "text-white" : "text-gray-500")}>
-        {icon}
-      </span>
+      <span className={cn(active ? "text-white" : "text-gray-500")}>{icon}</span>
       <span
         className={cn(
           "text-base font-medium whitespace-nowrap overflow-hidden transition-[opacity,max-width,margin] duration-700 ease-in-out",
-          expanded
-            ? "opacity-100 max-w-[200px] ml-2"
-            : "opacity-0 max-w-0 ml-0",
+          expanded ? "opacity-100 max-w-[200px] ml-2" : "opacity-0 max-w-0 ml-0",
         )}
       >
         {label}

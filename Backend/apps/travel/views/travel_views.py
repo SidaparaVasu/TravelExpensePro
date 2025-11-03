@@ -345,7 +345,7 @@ class TravelApplicationValidationView(APIView):
     """
     Pre-submission validation endpoint
     """
-    permission_classes = [IsAuthenticated, IsEmployee]
+    permission_classes = [IsAuthenticated]
     
     def post(self, request, pk):
         try:

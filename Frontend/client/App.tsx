@@ -104,16 +104,16 @@ const App = () => (
               </Protected>
             }
           />
-          <Route
+          {/* <Route
             path={ROUTES.makeTravelApplication}
             element={
               <Protected>
                 <MakeTravelApplication />
               </Protected>
             }
-          />
+          /> */}
           <Route
-            path={ROUTES.makeTravelApplication3}
+            path={ROUTES.makeTravelApplication}
             element={
               <Protected>
                 <MakeTravelApplication3 />

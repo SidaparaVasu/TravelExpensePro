@@ -5,6 +5,7 @@ from rest_framework import filters, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.db.models import Q
 
 from .models import *
 from .serializers import *
@@ -207,7 +208,7 @@ class TravelModeDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
 class TravelSubOptionListCreateView(ListCreateAPIView):
-    # queryset = TravelSubOptionMaster.objects.select_related('mode').filter(is_active=True
+    # queryset = TravelSubOptionMaster.objects.select_related('mode').filter(is_active=True)
     queryset = TravelSubOptionMaster.objects.select_related('mode').all()
     serializer_class = TravelSubOptionSerializer
     permission_classes = [IsAuthenticated]
@@ -250,13 +251,24 @@ class GuestHouseMasterViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         search = self.request.query_params.get('search', None)
+        
         if search:
             queryset = queryset.filter(
                 Q(name__icontains=search) |
                 Q(address__icontains=search) |
                 Q(contact_person__icontains=search) |
-                Q(phone_number__icontains=search)
+                Q(phone_number__icontains=search) |
+                Q(email__icontains=search) |
+                Q(gstin__icontains=search) |
+                Q(vendor_code__icontains=search) |
+                Q(registration_number__icontains=search) |
+                Q(district__icontains=search) |
+                Q(pin_code__icontains=search) |
+                Q(city__city_name__icontains=search) |
+                Q(state__state_name__icontains=search) |
+                Q(country__country_name__icontains=search)
             )
+    
         return queryset
     
     from rest_framework.decorators import action

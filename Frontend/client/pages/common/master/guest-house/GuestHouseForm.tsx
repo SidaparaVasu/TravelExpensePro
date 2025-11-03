@@ -10,7 +10,7 @@ const GuestHouseForm = ({ editId = null, onCancel }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({
     name: '', property_type: '', ownership_type: '', is_active: true, manager: '',
-    gstin: '', registration_number: '', vendor_code: '', cost_center: '', gl_code: '', rate_card: '', billing_type: '',
+    gstin: '', registration_number: '', vendor_code: '', gl_code: '', rate_card: '', billing_type: '',
     address: '', city: '', district: '', state: '', country: '', pin_code: '',
     contact_person: '', phone_number: '', email: '', emergency_contact: '',
     total_rooms: '', max_occupancy: '', room_types: [], amenities: {},
@@ -24,7 +24,8 @@ const GuestHouseForm = ({ editId = null, onCancel }) => {
 
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
+  const [cities, setCities] = useState([]);  
+
   // States
   const [dropdownData, setDropdownData] = useState({
     countries: [],
@@ -42,9 +43,9 @@ const GuestHouseForm = ({ editId = null, onCancel }) => {
           locationAPI.getCountries(),
           masterAPI.getGLCodes(),
         ]);
-        console.log(countryRes);
+        
         const countriesList = countryRes.data.results || countryRes.data.data || [];
-        const glCodeList = glCodeRes.results || [];
+        const glCodeList = glCodeRes.data.results || glCodeRes.data.results || [];
 
         setDropdownData((prev) => ({
           ...prev,
@@ -159,13 +160,44 @@ const GuestHouseForm = ({ editId = null, onCancel }) => {
       const fetchData = async () => {
         try {
           const response = await accommodationAPI.guestHouse.get(editId);
-          setFormData(response);
-          setFormData(prev => ({
-            ...prev,  // keep existing structure for other fields
-            country: response.data?.country || '',
-            // state: response.data.state?.id || '',
-            // city: response.data.city?.id || '',
-          }));
+          const data = response.data;
+
+          // Properly map the response data to formData structure
+          setFormData({
+            name: data.name || '',
+            property_type: data.property_type || '',
+            ownership_type: data.ownership_type || '',
+            is_active: data.is_active ?? true,
+            manager: data.manager || '',
+
+            gstin: data.gstin || '',
+            registration_number: data.registration_number || '',
+            vendor_code: data.vendor_code || '',
+            gl_code: data.gl_code || '',
+            rate_card: data.rate_card || '',
+            billing_type: data.billing_type || '',
+
+            address: data.address || '',
+            country: data.country || '',
+            state: data.state || '',
+            city: data.city || '',
+            district: data.district || '',
+            pin_code: data.pin_code || '',
+
+            contact_person: data.contact_person || '',
+            phone_number: data.phone_number || '',
+            email: data.email || '',
+            emergency_contact: data.emergency_contact || '',
+
+            total_rooms: data.total_rooms || '',
+            max_occupancy: data.max_occupancy || '',
+            room_types: data.room_types || [],
+            amenities: data.amenities || {},
+
+            check_in_time: data.check_in_time || '',
+            check_out_time: data.check_out_time || '',
+            booking_window_days: data.booking_window_days || 30
+          });
         } catch (error) {
           console.error('Error fetching guest house:', error);
           toast.error("Failed to load guest house data");
@@ -188,7 +220,7 @@ const GuestHouseForm = ({ editId = null, onCancel }) => {
         ? await accommodationAPI.guestHouse.update(editId, formData)
         : await accommodationAPI.guestHouse.create(formData);
       toast.success("Guest House saved successfully!");
-      
+
       if (onCancel) onCancel(); // Redirect back to list
     } catch (error) {
       console.error('Submission error:', error);
@@ -271,20 +303,15 @@ const GuestHouseForm = ({ editId = null, onCancel }) => {
                   className="w-full px-3 py-2 border border-gray-300 rounded" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Cost Center</label>
-                <input type="text" value={formData.cost_center} onChange={(e) => updateField('cost_center', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded" />
+                <label className="block text-sm font-medium mb-1">GL Code</label>
+                <select value={formData.gl_code} onChange={(e) => updateField('gl_code', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded">
+                  <option value="">Select GL Code</option>
+                  {dropdownData.glCodes.map(gl => (
+                    <option key={gl.id} value={gl.id}>{gl.gl_code}</option>
+                  ))}
+                </select>
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">GL Code</label>
-              <select value={formData.gl_code} onChange={(e) => updateField('gl_code', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded">
-                <option value="">Select GL Code</option>
-                {dropdownData.glCodes.map(gl => (
-                  <option key={gl.id} value={gl.id}>{gl.gl_code}</option>
-                ))}
-              </select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

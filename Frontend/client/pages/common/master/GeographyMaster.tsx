@@ -66,7 +66,7 @@ function ColumnPanel({ title, icon: Icon, items, selectedId, onSelect, onAdd, on
                         <p className="text-sm">{emptyMessage}</p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-white">
                         {filteredItems.map((item) => (
                             <div
                                 key={item.id}
