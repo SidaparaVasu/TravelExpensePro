@@ -88,8 +88,11 @@ services:
       - DEBUG=True
       - DB_HOST=mysql
       - DB_PORT=3306
+      - DB_USER=appuser
+      - DB_PASSWORD=app123
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - DJANGO_SETTINGS_MODULE=Main.settings
     depends_on:
       - mysql
       - redis
@@ -113,8 +116,11 @@ services:
       - DEBUG=True
       - DB_HOST=mysql
       - DB_PORT=3306
+      - DB_USER=appuser
+      - DB_PASSWORD=app123
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - DJANGO_SETTINGS_MODULE=Main.settings
     depends_on:
       - mysql
       - redis

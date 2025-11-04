@@ -1,10 +1,13 @@
-# Base Python image
+# =====================================
+# 🐍 Production Dockerfile for Render
+# =====================================
+
 FROM python:3.11-slim
 
-# Set work directory
+# Set working directory inside the container
 WORKDIR /app
 
-# Install system dependencies
+# Install required system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     default-libmysqlclient-dev \
@@ -12,17 +15,25 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies
+# Copy requirements first to leverage Docker caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
-# Copy the backend source code
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of your backend code
 COPY . .
 
-# Collect static files (optional but recommended)
-RUN python manage.py collectstatic --noinput
-
+# Expose Django port
 EXPOSE 8000
 
-# Run migrations and start Gunicorn
+# Environment setup
+# Render automatically provides environment variables securely
+# You can still include `.env.prod` if needed (optional)
+# COPY .env.prod .env  # uncomment only if you truly need it
+
+# Collect static files for production
+RUN python manage.py collectstatic --noinput
+
+# Run database migrations automatically at startup
 CMD ["sh", "-c", "python manage.py migrate && gunicorn Main.wsgi:application --bind 0.0.0.0:8000 --workers 3"]

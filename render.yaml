@@ -1,6 +1,6 @@
-# Render Infrastructure as Code configuration
-# -------------------------------------------
-# Defines all services: Django backend, React frontend, MySQL, Redis.
+# --------------------------------------------
+# Render Deployment Configuration (Safe Version)
+# --------------------------------------------
 
 services:
   # -----------------------------
@@ -11,17 +11,21 @@ services:
     env: docker
     plan: free
     branch: dev
-    dockerfilePath: ./backend/Dockerfile.render  # new production Dockerfile
+    dockerfilePath: ./backend/Dockerfile.render
     autoDeploy: true
 
     envVars:
-      # Django settings
+      # ---------- Django Settings ----------
       - key: DEBUG
         value: "False"
+      - key: DJANGO_SETTINGS_MODULE
+        value: "Main.settings"
       - key: DJANGO_ALLOWED_HOSTS
         value: ".onrender.com"
+      - key: SECRET_KEY
+        sync: false   # ✅ Set real value in Render dashboard
 
-      # Database connection (linked below)
+      # ---------- Database ----------
       - key: DB_HOST
         fromDatabase:
           name: tsf-mysql-dev
@@ -43,12 +47,32 @@ services:
           name: tsf-mysql-dev
           property: password
 
-      # Redis connection
+      # ---------- Redis ----------
       - key: REDIS_URL
         fromService:
           type: redis
           name: tsf-redis-dev
           property: connectionString
+
+      # ---------- Email + APIs ----------
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+      - key: _LOCATION_API_KEY
+        sync: false
+      - key: _GEODB_API_KEY
+        sync: false
+
+      # ---------- Security ----------
+      - key: SECURE_SSL_REDIRECT
+        value: "True"
+
+      # ---------- CORS ----------
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://tsf-frontend-dev.onrender.com"
 
   # -----------------------------
   # ⚛️ React Frontend Service
@@ -64,6 +88,8 @@ services:
     envVars:
       - key: VITE_API_BASE_URL
         value: "https://tsf-backend-dev.onrender.com/api"
+      - key: VITE_PUBLIC_BUILDER_KEY
+        sync: false  # Add manually if sensitive
 
   # -----------------------------
   # 🧠 Redis Service
@@ -72,10 +98,10 @@ services:
     name: tsf-redis-dev
     plan: free
 
+# -----------------------------
+# 🗄️ MySQL Database
+# -----------------------------
 databases:
-  # -----------------------------
-  # 🗄️ MySQL Database
-  # -----------------------------
   - name: tsf-mysql-dev
     plan: free
     databaseName: tsf_db
