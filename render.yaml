@@ -58,7 +58,7 @@ services:
     env: docker
     plan: free
     branch: dev
-    dockerfilePath: ./frontend/Dockerfile.dev
+    dockerfilePath: ./frontend/Dockerfile.render
     autoDeploy: true
 
     envVars:
