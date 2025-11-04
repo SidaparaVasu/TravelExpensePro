@@ -1,16 +1,27 @@
+# Render Infrastructure as Code configuration
+# -------------------------------------------
+# Defines all services: Django backend, React frontend, MySQL, Redis.
+
 services:
-  # Django Backend
+  # -----------------------------
+  # 🐍 Django Backend Service
+  # -----------------------------
   - type: web
     name: tsf-backend-dev
     env: docker
     plan: free
     branch: dev
-    buildCommand: ""
-    startCommand: ""
-    dockerfilePath: ./backend/Dockerfile.dev
+    dockerfilePath: ./backend/Dockerfile.render  # new production Dockerfile
+    autoDeploy: true
+
     envVars:
+      # Django settings
       - key: DEBUG
-        value: "True"
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
+
+      # Database connection (linked below)
       - key: DB_HOST
         fromDatabase:
           name: tsf-mysql-dev
@@ -31,31 +42,41 @@ services:
         fromDatabase:
           name: tsf-mysql-dev
           property: password
+
+      # Redis connection
       - key: REDIS_URL
         fromService:
           type: redis
           name: tsf-redis-dev
           property: connectionString
-      - key: DJANGO_ALLOWED_HOSTS
-        value: ".onrender.com"
 
-  # React Frontend
+  # -----------------------------
+  # ⚛️ React Frontend Service
+  # -----------------------------
   - type: web
     name: tsf-frontend-dev
     env: docker
     plan: free
     branch: dev
     dockerfilePath: ./frontend/Dockerfile.dev
+    autoDeploy: true
+
     envVars:
       - key: VITE_API_BASE_URL
         value: "https://tsf-backend-dev.onrender.com/api"
 
+  # -----------------------------
+  # 🧠 Redis Service
+  # -----------------------------
+  - type: redis
+    name: tsf-redis-dev
+    plan: free
+
 databases:
+  # -----------------------------
+  # 🗄️ MySQL Database
+  # -----------------------------
   - name: tsf-mysql-dev
     plan: free
     databaseName: tsf_db
     user: appuser
-
-redis:
-  - name: tsf-redis-dev
-    plan: free
