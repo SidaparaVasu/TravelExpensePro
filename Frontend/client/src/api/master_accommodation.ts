@@ -45,4 +45,21 @@ export const accommodationAPI = {
         //     return apiClient.get(`/guest-houses/?${params.toString()}`);
         // },
     },
+    arcHotel: {
+        getAll: (search = '') => {
+            const params = search ? `?search=${encodeURIComponent(search)}` : '';
+            return apiClient.get(`/master/arc-hotels/${params}`);
+        },
+        get: (id) => apiClient.get(`/master/arc-hotels/${id}/`),
+        create: (data) => apiClient.post('/master/arc-hotels/', data),
+        update: (id, data) => apiClient.put(`/master/arc-hotels/${id}/`, data),
+        toggleActive: (id, shouldActivate) => {
+            if (shouldActivate) {
+                return apiClient.patch(`/master/arc-hotels/${id}/`, { is_active: true });
+            } else {
+                return apiClient.delete(`/master/arc-hotels/${id}/`);
+            }
+        },
+        delete: (id) => apiClient.delete(`/master/arc-hotels/${id}/`, { params: { hard_delete: true } }),
+    }
 };

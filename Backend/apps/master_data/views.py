@@ -344,7 +344,7 @@ class ARCHotelListCreateView(ListCreateAPIView):
     """
     queryset = ARCHotelMaster.objects.select_related(
         'city', 'state', 'country', 'created_by', 'updated_by'
-    ).filter(is_active=True)
+    ).all()
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['city', 'state', 'category', 'hotel_type', 'star_rating']
@@ -385,7 +385,7 @@ class ARCHotelDetailView(RetrieveUpdateDestroyAPIView):
 
 # Location-wise Single Point of Contact for vehicle bookings
 class LocationSPOCListCreateView(ListCreateAPIView):
-    queryset = LocationSPOC.objects.select_related('location', 'spoc_user').filter(is_active=True)
+    queryset = LocationSPOC.objects.select_related('location', 'spoc_user').all()
     serializer_class = LocationSPOCSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]     

@@ -26,6 +26,8 @@ import TravelRequestApprovals from "./pages/admin/TravelRequestApprovals";
 import MasterPage from "./pages/common/master/MasterIndex";
 // Accommodation Pages
 import GuestHouseMaster from "./pages/common/master/guest-house/Index";
+import ARCHotelMaster from "./pages/common/master/arc-hotel/Index";
+import LocationSPOCMasterPage from "./pages/common/master/LocationSPOCMaster";
 // Geo. Master Pages
 import GeographyMasters from "./pages/common/master/GeographyMaster";
 import CityCategoriesMaster from "./pages/common/master/CityCategoriesMaster";
@@ -320,6 +322,24 @@ const App = () => (
             element={
               <Protected>
                 <GuestHouseMaster />
+              </Protected>
+            }
+          />
+          {/* ARC Hotel master routes */}
+          <Route
+            path={ROUTES.arcHotelMaster}
+            element={
+              <Protected>
+                <ARCHotelMaster />
+              </Protected>
+            }
+          />
+          {/* Location SPOC master routes */}
+          <Route
+            path={ROUTES.locationSPOCMaster}
+            element={
+              <Protected>
+                <LocationSPOCMasterPage />
               </Protected>
             }
           />

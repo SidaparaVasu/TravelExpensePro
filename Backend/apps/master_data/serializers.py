@@ -226,6 +226,23 @@ class LocationSPOCSerializer(serializers.ModelSerializer):
             'backup_spoc_name', 'is_active'
         ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from apps.authentication.models.user import User
+
+        request = self.context.get('request')
+        if request and request.method in ('POST', 'PUT', 'PATCH'):
+            # Try to get location from request data
+            location_id = request.data.get('location')
+            if location_id:
+                # Filter users belonging to that location
+                self.fields['spoc_user'].queryset = User.objects.filter(location_id=location_id)
+                self.fields['backup_spoc'].queryset = User.objects.filter(location_id=location_id)
+            else:
+                # Fallback: return no users until location is selected
+                self.fields['spoc_user'].queryset = User.objects.none()
+                self.fields['backup_spoc'].queryset = User.objects.none()
+
 # Approval and policy serializers
 class ApprovalMatrixSerializer(serializers.ModelSerializer):
     travel_mode_name = serializers.CharField(source='travel_mode.name', read_only=True)

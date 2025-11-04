@@ -8,6 +8,10 @@ urlpatterns = [
     path('auth/logout/', LogoutView.as_view(), name='auth_logout'),
     path('auth/profile/', UserProfileView.as_view(), name='user_profile'),
     path('auth/switch-role/', SwitchRoleView.as_view(), name='switch_role'),
+
+    # Users
+    path('users/', UserCreateView.as_view(), name='user_list_create'),
+
     
     # Role Management (Admin)
     path('roles/', RoleListCreateView.as_view(), name='role_list_create'),

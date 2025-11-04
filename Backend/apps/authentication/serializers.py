@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from .models import *
+from apps.master_data.models.geography import LocationMaster
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     """
@@ -58,6 +59,25 @@ class LoginSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError("Must include 'username' and 'password'.")
 
+
+class UserSerializer(serializers.ModelSerializer):
+    base_location = serializers.PrimaryKeyRelatedField(
+        queryset=LocationMaster.objects.all(),
+        required=False,
+        allow_null=True
+    )
+    base_location_name = serializers.CharField(
+        source='base_location.location_name', read_only=True
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email',
+            'reporting_manager', 'department', 'designation', 'employee_type',
+            'company', 'grade', 'base_location', 'base_location_name',
+            'user_permissions', 'is_active'
+        ]
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """

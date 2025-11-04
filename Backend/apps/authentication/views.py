@@ -4,6 +4,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
+from rest_framework import viewsets
 from django.contrib.auth import authenticate
 from django.db import transaction
 from .models import *
@@ -116,6 +120,32 @@ class LogoutView(APIView):
                 {"error": str(e)}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    @action(detail=False, methods=['get'], url_path='by-location')
+    def by_location(self, request):
+        location_id = request.query_params.get('location')
+        if not location_id:
+            return Response({"error": "location parameter is required"}, status=400)
+        
+        users = User.objects.filter(base_location_id=location_id, is_active=True)
+        serializer = self.get_serializer(users, many=True)
+        return Response(serializer.data)
+    
+class UserCreateView(ListCreateAPIView):
+    """
+    List and create users (Admin only)
+    Supports filtering by base_location
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['base_location']  # 👈 this enables ?base_location=<id> filtering
+    search_fields = ['username', 'first_name', 'last_name', 'email']
 
 class UserProfileView(RetrieveAPIView):
     """

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import company, geography, grades, travel, workflow, approval, accommodation
+from apps.authentication.models.user import User
 
 # Register your models here.
 @admin.register(company.CompanyInformation)
@@ -81,11 +82,23 @@ class ARCHotelAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     date_hierarchy = 'contract_start_date'
 
+# @admin.register(accommodation.LocationSPOC)
+# class LocationSPOCAdmin(admin.ModelAdmin):
+#     list_display = ('location', 'spoc_user', 'spoc_type', 'phone_number', 'is_active')
+#     list_filter = ('spoc_type', 'is_active')
+#     search_fields = ('location__location_name', 'spoc_user__username')
+
 @admin.register(accommodation.LocationSPOC)
 class LocationSPOCAdmin(admin.ModelAdmin):
     list_display = ('location', 'spoc_user', 'spoc_type', 'phone_number', 'is_active')
     list_filter = ('spoc_type', 'is_active')
     search_fields = ('location__location_name', 'spoc_user__username')
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name in ['spoc_user', 'backup_spoc'] and 'location' in request.GET:
+            location_id = request.GET.get('location')
+            kwargs["queryset"] = User.objects.filter(location_id=location_id)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 @admin.register(approval.ApprovalMatrix)
 class ApprovalMatrixAdmin(admin.ModelAdmin):

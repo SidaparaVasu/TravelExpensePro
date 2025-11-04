@@ -44,6 +44,9 @@ export const ROUTES = {
   // accommodation masters
   guestHouseMaster: "/masters/guest-house",
   guestHouseMasterForm: "/masters/create-guest-house",
+  arcHotelMaster: "/masters/arc-hotel",
+  arcHotelMasterForm: "/masters/create-arc-hotel",
+  locationSPOCMaster: "/masters/location-spoc",
   // conveyance rate masters
   conveyanceRateMaster: "/masters/conveyance-rate",
   // da incidentals masters
