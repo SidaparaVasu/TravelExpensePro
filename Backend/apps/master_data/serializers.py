@@ -236,8 +236,8 @@ class LocationSPOCSerializer(serializers.ModelSerializer):
             location_id = request.data.get('location')
             if location_id:
                 # Filter users belonging to that location
-                self.fields['spoc_user'].queryset = User.objects.filter(location_id=location_id)
-                self.fields['backup_spoc'].queryset = User.objects.filter(location_id=location_id)
+                self.fields['spoc_user'].queryset = User.objects.filter(base_location_id=location_id)
+                self.fields['backup_spoc'].queryset = User.objects.filter(base_location_id=location_id)
             else:
                 # Fallback: return no users until location is selected
                 self.fields['spoc_user'].queryset = User.objects.none()

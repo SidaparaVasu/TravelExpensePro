@@ -84,6 +84,7 @@ const LocationSPOCMaster = () => {
             }
 
             try {
+                console.log("Form Data: ", formData)
                 // Call backend API for users filtered by base_location
                 const data = await userAPI.getAll(`?base_location=${Number(formData.location)}`);
 
@@ -92,7 +93,7 @@ const LocationSPOCMaster = () => {
                 setFilteredUsers(results);
 
                 // Reset spoc_user and backup_spoc when location changes
-                if (!editingItem) {
+                if (!editingItem) { 
                     setFormData(prev => ({
                         ...prev,
                         spoc_user: '',
@@ -355,7 +356,7 @@ const LocationSPOCMaster = () => {
                                     <Check className="w-4 h-4" /> Confirm
                                 </button>
                             </div>
-                        </div>
+                        </div> 
                     </div>
                 )}
 
@@ -390,7 +391,7 @@ const LocationSPOCMaster = () => {
                                 >
                                     <option value="">All Locations</option>
                                     {locationsMaster.map(location => (
-                                        <option key={location.id} value={location.id}>{location.location_name}</option>
+                                        <option key={location.location_id} value={location.location_id}>{location.location_name}</option>
                                     ))}
                                 </select>
 
@@ -581,7 +582,7 @@ const LocationSPOCMaster = () => {
                                             >
                                                 <option value="" disabled>Select location</option>
                                                 {locationsMaster.map(location => (
-                                                    <option key={location.id} value={location.id}>
+                                                    <option key={location.location_id} value={location.location_id}>
                                                         {location.location_name}
                                                     </option>
                                                 ))}
