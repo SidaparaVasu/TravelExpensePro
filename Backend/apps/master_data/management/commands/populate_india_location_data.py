@@ -31,6 +31,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         
         start_time = time.time()
+
+        # Step 0: Ensure City Categories Exist
+        log("🔍 Checking for city categories")
+        category_a, _ = CityCategoriesMaster.objects.get_or_create(name='A')
+        category_b, _ = CityCategoriesMaster.objects.get_or_create(name='B')
+        category_c, _ = CityCategoriesMaster.objects.get_or_create(name='C')
+        log("✅ City categories verified or created ('A', 'B', 'C')")
         
         # Step 1: Add India to CountryMaster (if not exists)
         india, _ = CountryMaster.objects.get_or_create(
