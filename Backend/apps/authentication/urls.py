@@ -10,8 +10,9 @@ urlpatterns = [
     path('auth/switch-role/', SwitchRoleView.as_view(), name='switch_role'),
 
     # Users
-    path('users/', UserCreateView.as_view(), name='user_list_create'),
-
+    # path('users/', UserCreateView.as_view(), name='user_list_create'),
+    path('users/', UserListCreateView.as_view(), name='user-list-create'),
+    path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
     
     # Role Management (Admin)
     path('roles/', RoleListCreateView.as_view(), name='role_list_create'),

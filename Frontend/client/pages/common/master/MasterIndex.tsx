@@ -12,6 +12,7 @@ import {
     CheckCircle2,
     Repeat,
     Users,
+    UserLock,
     ChevronRight,
 } from 'lucide-react';
 import { ROUTES } from "@/routes/routes";
@@ -56,9 +57,9 @@ const MASTER_CATEGORIES = [
             { id: 'travel-mode', title: 'Travel Mode', route: ROUTES.travelModeMaster },
             { id: 'travel-mode-sub', title: 'Travel Mode Sub Option', route: ROUTES.travelModeMaster },
             { id: 'grade-entitlement', title: 'Grade Entitlement', route: ROUTES.gradeEntitlementMaster },
-            { id: 'vehicle-type', title: 'Vehicle Type Master', route: '/masters/vehicle-type' },
-            { id: 'vehicle-policy', title: 'Vehicle Policy Master', route: '/masters/vehicle-policy' },
-            { id: 'email-template', title: 'Email Template Master', route: '/masters/email-templates' },
+            // { id: 'vehicle-type', title: 'Vehicle Type Master', route: '/masters/vehicle-type' },
+            // { id: 'vehicle-policy', title: 'Vehicle Policy Master', route: '/masters/vehicle-policy' },
+            // { id: 'email-template', title: 'Email Template Master', route: '/masters/email-templates' },
         ],
     },
     {
@@ -67,8 +68,8 @@ const MASTER_CATEGORIES = [
         icon: Home,
         items: [
             { id: 'guest-house', title: 'Guest House', route: ROUTES.guestHouseMaster },
-            { id: 'arc-hotel', title: 'ARC Hotel', route: '/masters/arc-hotel' },
-            { id: 'location-spoc', title: 'Location SPOC', route: '/masters/location-spoc' },
+            { id: 'arc-hotel', title: 'ARC Hotel', route: ROUTES.arcHotelMaster },
+            { id: 'location-spoc', title: 'Location SPOC', route: ROUTES.locationSPOCMaster },
         ],
     },
     {
@@ -81,16 +82,24 @@ const MASTER_CATEGORIES = [
             { id: 'conveyance-rate', title: 'Conveyance Rate', route: ROUTES.conveyanceRateMaster },
         ],
     },
+    // {
+    //     id: 'workflow',
+    //     title: 'Workflow',
+    //     icon: Repeat,
+    //     items: [{ id: 'approval-workflow', title: 'Approval Workflow', route: '/masters/approval-workflow' }],
+    // },
     {
-        id: 'workflow',
-        title: 'Workflow',
-        icon: Repeat,
-        items: [{ id: 'approval-workflow', title: 'Approval Workflow', route: '/masters/approval-workflow' }],
+        id: 'employees',
+        title: 'Employees',
+        icon: Users,
+        items: [
+            {id: 'employee', title: "Employees", route: '/master/employees'},
+        ]
     },
     {
         id: 'roles',
         title: 'Role & Permissions',
-        icon: Users,
+        icon: UserLock,
         items: [
             { id: 'role', title: 'Role', route: '/masters/role' },
             { id: 'permission', title: 'Permission', route: '/masters/permission' },

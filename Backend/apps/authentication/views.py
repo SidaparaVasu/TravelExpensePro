@@ -2,20 +2,23 @@ from rest_framework.generics import CreateAPIView, RetrieveAPIView, ListCreateAP
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework import viewsets
-from django.contrib.auth import authenticate
-from django.db import transaction
 from .models import *
 from .serializers import *
 from .permissions import IsAdminUser, HasCustomPermission
 from .utils import RoleManager
 from utils.rate_limiters import api_ratelimit
 from utils.response_formatter import success_response, error_response
+from django.contrib.auth import get_user_model
+
+
+User = get_user_model()
+
 
 class RegisterView(CreateAPIView):
     """
@@ -146,6 +149,58 @@ class UserCreateView(ListCreateAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['base_location']  # 👈 this enables ?base_location=<id> filtering
     search_fields = ['username', 'first_name', 'last_name', 'email']
+
+
+# User views
+class UserListCreateView(ListCreateAPIView):
+    """
+    List all users or create a new user (Admin only)
+    Supports search by: username, first_name, last_name, email, employee_id
+    Supports filtering by: department, designation, company, base_location, is_active
+    """
+    queryset = User.objects.select_related(
+        'department', 'designation', 'company', 'base_location', 'reporting_manager'
+    ).all()
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['department', 'designation', 'company', 'base_location', 'is_active']
+    search_fields = ['username', 'first_name', 'last_name', 'email', 'employee_id']
+    ordering_fields = ['employee_id', 'username', 'first_name', 'last_name', 'date_joined']
+    ordering = ['-date_joined']
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return UserCreateSerializer
+        return UserListSerializer
+    
+
+class UserDetailView(RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete a user (Admin only)
+    """
+    queryset = User.objects.select_related(
+        'department', 'designation', 'employee_type', 'company', 
+        'grade', 'base_location', 'reporting_manager'
+    ).all()
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return UserDetailSerializer
+        elif self.request.method in ['PUT', 'PATCH']:
+            return UserUpdateSerializer
+        return UserDetailSerializer
+    
+    def destroy(self, request, *args, **kwargs):
+        """Soft delete by setting is_active to False"""
+        instance = self.get_object()
+        instance.is_active = False
+        instance.save()
+        return Response(
+            {'message': 'User deactivated successfully'},
+            status=status.HTTP_200_OK
+        )
+
 
 class UserProfileView(RetrieveAPIView):
     """

@@ -28,6 +28,8 @@ export const ROUTES = {
   // Administration
   // Masters
   master: "/masters",
+  // employee master
+  EmployeeMasterPage: "/master/employees",
   // company masters
   orgMaster: "/masters/organizations",
   employeeTypeMaster: "/master/employee-type",
