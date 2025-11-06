@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient } from '@/src/api/client';
 
 export interface TripDetail {
   from_location: number;
