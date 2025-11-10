@@ -260,7 +260,7 @@ export default function TravelApplicationList() {
                   <TableHead>Request ID</TableHead>
                   <TableHead>Purpose</TableHead>
                   {/* <TableHead>Trips</TableHead> */}
-                  <TableHead className="text-center">Dates</TableHead>
+                  <TableHead>Dates</TableHead>
                   <TableHead>Total Cost</TableHead>
                   <TableHead className="text-center">Status</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
