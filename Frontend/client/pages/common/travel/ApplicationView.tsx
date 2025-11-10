@@ -32,7 +32,7 @@ const ApplicationView: React.FC = () => {
         if (!id) return;
         const app = await travelAPI.getApplication(Number(id));
         console.log("Fetched apps:", app); // debug log
-        setApplication(app.data);
+        setApplication(app.data.results);
       } catch (err) {
         console.error(err);
         alert(err);
