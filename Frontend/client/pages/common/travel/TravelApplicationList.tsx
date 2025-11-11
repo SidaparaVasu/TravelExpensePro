@@ -135,7 +135,12 @@ export default function TravelApplicationList() {
     <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-semibold">My Travel Applications</h1>
+          <div>
+            <h1 className="text-3xl font-semibold">My Travel Applications</h1>
+            <p className="text-lg text-muted-foreground mt-1">
+              Track your travel requests, approvals, and booking progress in one place.
+            </p>
+          </div>
           <Button onClick={() => navigate('/travel/make-travel-application')}>
             <Plus className="w-4 h-4 mr-2" />
             New Application
@@ -204,7 +209,7 @@ export default function TravelApplicationList() {
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-foreground">
-                      {stats.pending}
+                      {stats.approved}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Approved applications
@@ -214,7 +219,7 @@ export default function TravelApplicationList() {
               </CardContent>
             </Card>
           </div>
-        )} 
+        )}
 
         {/* Filters */}
         <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">

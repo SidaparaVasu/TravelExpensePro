@@ -160,7 +160,7 @@ class UserListCreateView(ListCreateAPIView):
     """
     queryset = User.objects.select_related(
         'department', 'designation', 'company', 'base_location', 'reporting_manager'
-    ).all()
+    ).filter(is_superuser=False)
     permission_classes = [IsAuthenticated, IsAdminUser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['department', 'designation', 'company', 'base_location', 'is_active']

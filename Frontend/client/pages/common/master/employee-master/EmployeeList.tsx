@@ -3,7 +3,7 @@ import { Search, Edit, Trash2, Plus, Eye, X, ChevronLeft, ChevronRight } from 'l
 import { Layout } from '@/components/Layout';
 import { userAPI, User } from '@/src/api/users';
 import { useToast } from '@/components/ui/use-toast';
-
+import EmployeeDetailModal from './EmployeeDetailModal';
 interface EmployeeListProps {
   onEdit: (id: number | null) => void;
 }
@@ -35,6 +35,8 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ onEdit }) => {
       });
 
       if (response.success) {
+        console.log(response.data);
+        console.log(response.data.results);
         setData(response.data.results || []);
         setTotalPages(response.data.total_pages || 1);
         setTotalCount(response.data.count || 0);
@@ -162,25 +164,22 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ onEdit }) => {
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                           Employee ID
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                           Name
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                           Email
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Department
+                          Department/Designation
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Designation
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                           Location
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                           Status
                         </th>
                         <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
@@ -191,38 +190,41 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ onEdit }) => {
                     <tbody className="divide-y divide-gray-200">
                       {data.map((item) => (
                         <tr key={item.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                          <td className="px-6 py-4 text-sm text-center font-medium text-gray-900">
                             {item.employee_id || '-'}
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {item.first_name} {item.last_name}
+                            <div className="text-sm text-left font-medium text-gray-900">{item.username || '-'}</div>
+                            <div className="text-sm text-left font-medium text-gray-500">
+                              {item.first_name} {item.last_name} 
                             </div>
-                            <div className="text-sm text-gray-500">{item.username}</div>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-700">{item.email}</td>
+                          <td className={`px-6 py-4 text-sm text-gray-700 ${item.email ? 'text-left' : 'text-center'}`}>{item.email || '-'}</td>
                           <td className="px-6 py-4 text-sm text-gray-700">
-                            {item.department_name || '-'}
+                            <div className={`text-sm font-medium text-gray-900 
+                              ${item.department_name ? 'text-left' : 'text-left'}`}>
+                              {item.department_name || '-'}
+                            </div>
+                            <div className={`text-sm text-gray-500 
+                              ${item.designation_name ? 'text-left' : 'text-left'}`}>
+                              {item.designation_name || '-'} 
+                            </div>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-700">
-                            {item.designation_name || '-'}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-700">
+                          <td className="px-6 py-4 text-center text-sm text-gray-700">
                             {item.base_location_name || '-'}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 text-center">
                             <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                item.is_active
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}
+                              className={`inline-flex px-2 py-1 text-xs text-center font-semibold rounded-full ${item.is_active
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                                }`}
                             >
                               {item.is_active ? 'Active' : 'Inactive'}
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex items-center justify-left gap-2">
                               <button
                                 onClick={() => handleView(item.id)}
                                 className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
@@ -237,15 +239,21 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ onEdit }) => {
                               >
                                 <Edit size={18} />
                               </button>
-                              <button
-                                onClick={() =>
-                                  handleDelete(item.id, `${item.first_name} ${item.last_name}`)
-                                }
-                                className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                title="Deactivate"
-                              >
-                                <Trash2 size={18} />
-                              </button>
+                              {
+                                item.is_active ?
+
+                                  <button
+                                    onClick={() =>
+                                      handleDelete(item.id, `${item.first_name} ${item.last_name}`)
+                                    }
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                    title="Deactivate"
+                                  >
+                                    <Trash2 size={18} />
+                                  </button>
+                                  :
+                                  <p></p>
+                              }
                             </div>
                           </td>
                         </tr>
@@ -277,11 +285,10 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ onEdit }) => {
                         <button
                           key={page}
                           onClick={() => handlePageChange(page)}
-                          className={`px-4 py-2 border rounded-lg transition-colors ${
-                            currentPage === page
-                              ? 'bg-blue-500 text-white border-blue-500'
-                              : 'border-gray-300 hover:bg-gray-100'
-                          }`}
+                          className={`px-4 py-2 border rounded-lg transition-colors ${currentPage === page
+                            ? 'bg-blue-500 text-white border-blue-500'
+                            : 'border-gray-300 hover:bg-gray-100'
+                            }`}
                         >
                           {page}
                         </button>
@@ -301,20 +308,12 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ onEdit }) => {
           </div>
         </div>
 
-        {/* Detail Modal - Will implement next */}
+        {/* Detail Modal */}
         {viewId && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-2xl">
-              <h3 className="text-lg font-semibold mb-4">Employee Details</h3>
-              <p className="text-gray-600 mb-4">Detail modal - implementing next</p>
-              <button
-                onClick={() => setViewId(null)}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-              >
-                Close
-              </button>
-            </div>
-          </div>
+          <EmployeeDetailModal
+            employeeId={viewId}
+            onClose={() => setViewId(null)}
+          />
         )}
       </div>
     </Layout>

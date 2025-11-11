@@ -287,7 +287,7 @@ const GuestHouseForm = ({ editId = null, onCancel }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">GSTIN</label>
-                <input type="text" value={formData.gstin} onChange={(e) => updateField('gstin', e.target.value)}
+                <input type="text" value={formData.gstin} onChange={(e) => updateField('gstin', e.target.value)} maxLength="15"
                   className="w-full px-3 py-2 border border-gray-300 rounded" placeholder="22AAAAA0000A1Z5" />
               </div>
               <div>

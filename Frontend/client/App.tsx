@@ -25,7 +25,7 @@ import TravelRequestApprovals from "./pages/admin/TravelRequestApprovals";
 // Master Pages
 import MasterPage from "./pages/common/master/MasterIndex";
 // Employee Master Pages
-import EmployeeMasterPage from "./pages/common/master/employee-master/EmployeeList";
+import EmployeeMasterPage from "./pages/common/master/employee-master/Index";
 // Accommodation Pages
 import GuestHouseMaster from "./pages/common/master/guest-house/Index";
 import ARCHotelMaster from "./pages/common/master/arc-hotel/Index";
@@ -216,7 +216,7 @@ const App = () => (
           />
           {/* Employee Master */}
           <Route 
-            path={ROUTES.EmployeeMasterPage}
+            path={ROUTES.employeeMasterPage}
             element={
               <Protected>
                 <EmployeeMasterPage />

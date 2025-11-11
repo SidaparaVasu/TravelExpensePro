@@ -299,9 +299,6 @@ export default function TravelRequestApprovals() {
             <h1 className="text-2xl lg:text-3xl font-semibold text-foreground">
               Travel Request Approvals
             </h1>
-            <p className="text-lg text-muted-foreground mt-1">
-              Review and approve employee travel requests
-            </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <Button variant="outline" className="gap-2">

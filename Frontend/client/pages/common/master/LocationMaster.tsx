@@ -415,9 +415,6 @@ const LocationMaster = () => {
                                                 Country
                                             </th>
                                             <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                                                Address
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
                                                 Status
                                             </th>
                                             <th className="px-6 py-4 text-center text-xs font-semibold text-slate-700 uppercase tracking-wider">
@@ -449,11 +446,6 @@ const LocationMaster = () => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-slate-700">
                                                     {location.country_name}
-                                                </td>
-                                                <td className="px-6 py-4 max-w-xs">
-                                                    <div className="text-slate-700 text-sm truncate" title={location.address}>
-                                                        {location.address || '-'}
-                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${location.is_active

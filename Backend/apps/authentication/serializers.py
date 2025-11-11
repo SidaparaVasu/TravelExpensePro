@@ -88,8 +88,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views"""
-    department_name = serializers.CharField(source='department.name', read_only=True)
-    designation_name = serializers.CharField(source='designation.name', read_only=True)
+    department_name = serializers.SerializerMethodField()
+    designation_name = serializers.SerializerMethodField()
     company_name = serializers.CharField(source='company.name', read_only=True)
     base_location_name = serializers.CharField(source='base_location.location_name', read_only=True)
     reporting_manager_name = serializers.SerializerMethodField()
@@ -102,7 +102,13 @@ class UserListSerializer(serializers.ModelSerializer):
             'company', 'company_name', 'base_location', 'base_location_name',
             'reporting_manager', 'reporting_manager_name', 'is_active'
         ]
-    
+
+    def get_department_name(self, obj):
+        return obj.department.dept_name if obj.department else None
+
+    def get_designation_name(self, obj):
+        return obj.designation.designation_name if obj.designation else None
+
     def get_reporting_manager_name(self, obj):
         if obj.reporting_manager:
             return f"{obj.reporting_manager.first_name} {obj.reporting_manager.last_name}"
@@ -158,9 +164,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
 class UserDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer with all related data"""
-    department_name = serializers.CharField(source='department.name', read_only=True)
-    designation_name = serializers.CharField(source='designation.name', read_only=True)
-    employee_type_name = serializers.CharField(source='employee_type.name', read_only=True)
+    department_name = serializers.SerializerMethodField()
+    designation_name = serializers.SerializerMethodField()
+    employee_type_name = serializers.SerializerMethodField()
     company_name = serializers.CharField(source='company.name', read_only=True)
     grade_name = serializers.CharField(source='grade.name', read_only=True)
     base_location_name = serializers.CharField(source='base_location.location_name', read_only=True)
@@ -176,6 +182,15 @@ class UserDetailSerializer(serializers.ModelSerializer):
             'reporting_manager', 'reporting_manager_details', 'is_active',
             'date_joined', 'last_login'
         ]
+
+    def get_department_name(self, obj):
+        return obj.department.dept_name if obj.department else None
+
+    def get_designation_name(self, obj):
+        return obj.designation.designation_name if obj.designation else None
+
+    def get_employee_type_name(self, obj):
+        return obj.employee_type.type if obj.employee_type else None
 
     def get_reporting_manager_details(self, obj):
         if obj.reporting_manager:

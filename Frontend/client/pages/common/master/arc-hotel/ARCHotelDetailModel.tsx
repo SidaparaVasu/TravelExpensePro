@@ -116,10 +116,10 @@ const ARCHotelDetailModal = ({ hotelId, onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-end bg-black bg-opacity-50 z-50">
-      <div className="bg-white w-full max-w-6xl shadow-2xl border border-gray-200 p-6 max-h-screen overflow-y-auto">
+      <div className="bg-white w-[100%] max-w-6xl shadow-2xl border border-gray-200 p-6 max-h-screen overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
+          className="absolute top-3 right-5 text-gray-600 hover:text-gray-900"
         >
           <X size={20} />
         </button>

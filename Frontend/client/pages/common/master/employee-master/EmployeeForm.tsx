@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
-import { userAPI, UserCreatePayload, User } from '@/src/api/user';
-import { organizationMasterAPI } from '@/src/api/master_organization';
+import { userAPI, UserCreatePayload, User } from '@/src/api/users';
+import { organizationMasterAPI } from '@/src/api/master_company';
 import { masterAPI } from '@/src/api/master';
 import { locationAPI } from '@/src/api/master_location';
 import { useToast } from '@/components/ui/use-toast';
@@ -86,7 +86,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
         designations: designations.data?.results || designations.results || [],
         employeeTypes: employeeTypes.data?.results || employeeTypes.results || [],
         companies: companies.data?.results || companies.results || [],
-        grades: grades.results || [],
+        grades: grades.data?.results || [],
         locations: locations.data?.results || locations.results || [],
         users: users.data?.results || [],
       });
@@ -448,8 +448,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
                       >
                         <option value="">Select Department</option>
                         {dropdownData.departments.map((dept) => (
-                          <option key={dept.id} value={dept.id}>
-                            {dept.name}
+                          <option key={dept.department_id} value={dept.department_id}>
+                            {dept.dept_name}
                           </option>
                         ))}
                       </select>
@@ -466,8 +466,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
                       >
                         <option value="">Select Designation</option>
                         {dropdownData.designations.map((des) => (
-                          <option key={des.id} value={des.id}>
-                            {des.name}
+                          <option key={des.designation_id} value={des.designation_id}>
+                            {des.designation_name}
                           </option>
                         ))}
                       </select>
@@ -503,7 +503,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
                         <option value="">Select Employee Type</option>
                         {dropdownData.employeeTypes.map((type) => (
                           <option key={type.id} value={type.id}>
-                            {type.name}
+                            {type.type}
                           </option>
                         ))}
                       </select>
@@ -538,7 +538,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
                       >
                         <option value="">Select Location</option>
                         {dropdownData.locations.map((loc) => (
-                          <option key={loc.id} value={loc.id}>
+                          <option key={loc.location_id} value={loc.location_id}>
                             {loc.location_name}
                           </option>
                         ))}

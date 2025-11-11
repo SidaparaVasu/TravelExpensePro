@@ -32,7 +32,7 @@ const ApplicationView: React.FC = () => {
         if (!id) return;
         const app = await travelAPI.getApplication(Number(id));
         console.log("Fetched apps:", app); // debug log
-        setApplication(app.data.results);
+        setApplication(app.data);
       } catch (err) {
         console.error(err);
         alert(err);
@@ -124,8 +124,6 @@ const ApplicationView: React.FC = () => {
             <CardTitle>Application Details</CardTitle>
           </CardHeader>
           <CardContent className="grid sm:grid-cols-2 gap-4 text-sm">
-            <Detail label="Purpose" value={application?.purpose} />
-            <span></span>
             <Detail label="Employee Grade" value={application?.employee_grade} />
             <Detail label="GL Code" value={application?.gl_code_name} />
             <Detail label="Internal Order" value={application?.internal_order} />
