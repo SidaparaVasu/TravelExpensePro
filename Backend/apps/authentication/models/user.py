@@ -7,8 +7,22 @@ class User(AbstractUser):
     """
     Enhanced User model with organizational hierarchy and role management
     """
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other / Non-binary'),
+        ('N', 'Prefer not to say'),
+    ]
+
     employee_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    
+    gender = models.CharField(
+        max_length=1,
+        choices=GENDER_CHOICES,
+        default='N',
+        blank=True,
+        null=False,
+    )
+
     # Organizational Hierarchy
     reporting_manager = models.ForeignKey(
         'self', 

@@ -37,6 +37,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
     first_name: '',
     last_name: '',
     email: '',
+    gender: '',
     department: '',
     designation: '',
     employee_type: '',
@@ -114,6 +115,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
           first_name: user.first_name || '',
           last_name: user.last_name || '',
           email: user.email || '',
+          gender: user.gender || '',
           department: user.department || '',
           designation: user.designation || '',
           employee_type: user.employee_type || '',
@@ -189,6 +191,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
+        gender: formData.gender,
         department: formData.department || null,
         designation: formData.designation || null,
         employee_type: formData.employee_type || null,
@@ -198,6 +201,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
         reporting_manager: formData.reporting_manager || null,
         is_active: formData.is_active,
       };
+
+      console.log(payload);
 
       // Add password fields only for create mode
       if (!editId) {
@@ -286,9 +291,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
                         type="text"
                         value={formData.username}
                         onChange={(e) => updateField('username', e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.username ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.username ? 'border-red-500' : 'border-gray-300'
+                          }`}
                         placeholder="Enter username"
                       />
                       {errors.username && (
@@ -320,9 +324,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
                               type={showPassword ? 'text' : 'password'}
                               value={formData.password}
                               onChange={(e) => updateField('password', e.target.value)}
-                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                errors.password ? 'border-red-500' : 'border-gray-300'
-                              }`}
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.password ? 'border-red-500' : 'border-gray-300'
+                                }`}
                               placeholder="Enter password"
                             />
                             <button
@@ -347,9 +350,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
                               type={showConfirmPassword ? 'text' : 'password'}
                               value={formData.confirm_password}
                               onChange={(e) => updateField('confirm_password', e.target.value)}
-                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                errors.confirm_password ? 'border-red-500' : 'border-gray-300'
-                              }`}
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.confirm_password ? 'border-red-500' : 'border-gray-300'
+                                }`}
                               placeholder="Confirm password"
                             />
                             <button
@@ -383,9 +385,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
                         type="text"
                         value={formData.first_name}
                         onChange={(e) => updateField('first_name', e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.first_name ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.first_name ? 'border-red-500' : 'border-gray-300'
+                          }`}
                         placeholder="Enter first name"
                       />
                       {errors.first_name && (
@@ -401,9 +402,8 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
                         type="text"
                         value={formData.last_name}
                         onChange={(e) => updateField('last_name', e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.last_name ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.last_name ? 'border-red-500' : 'border-gray-300'
+                          }`}
                         placeholder="Enter last name"
                       />
                       {errors.last_name && (
@@ -411,7 +411,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
                       )}
                     </div>
 
-                    <div className="md:col-span-2">
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Email <span className="text-red-500">*</span>
                       </label>
@@ -419,15 +419,36 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
                         type="email"
                         value={formData.email}
                         onChange={(e) => updateField('email', e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.email ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-300'
+                          }`}
                         placeholder="Enter email address"
                       />
                       {errors.email && (
                         <p className="text-red-500 text-xs mt-1">{errors.email}</p>
                       )}
                     </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Gender <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.gender}
+                        onChange={(e) => updateField('gender', e.target.value)}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.gender ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                      >
+                        <option value="" disabled>Select gender</option>
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                        <option value="O">Other / Non-binary</option>
+                        <option value="N">Prefer not to say</option>
+                      </select>
+                      {errors.gender && (
+                        <p className="text-red-500 text-xs mt-1">{errors.gender}</p>
+                      )}
+                    </div>
+
                   </div>
                 </div>
 
@@ -554,7 +575,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
                         value={
                           formData.reporting_manager
                             ? dropdownData.users.find((u) => u.id === Number(formData.reporting_manager))
-                                ?.username || ''
+                              ?.username || ''
                             : ''
                         }
                         onChange={(e) => {

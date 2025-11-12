@@ -79,7 +79,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email',
+            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
             'reporting_manager', 'department', 'designation', 'employee_type',
             'company', 'grade', 'base_location', 'base_location_name',
             'user_permissions', 'is_active'
@@ -97,7 +97,7 @@ class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email',
+            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
             'department', 'department_name', 'designation', 'designation_name',
             'company', 'company_name', 'base_location', 'base_location_name',
             'reporting_manager', 'reporting_manager_name', 'is_active'
@@ -124,7 +124,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'employee_id', 'username', 'password', 'confirm_password',
-            'first_name', 'last_name', 'email', 'reporting_manager',
+            'first_name', 'last_name', 'email', 'gender', 'reporting_manager',
             'department', 'designation', 'employee_type', 'company', 
             'grade', 'base_location', 'is_active'
         ]
@@ -149,7 +149,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email',
+            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
             'reporting_manager', 'department', 'designation', 'employee_type',
             'company', 'grade', 'base_location', 'is_active'
         ]
@@ -175,7 +175,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email',
+            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
             'department', 'department_name', 'designation', 'designation_name',
             'employee_type', 'employee_type_name', 'company', 'company_name',
             'grade', 'grade_name', 'base_location', 'base_location_name',
@@ -218,7 +218,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'username', 'first_name', 'last_name', 'email', 'employee_id',
+            'id', 'username', 'first_name', 'last_name', 'email', 'gender', 'employee_id',
             'roles', 'department', 'designation', 'grade', 'employee_type', 
             'company', 'base_location', 'reporting_manager'
         )

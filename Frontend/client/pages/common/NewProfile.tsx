@@ -25,6 +25,13 @@ export default function Profile() {
         return <div className="p-4">Loading profile...</div>;
     }
 
+    const genderLabels = {
+        M: 'Male',
+        F: 'Female',
+        O: 'Other / Non-binary',
+        N: 'Prefer not to say',
+    };
+
     return (
         <Layout>
             <div className="relative overflow-auto w-full min-h-screen flex flex-col gap-6">
@@ -54,8 +61,8 @@ export default function Profile() {
                                 <Input value={user.email} disabled />
                             </div>
                             <div className="space-y-2">
-                                <Label>Employee ID</Label>
-                                <Input value={user.employee_id} disabled />
+                                <Label>Gender</Label>
+                                <Input value={genderLabels[user.gender] || '-'} disabled />
                             </div>
                         </CardContent>
                     </Card>
@@ -66,12 +73,16 @@ export default function Profile() {
                         </CardHeader>
                         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label>Grade</Label>
-                                <Input value={user.grade} disabled />
+                                <Label>Employee ID</Label>
+                                <Input value={user.employee_id} disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label>Employee Type</Label>
                                 <Input value={user.employee_type} disabled />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Grade</Label>
+                                <Input value={user.grade} disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label>Department</Label>

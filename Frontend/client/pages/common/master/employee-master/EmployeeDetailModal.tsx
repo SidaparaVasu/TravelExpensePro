@@ -57,6 +57,13 @@ const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({ employeeId, o
             <span className="text-red-700 font-medium">Inactive</span>
         );
 
+    const genderLabels = {
+        M: 'Male',
+        F: 'Female',
+        O: 'Other / Non-binary',
+        N: 'Prefer not to say',
+    };
+
     return (
         <div className="fixed inset-0 flex items-center justify-end bg-black bg-opacity-50 z-50">
             <div className="bg-white w-[100%] max-w-4xl shadow-2xl border border-gray-200 p-6 max-h-[100vh] overflow-y-auto relativeo">
@@ -86,8 +93,8 @@ const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({ employeeId, o
                 {/* Personal Information */}
                 <SectionTable
                     title="Personal Information"
-                    headers={['First Name', 'Last Name', 'Email']}
-                    row={[data.first_name || '-', data.last_name || '-', data.email || '-']}
+                    headers={['First Name', 'Last Name', 'Email', 'Gender']}
+                    row={[data.first_name || '-', data.last_name || '-', data.email || '-', genderLabels[data.gender] || '-']}
                 />
 
                 {/* Organizational Information */}

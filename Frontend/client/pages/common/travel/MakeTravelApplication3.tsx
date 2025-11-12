@@ -1618,9 +1618,11 @@ export default function CreateTravelApplication() {
         }
 
         // Check if at least one booking is required (when not marked as not_required)
-        if (!ticketingNotRequired && ticketing.length === 0 &&
-            !accommodationNotRequired && accommodation.length === 0 &&
-            !conveyanceNotRequired && conveyance.length === 0) {
+        if (
+            (!ticketingNotRequired && ticketing.length === 0) ||
+            (!accommodationNotRequired && accommodation.length === 0) ||
+            (!conveyanceNotRequired && conveyance.length === 0)
+        ) {
             errors.push({ field: 'bookings', message: 'Add at least one booking OR mark sections as not required' });
         }
 
