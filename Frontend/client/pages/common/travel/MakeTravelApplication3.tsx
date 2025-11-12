@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Save, Send, ChevronRight, ChevronLeft, Calendar, MapPin, Plane, Home, Car, Wallet } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -33,15 +33,15 @@ const getEmptyTicketing = () => ({
 });
 
 const getEmptyAccommodation = () => ({
-    accommodation_type: 'company',
-    booking_type: '',
+    accommodation_type: '',
+    accommodation_sub_option: '',
     guest_house: '',
     arc_hotel: '',
     place: '',
-    arrival_date: '',
-    arrival_time: '',
-    departure_date: '',
-    departure_time: '',
+    check_in_date: '',
+    check_in_time: '',
+    check_out_date: '',
+    check_out_time: '',
     estimated_cost: '',
     special_instruction: '',
     not_required: false
@@ -50,7 +50,8 @@ const getEmptyAccommodation = () => ({
 const getEmptyConveyance = () => ({
     from_location: '',
     to_location: '',
-    reporting_at: '',
+    report_at: '',
+    drop_location: '',
     vehicle_type: '',
     vehicle_sub_option: '',
     start_date: '',
@@ -652,6 +653,10 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
 
     const columns = [
         {
+            label: 'Travel Mode',
+            render: (row) => `${row.booking_type} - ${row.sub_option}`
+        },
+        {
             label: 'Route',
             render: (row) => {
                 const fromCity = cities.find(c => c.id === parseInt(row.from_location));
@@ -998,12 +1003,42 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
 };
 
 // Accommodation Section Component
-const AccommodationSection = ({ accommodation, setAccommodation, showToast, guestHouses, arcHotels, form, setForm, notRequired, setNotRequired }) => {
+const AccommodationSection = ({ accommodation, setAccommodation, showToast, travelModes, subOptions, onModeChange, guestHouses, arcHotels, form, setForm, notRequired, setNotRequired }) => {
     // const [form, setForm] = useState(getEmptyAccommodation());
     const [editIndex, setEditIndex] = useState(null);
+    const [accommodationSubOptionsLoaded, setAccommodationSubOptionsLoaded] = useState(false);
+
+    // Find "Accommodation" mode
+    const accommodationMode = travelModes?.results?.find(m => m.name === 'Accommodation');
+    const accommodationModeId = accommodationMode?.id;
+
+    const hasLoadedAccommodation = useRef(false);
+
+    useEffect(() => {
+        if (
+            accommodationModeId &&
+            onModeChange &&
+            !hasLoadedAccommodation.current &&
+            !subOptions?.[accommodationModeId?.toString()]
+        ) {
+            hasLoadedAccommodation.current = true; // ✅ ensures only one call
+            onModeChange(accommodationModeId);
+        }
+    }, [accommodationModeId, subOptions, onModeChange]);
+
+
+    // Handle both grouped or flat structure
+    const currentAccommodationSubOptions =
+        subOptions?.[accommodationModeId?.toString()]
+            ?.filter((s) => s.mode === accommodationModeId) || [];
+
+    const handleAccommodationModeChange = (modeId) => {
+        setForm({ ...form, accommodation_type: modeId, accommodation_sub_option: '' });
+        if (modeId) onModeChange(parseInt(modeId));
+    };
 
     const handleSubmit = () => {
-        if (!form.place || !form.arrival_date || !form.departure_date) {
+        if (!form.place || !form.check_in_date || !form.check_out_date) {
             showToast('Please fill Place, Arrival date, and Departure date', 'error');
             return;
         }
@@ -1037,8 +1072,8 @@ const AccommodationSection = ({ accommodation, setAccommodation, showToast, gues
     const columns = [
         { label: 'Type', render: (row) => <span className="capitalize px-2 py-1 bg-slate-100 rounded text-xs font-medium">{row.accommodation_type}</span> },
         { label: 'Place', key: 'place' },
-        { label: 'Check-in', render: (row) => `${row.arrival_date} ${row.arrival_time || ''}` },
-        { label: 'Check-out', render: (row) => `${row.departure_date} ${row.departure_time || ''}` },
+        { label: 'Check-in', render: (row) => `${row.check_in_date} ${row.check_in_time || ''}` },
+        { label: 'Check-out', render: (row) => `${row.check_out_time} ${row.check_out_time || ''}` },
         { label: 'Cost (₹)', align: 'text-right', render: (row) => `₹${Number(row.estimated_cost || 0).toLocaleString('en-IN')}` }
     ];
 
@@ -1082,43 +1117,72 @@ const AccommodationSection = ({ accommodation, setAccommodation, showToast, gues
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* ===== Accommodation Type (Static) ===== */}
                             <FormSelect
                                 label="Accommodation Type"
+                                required
                                 value={form.accommodation_type}
-                                onChange={(e) => setForm({
-                                    ...form,
-                                    accommodation_type: e.target.value,
-                                    guest_house: '',
-                                    arc_hotel: ''
-                                })}
+                                onChange={(e) => handleAccommodationModeChange(e.target.value)}
                                 options={[
+                                    { value: '', label: 'Select accommodation type' },
                                     { value: 'company', label: 'Company Arranged' },
-                                    { value: 'self', label: 'Self Arranged' }
+                                    { value: 'self', label: 'Self Arranged' },
                                 ]}
                             />
+
+                            {/* ===== Show Sub-Options only for Company Arranged ===== */}
                             {form.accommodation_type === 'company' && (
                                 <FormSelect
-                                    label="Select Guest House"
+                                    label="Accommodation Sub-Option"
                                     required
-                                    value={form.guest_house}
-                                    onChange={(e) => setForm({ ...form, guest_house: e.target.value })}
+                                    value={form.accommodation_sub_option}
+                                    onChange={(e) =>
+                                        setForm({ ...form, accommodation_sub_option: e.target.value })
+                                    }
                                     options={[
-                                        { value: '', label: 'Select guest house' },
-                                        ...(guestHouses?.data?.results || []).map(g => ({
-                                            value: g.id.toString(),
-                                            label: g.name
-                                        }))
+                                        { value: '', label: 'Select sub-option' },
+                                        ...currentAccommodationSubOptions.map((s) => ({
+                                            value: s.id.toString(),
+                                            label: s.name,
+                                        })),
                                     ]}
                                 />
                             )}
 
+                            {/* ===== Show Guest House List only if "Guest House" selected ===== */}
+                            {(() => {
+                                const selectedSubOption = currentAccommodationSubOptions.find(
+                                    (s) => s.id === parseInt(form.accommodation_sub_option)
+                                );
+                                if (selectedSubOption?.name?.toLowerCase().includes('guest house')) {
+                                    return (
+                                        <FormSelect
+                                            label="Select Guest House"
+                                            required
+                                            value={form.guest_house}
+                                            onChange={(e) =>
+                                                setForm({ ...form, guest_house: e.target.value })
+                                            }
+                                            options={[
+                                                { value: '', label: 'Select guest house' },
+                                                ...(guestHouses?.data?.results || []).map((g) => ({
+                                                    value: g.id.toString(),
+                                                    label: g.name,
+                                                })),
+                                            ]}
+                                        />
+                                    );
+                                }
+                                return null;
+                            })()}
+
                             <FormInput label="Place/Location" required value={form.place} onChange={(e) => setForm({ ...form, place: e.target.value })} placeholder="City or area" />
 
-                            <FormInput label="Check-in Date" required type="date" value={form.arrival_date} onChange={(e) => setForm({ ...form, arrival_date: e.target.value })} />
-                            <FormInput label="Check-in Time" type="time" value={form.arrival_time} onChange={(e) => setForm({ ...form, arrival_time: e.target.value })} />
+                            <FormInput label="Check-in Date" required type="date" value={form.check_in_date} onChange={(e) => setForm({ ...form, check_in_date: e.target.value })} />
+                            <FormInput label="Check-in Time" type="time" value={form.check_in_time} onChange={(e) => setForm({ ...form, check_in_time: e.target.value })} />
 
-                            <FormInput label="Check-out Date" required type="date" value={form.departure_date} onChange={(e) => setForm({ ...form, departure_date: e.target.value })} />
-                            <FormInput label="Check-out Time" type="time" value={form.departure_time} onChange={(e) => setForm({ ...form, departure_time: e.target.value })} />
+                            <FormInput label="Check-out Date" required type="date" value={form.check_out_date} onChange={(e) => setForm({ ...form, check_out_date: e.target.value })} />
+                            <FormInput label="Check-out Time" type="time" value={form.check_out_time} onChange={(e) => setForm({ ...form, check_out_time: e.target.value })} />
 
                             <FormInput label="Estimated Cost (₹)" type="number" value={form.estimated_cost} onChange={(e) => setForm({ ...form, estimated_cost: e.target.value })} min="0" placeholder="₹12000" />
                             <FormInput label="Special Instructions" value={form.special_instruction} onChange={(e) => setForm({ ...form, special_instruction: e.target.value })} placeholder="e.g., Veg meal preference, room preference..." />
@@ -1168,6 +1232,12 @@ const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions,
             return;
         }
 
+        if (form.club_booking && !form.club_reason) {
+            showToast('Reason is required when club booking is selected.', 'error');
+            return;
+        }
+
+
         if (editIndex !== null) {
             const updated = [...conveyance];
             updated[editIndex] = { ...form, id: updated[editIndex].id };
@@ -1194,23 +1264,55 @@ const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions,
         }
     };
 
+    // const columns = [
+    //     {
+    //         label: 'Vehicle',
+    //         render: (row) => {
+    //             const mode = travelModes?.results?.find(m => m.id === parseInt(row.vehicle_type));
+    //             const modeName = mode ? mode.name : row.vehicle_type;
+
+    //             const subOption = currentSubOptions.find(s => s.id === parseInt(row.vehicle_sub_option));
+    //             const subOptionName = subOption ? subOption.name : row.vehicle_sub_option;
+
+    //             return `${modeName} - ${subOptionName}`;
+    //         }
+    //     },
+    //     { label: 'Route', render: (row) => `${row.from_location} → ${row.to_location}` },
+    //     { label: 'Start', render: (row) => `${row.start_date} ${row.start_time || ''}` },
+    //     { label: 'Cost (₹)', align: 'text-right', render: (row) => `₹${Number(row.estimated_cost || 0).toLocaleString('en-IN')}` }
+    // ];
     const columns = [
         {
             label: 'Vehicle',
             render: (row) => {
                 const mode = travelModes?.results?.find(m => m.id === parseInt(row.vehicle_type));
-                const modeName = mode ? mode.name : row.vehicle_type;
-
-                const subOption = currentSubOptions.find(s => s.id === parseInt(row.vehicle_sub_option));
-                const subOptionName = subOption ? subOption.name : row.vehicle_sub_option;
-
-                return `${modeName} - ${subOptionName}`;
-            }
+                const subOption = subOptions[row.vehicle_type?.toString()]?.find(s => s.id === parseInt(row.vehicle_sub_option));
+                return `${mode?.name || '-'} - ${subOption?.name || '-'}`;
+            },
         },
-        { label: 'Route', render: (row) => `${row.from_location} → ${row.to_location}` },
-        { label: 'Start', render: (row) => `${row.start_date} ${row.start_time || ''}` },
-        { label: 'Cost (₹)', align: 'text-right', render: (row) => `₹${Number(row.estimated_cost || 0).toLocaleString('en-IN')}` }
+        {
+            label: 'Route',
+            render: (row) => `${row.from_location} → ${row.to_location}`,
+        },
+        {
+            label: 'Report At',
+            render: (row) => row.report_at || '-',
+        },
+        {
+            label: 'Drop At',
+            render: (row) => row.drop_location || '-',
+        },
+        {
+            label: 'Start',
+            render: (row) => `${row.start_date || '-'} ${row.start_time || ''}`,
+        },
+        {
+            label: 'Cost (₹)',
+            align: 'text-right',
+            render: (row) => `₹${Number(row.estimated_cost || 0).toLocaleString('en-IN')}`,
+        },
     ];
+
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
@@ -1247,9 +1349,17 @@ const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions,
 
                 {!notRequired && (
                     <>
-                        <h3 className="text-sm font-semibold text-slate-700 mb-4">
-                            {editIndex !== null ? 'Edit Conveyance' : 'Add New Conveyance'}
-                        </h3>
+                        <div className="mb-4">
+                            <h3 className="text-sm font-semibold text-slate-700">
+                                {editIndex !== null ? 'Edit Conveyance' : 'Add New Conveyance'}
+                            </h3>
+                            {/* ====== Car Disposal Info Note ====== */}
+                            {form.vehicle_sub_option === 'Company Car' && (
+                                <div className="col-span-full bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm rounded-lg p-3 ml-10">
+                                    You are opting for <b>Car at Disposal</b> from the start time to end time mentioned.
+                                </div>
+                            )}
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <FormSelect
@@ -1292,11 +1402,19 @@ const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions,
                                     }
                                 </select>
                             </div>
+                            {/* ====== Car Disposal Info Note ====== */}
+                            {form.vehicle_sub_option === 'Company Car' && (
+                                <div className="col-span-full bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm rounded-lg p-3 ml-10">
+                                    You are opting for <b>Car at Disposal</b> from the start time to end time mentioned.
+                                </div>
+                            )}
                             {/* <FormInput label="Vehicle Type" value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} placeholder="Taxi, Car, etc." /> */}
 
                             <FormInput label="From" required value={form.from_location} onChange={(e) => setForm({ ...form, from_location: e.target.value })} placeholder="Starting Point (e.g., Mumbai Airport)" />
                             <FormInput label="To" required value={form.to_location} onChange={(e) => setForm({ ...form, to_location: e.target.value })} placeholder="Destination (e.g., Guest House, Andheri)" />
-                            <FormInput label="Reporting At" required value={form.reporting_at} onChange={(e) => setForm({ ...form, reporting_at: e.target.value })} placeholder="Reporting location" />
+
+                            <FormInput label="Report At" required value={form.report_at} onChange={(e) => setForm({ ...form, report_at: e.target.value })} placeholder="Enter report location (e.g., Office, Station)" />
+                            <FormInput label="Drop At" required value={form.drop_location} onChange={(e) => setForm({ ...form, drop_location: e.target.value })} placeholder="Enter drop location (e.g., Office, Station)" />
 
                             <FormInput label="Start Date" required type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
                             <FormInput label="Start Time" type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
@@ -1306,6 +1424,82 @@ const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions,
                                 <FormInput label="Special Instructions" value={form.special_instruction} onChange={(e) => setForm({ ...form, special_instruction: e.target.value })} placeholder="Any special requirements" />
                             </div>
                         </div>
+
+                        {/* ====== Club Booking Checkbox & Reason ====== */}
+                        <div className="col-span-full mt-6">
+                            <label className="flex items-center items-start gap-2 text-sm text-slate-700">
+                                <input
+                                    type="checkbox"
+                                    checked={form.club_booking || false}
+                                    onChange={(e) =>
+                                        setForm({ ...form, club_booking: e.target.checked, club_reason: '' })
+                                    }
+                                    className="mt-0.5"
+                                />
+                                <span>
+                                    I am open to club my car booking with any other officer traveling on the same route.
+                                </span>
+                            </label>
+                            {form.club_booking && (
+                                <div className="mt-4">
+                                    <FormInput
+                                        label="Reason"
+                                        required
+                                        value={form.club_reason || ''}
+                                        onChange={(e) => setForm({ ...form, club_reason: e.target.value })}
+                                        placeholder="Enter reason for clubbing car booking"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* ====== Static Info Table ====== */}
+                        <div className="col-span-full mt-6 overflow-x-auto">
+                            <table className="min-w-full text-sm border border-slate-300 rounded-lg border-collapse table-fixed">
+                                <thead className="bg-slate-100 text-slate-700 font-medium">
+                                    <tr>
+                                        <th className="px-3 py-2 text-center border border-slate-300">Conveyance</th>
+                                        <th className="px-3 py-2 text-center border border-slate-300">Details</th>
+                                        <th className="px-3 py-2 text-center border border-slate-300">
+                                            Senior Management Approval Required
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-slate-600">
+                                    <tr>
+                                        <td className="px-3 py-2 border border-slate-300">Radio Cab</td>
+                                        <td className="px-3 py-2 border border-slate-300">
+                                            For Radio Cabs one can avail company provided OLA/UBER services.
+                                        </td>
+                                        <td className="px-3 py-2 border border-slate-300">No</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="px-3 py-2 border border-slate-300">Pick up & Drop</td>
+                                        <td className="px-3 py-2 border border-slate-300">
+                                            Pick & Drop service will be provided only from Accommodation to Railway Station/Airport & vice-versa. Radio
+                                            Cabs service should be added with Pick Up & Drop.
+                                        </td>
+                                        <td className="px-3 py-2 border border-slate-300">No</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="px-3 py-2 border border-slate-300">Car at Disposal</td>
+                                        <td className="px-3 py-2 border border-slate-300">Company Arranged Car will be provided.</td>
+                                        <td className="px-3 py-2 border border-slate-300">
+                                            Yes, If Radio Cab is present at the location otherwise NA
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className="px-3 py-2 border border-slate-300">Company Arranged Car At All Points</td>
+                                        <td className="px-3 py-2 border border-slate-300">
+                                            Company Arranged Car will be provided according to Ticketing details.
+                                        </td>
+                                        <td className="px-3 py-2 border border-slate-700 font-semibold">Yes</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+
 
                         <div className="flex justify-end gap-3 mt-6">
                             <Button variant="outline" onClick={() => { setForm(getEmptyConveyance()); setEditIndex(null); }}>
@@ -1698,7 +1892,7 @@ export default function CreateTravelApplication() {
 
             // Step 2: Ensure draft is saved (create/update)
             const payload = prepareSubmissionPayload();
-            console.log(payload);
+            console.log('Payload: <br/>\n', payload);
             let appId = draftApplicationId;
 
             if (!appId) {
@@ -1748,7 +1942,7 @@ export default function CreateTravelApplication() {
             // Clear draft ID and redirect
             setDraftApplicationId(null);
 
-            navigate("/travel/travel-application-list");
+            // navigate("/travel/travel-application-list");
 
         } catch (error) {
             console.error('Submission error:', error);
@@ -1760,6 +1954,7 @@ export default function CreateTravelApplication() {
     };
 
     const prepareSubmissionPayload = () => {
+        console.log('accommodation: ', accommodation);
         return {
             purpose: formData.purpose,
             internal_order: formData.internal_order,
@@ -1773,7 +1968,7 @@ export default function CreateTravelApplication() {
                 return_date: formData?.return_date,
                 bookings: [
                     ...ticketing.map(t => ({
-                        booking_type: parseInt(t.booking_type),
+                        booking_type: parseInt(t.booking_type), // // Ticketing mode ID
                         sub_option: parseInt(t.sub_option),
                         estimated_cost: parseFloat(t.estimated_cost),
                         booking_details: {
@@ -1787,31 +1982,35 @@ export default function CreateTravelApplication() {
                         special_instruction: t.special_instruction
                     })),
                     ...accommodation.map(a => ({
-                        booking_type: parseInt(a.booking_type), // Accommodation mode ID
+                        booking_type: parseInt(a.accommodation_type), // Accommodation mode ID
+                        sub_option: parseInt(a.accommodation_sub_option),
                         estimated_cost: parseFloat(a.estimated_cost),
                         booking_details: {
-                            accommodation_type: a.accommodation_type,
-                            guest_house: a.guest_house,
+                            guest_house_id: parseInt(a.guest_house) || '',
+                            guest_house: a.guest_house || '',
                             place: a.place,
                             check_in_date: a.check_in_date,
                             check_out_date: a.check_out_date,
                             check_in_time: a.check_in_time,
                             check_out_time: a.check_out_time,
-                            special_instruction: a.special_instruction || '',
-                        }
+                        },
+                        special_instruction: a.special_instruction || '',
                     })),
                     ...conveyance.map(c => ({
                         booking_type: parseInt(c.vehicle_type), // Conveyance mode ID
+                        sub_option: parseInt(c.vehicle_sub_option),
                         estimated_cost: parseFloat(c.estimated_cost),
                         booking_details: {
-                            vehicle_type: c.vehicle_type,
-                            vehicle_sub_option: c.vehicle_sub_option,
                             from_location: c.from_location,
                             to_location: c.to_location,
-                            reporting_at: c.reporting_at,
+                            report_at: c.report_at,
+                            drop_location: c.drop_location,
                             start_date: c.start_date,
                             start_time: c.start_time || '',
                             special_instruction: c.special_instruction || '',
+                            club_booking: !!c.club_booking,
+                            club_reason: c.club_reason?.trim() || '',
+                            not_required: !!c.not_required,
                         }
                     }))
                 ]
@@ -1862,6 +2061,9 @@ export default function CreateTravelApplication() {
                                 <AccommodationSection
                                     accommodation={accommodation}
                                     setAccommodation={setAccommodation}
+                                    travelModes={travelModes}
+                                    subOptions={subOptions}
+                                    onModeChange={loadSubOptions}
                                     showToast={showToast}
                                     guestHouses={guestHouses}
                                     arcHotels={arcHotels}
