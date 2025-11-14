@@ -7,6 +7,7 @@ export interface User {
     first_name: string;
     last_name: string;
     email: string;
+    gender: string;
     department?: number;
     department_name?: string;
     designation?: number;
@@ -34,6 +35,7 @@ export interface UserCreatePayload {
     first_name: string;
     last_name: string;
     email: string;
+    gender: string;
     department?: number;
     designation?: number;
     employee_type?: number;

@@ -2,12 +2,15 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Save, Send, ChevronRight, ChevronLeft, Calendar, MapPin, Plane, Home, Car, Wallet } from 'lucide-react';
 import { Layout } from '@/components/Layout';
+import { useAuthStore } from '@/src/store/authStore';
 import { travelAPI } from '@/src/api/travel';
 import { locationAPI } from '@/src/api/master_location';
+import GuestHouseSelector from './components/GuestHouseSelector';
+import GuestSelector from "./components/GuestSelector";
 
 // =============================================
 // UTILITY FUNCTIONS
-// =============================================
+// =============================================    
 // const getEmptyTripDetails = () => ({
 //     trip_from_location: '',
 //     trip_to_location: '',
@@ -29,11 +32,12 @@ const getEmptyTicketing = () => ({
     arrival_time: '',
     estimated_cost: '',
     special_instruction: '',
-    not_required: false
+    not_required: false,
 });
 
 const getEmptyAccommodation = () => ({
     accommodation_type: '',
+    accomodation_type_id: '',
     accommodation_sub_option: '',
     guest_house: '',
     arc_hotel: '',
@@ -44,7 +48,7 @@ const getEmptyAccommodation = () => ({
     check_out_time: '',
     estimated_cost: '',
     special_instruction: '',
-    not_required: false
+    not_required: false,
 });
 
 const getEmptyConveyance = () => ({
@@ -58,7 +62,9 @@ const getEmptyConveyance = () => ({
     start_time: '',
     estimated_cost: '',
     special_instruction: '',
-    not_required: false
+    not_required: false,
+    club_booking: true,
+    guests: [],
 });
 
 // =============================================
@@ -654,7 +660,11 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
     const columns = [
         {
             label: 'Travel Mode',
-            render: (row) => `${row.booking_type} - ${row.sub_option}`
+            render: (row) => {
+                const mode = travelModes?.results?.find(m => m.id === parseInt(row.booking_type));
+                const subOption = subOptions[row.booking_type?.toString()]?.find(s => s.id === parseInt(row.sub_option));
+                return `${mode?.name || row.booking_type} - ${subOption?.name || row.sub_option}`;
+            }
         },
         {
             label: 'Route',
@@ -1003,17 +1013,32 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
 };
 
 // Accommodation Section Component
-const AccommodationSection = ({ accommodation, setAccommodation, showToast, travelModes, subOptions, onModeChange, guestHouses, arcHotels, form, setForm, notRequired, setNotRequired }) => {
-    // const [form, setForm] = useState(getEmptyAccommodation());
-    const [editIndex, setEditIndex] = useState(null);
-    const [accommodationSubOptionsLoaded, setAccommodationSubOptionsLoaded] = useState(false);
+const AccommodationSection = ({
+    accommodation,
+    setAccommodation,
+    showToast,
+    travelModes,
+    subOptions,
+    onModeChange,
+    guestHouses,
+    arcHotels,
+    form,
+    setForm,
+    notRequired,
+    setNotRequired
+}) => {
 
-    // Find "Accommodation" mode
-    const accommodationMode = travelModes?.results?.find(m => m.name === 'Accommodation');
+    const [editIndex, setEditIndex] = useState(null);
+    const [guestHousePreferences, setGuestHousePreferences] = useState([]);
+
+    // ===== Find "Accommodation" mode =====
+    const accommodationMode = travelModes?.results?.find(m => m.name === "Accommodation");
     const accommodationModeId = accommodationMode?.id;
+    form.accommodation_type_id = accommodationModeId;
 
     const hasLoadedAccommodation = useRef(false);
 
+    // ===== Load sub-options first time =====
     useEffect(() => {
         if (
             accommodationModeId &&
@@ -1021,64 +1046,138 @@ const AccommodationSection = ({ accommodation, setAccommodation, showToast, trav
             !hasLoadedAccommodation.current &&
             !subOptions?.[accommodationModeId?.toString()]
         ) {
-            hasLoadedAccommodation.current = true; // ✅ ensures only one call
+            hasLoadedAccommodation.current = true;
             onModeChange(accommodationModeId);
         }
     }, [accommodationModeId, subOptions, onModeChange]);
 
-
-    // Handle both grouped or flat structure
+    // ===== Extract only accommodation-related sub-options =====
     const currentAccommodationSubOptions =
         subOptions?.[accommodationModeId?.toString()]
             ?.filter((s) => s.mode === accommodationModeId) || [];
 
-    const handleAccommodationModeChange = (modeId) => {
-        setForm({ ...form, accommodation_type: modeId, accommodation_sub_option: '' });
-        if (modeId) onModeChange(parseInt(modeId));
-    };
+    // ===== Auto-select Guest House when Company is chosen =====
+    useEffect(() => {
+        if (form.accommodation_type === "company" && !form.accommodation_sub_option) {
+            const gh = currentAccommodationSubOptions.find(s =>
+                s.name?.toLowerCase().includes("guest house")
+            );
 
+            if (gh) {
+                setForm(prev => ({
+                    ...prev,
+                    accommodation_sub_option: gh.id.toString()
+                }));
+            }
+        }
+    }, [form.accommodation_type, currentAccommodationSubOptions]);
+
+
+    // ===========================
+    //        SUBMIT HANDLER
+    // ===========================
     const handleSubmit = () => {
         if (!form.place || !form.check_in_date || !form.check_out_date) {
-            showToast('Please fill Place, Arrival date, and Departure date', 'error');
+            showToast("Please fill Place, Check-in date, and Check-out date", "error");
             return;
         }
 
+        // Guest House preferences required only when guest house selected
+        if (form.accommodation_type === "company") {
+            const sub = currentAccommodationSubOptions.find(
+                s => s.id === parseInt(form.accommodation_sub_option)
+            );
+
+            if (sub?.name?.toLowerCase().includes("guest house") &&
+                guestHousePreferences.length === 0
+            ) {
+                showToast("Please select at least one guest house preference", "error");
+                return;
+            }
+        }
+
+        const bookingData = {
+            ...form,
+            guest_house_preferences: guestHousePreferences,
+            id: editIndex !== null ? accommodation[editIndex].id : Date.now()
+        };
+
         if (editIndex !== null) {
             const updated = [...accommodation];
-            updated[editIndex] = { ...form, id: updated[editIndex].id };
+            updated[editIndex] = bookingData;
             setAccommodation(updated);
-            showToast('Accommodation updated successfully', 'success');
+            showToast("Accommodation updated successfully", "success");
         } else {
-            setAccommodation([...accommodation, { ...form, id: Date.now() }]);
-            showToast('Accommodation added successfully', 'success');
+            setAccommodation([...accommodation, bookingData]);
+            showToast("Accommodation added successfully", "success");
         }
 
         setForm(getEmptyAccommodation());
+        setGuestHousePreferences([]);
         setEditIndex(null);
     };
 
+
+    // ===========================
+    //         EDIT HANDLER
+    // ===========================
     const handleEdit = (index) => {
         setEditIndex(index);
-        setForm(accommodation[index]);
+        const booking = accommodation[index];
+        setForm(booking);
+        setGuestHousePreferences(booking.guest_house_preferences || []);
     };
 
+
+    // ===========================
+    //         DELETE HANDLER
+    // ===========================
     const handleDelete = (index) => {
-        if (window.confirm('Delete this accommodation?')) {
+        if (window.confirm("Delete this accommodation?")) {
             setAccommodation(accommodation.filter((_, i) => i !== index));
-            showToast('Accommodation deleted', 'success');
+
+            // Reset form if deleted row was being edited
+            if (editIndex !== null && editIndex >= index) {
+                setForm(getEmptyAccommodation());
+                setGuestHousePreferences([]);
+                setEditIndex(null);
+            }
+
+            showToast("Accommodation deleted", "success");
         }
     };
 
+
+    // ===========================
+    //       TABLE COLUMNS
+    // ===========================
     const columns = [
-        { label: 'Type', render: (row) => <span className="capitalize px-2 py-1 bg-slate-100 rounded text-xs font-medium">{row.accommodation_type}</span> },
-        { label: 'Place', key: 'place' },
-        { label: 'Check-in', render: (row) => `${row.check_in_date} ${row.check_in_time || ''}` },
-        { label: 'Check-out', render: (row) => `${row.check_out_time} ${row.check_out_time || ''}` },
-        { label: 'Cost (₹)', align: 'text-right', render: (row) => `₹${Number(row.estimated_cost || 0).toLocaleString('en-IN')}` }
+        {
+            label: "Type",
+            render: (row) => (
+                <span className="capitalize px-2 py-1 bg-slate-100 rounded text-xs font-medium">
+                    {row.accommodation_type}
+                </span>
+            )
+        },
+        { label: "Place", key: "place" },
+        { label: "Check-in", render: (row) => `${row.check_in_date} ${row.check_in_time || ""}` },
+        { label: "Check-out", render: (row) => `${row.check_out_date} ${row.check_out_time || ""}` },
+        {
+            label: "Cost (₹)",
+            align: "text-right",
+            render: (row) => `₹${Number(row.estimated_cost || 0).toLocaleString("en-IN")}`
+        }
     ];
 
+
+    // ===========================
+    //           RETURN JSX
+    // ===========================
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
+
+            {/* HEADER */}
             <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                     <Home className="w-5 h-5 text-blue-600" />
@@ -1089,7 +1188,11 @@ const AccommodationSection = ({ accommodation, setAccommodation, showToast, trav
                 </div>
             </div>
 
+
+            {/* MAIN CARD */}
             <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+
+                {/* Not Required Checkbox */}
                 <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <label className="flex items-start gap-3 cursor-pointer">
                         <input
@@ -1105,100 +1208,146 @@ const AccommodationSection = ({ accommodation, setAccommodation, showToast, trav
                             className="mt-1"
                         />
                         <span className="text-sm text-slate-700">
-                            I hereby declare that I do not need accommodation in any form - neither Company nor Self for this travel.
+                            I hereby declare that I do not need accommodation in any form - neither
+                            Company nor Self for this travel.
                         </span>
                     </label>
                 </div>
 
+                {/* ======================== FORM ======================== */}
                 {!notRequired && (
                     <>
                         <h3 className="text-sm font-semibold text-slate-700 mb-4">
-                            {editIndex !== null ? 'Edit Accommodation' : 'Add New Accommodation'}
+                            {editIndex !== null ? "Edit Accommodation" : "Add New Accommodation"}
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* ===== Accommodation Type (Static) ===== */}
+
+                            {/* Accommodation Type */}
                             <FormSelect
                                 label="Accommodation Type"
                                 required
                                 value={form.accommodation_type}
-                                onChange={(e) => handleAccommodationModeChange(e.target.value)}
+                                onChange={(e) => {
+                                    setForm({
+                                        ...form,
+                                        accommodation_type: e.target.value,
+                                        accommodation_sub_option: ""
+                                    });
+                                    setGuestHousePreferences([]);
+                                }}
                                 options={[
-                                    { value: '', label: 'Select accommodation type' },
-                                    { value: 'company', label: 'Company Arranged' },
-                                    { value: 'self', label: 'Self Arranged' },
+                                    { value: "", label: "Select accommodation type" },
+                                    { value: "company", label: "Company Arranged" },
+                                    { value: "self", label: "Self Arranged" }
                                 ]}
                             />
 
-                            {/* ===== Show Sub-Options only for Company Arranged ===== */}
-                            {form.accommodation_type === 'company' && (
-                                <FormSelect
-                                    label="Accommodation Sub-Option"
-                                    required
-                                    value={form.accommodation_sub_option}
-                                    onChange={(e) =>
-                                        setForm({ ...form, accommodation_sub_option: e.target.value })
-                                    }
-                                    options={[
-                                        { value: '', label: 'Select sub-option' },
-                                        ...currentAccommodationSubOptions.map((s) => ({
-                                            value: s.id.toString(),
-                                            label: s.name,
-                                        })),
-                                    ]}
-                                />
+                            {/* Auto-selected Guest House Sub-option */}
+                            {form.accommodation_type === "company" && (
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                                        Accommodation Sub-Option <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="px-3 py-2 border border-slate-300 bg-slate-50 rounded-lg text-sm text-slate-600">
+                                        Guest House (Auto-selected)
+                                    </div>
+                                </div>
                             )}
 
-                            {/* ===== Show Guest House List only if "Guest House" selected ===== */}
-                            {(() => {
-                                const selectedSubOption = currentAccommodationSubOptions.find(
-                                    (s) => s.id === parseInt(form.accommodation_sub_option)
-                                );
-                                if (selectedSubOption?.name?.toLowerCase().includes('guest house')) {
-                                    return (
-                                        <FormSelect
-                                            label="Select Guest House"
-                                            required
-                                            value={form.guest_house}
-                                            onChange={(e) =>
-                                                setForm({ ...form, guest_house: e.target.value })
-                                            }
-                                            options={[
-                                                { value: '', label: 'Select guest house' },
-                                                ...(guestHouses?.data?.results || []).map((g) => ({
-                                                    value: g.id.toString(),
-                                                    label: g.name,
-                                                })),
-                                            ]}
-                                        />
-                                    );
-                                }
-                                return null;
-                            })()}
+                            {/* Guest House Preferences */}
+                            {form.accommodation_type === "company" && (
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                                        Select Guest House Preferences <span className="text-red-500">*</span>
+                                    </label>
+                                    <GuestHouseSelector
+                                        guestHouses={guestHouses?.data?.results || []}
+                                        selectedPreferences={guestHousePreferences}
+                                        setSelectedPreferences={setGuestHousePreferences}
+                                    />
+                                </div>
+                            )}
 
-                            <FormInput label="Place/Location" required value={form.place} onChange={(e) => setForm({ ...form, place: e.target.value })} placeholder="City or area" />
+                            <FormInput
+                                label="Place/Location"
+                                required
+                                value={form.place}
+                                onChange={(e) => setForm({ ...form, place: e.target.value })}
+                                placeholder="City or area"
+                            />
 
-                            <FormInput label="Check-in Date" required type="date" value={form.check_in_date} onChange={(e) => setForm({ ...form, check_in_date: e.target.value })} />
-                            <FormInput label="Check-in Time" type="time" value={form.check_in_time} onChange={(e) => setForm({ ...form, check_in_time: e.target.value })} />
+                            <FormInput
+                                label="Check-in Date"
+                                required
+                                type="date"
+                                value={form.check_in_date}
+                                onChange={(e) => setForm({ ...form, check_in_date: e.target.value })}
+                            />
 
-                            <FormInput label="Check-out Date" required type="date" value={form.check_out_date} onChange={(e) => setForm({ ...form, check_out_date: e.target.value })} />
-                            <FormInput label="Check-out Time" type="time" value={form.check_out_time} onChange={(e) => setForm({ ...form, check_out_time: e.target.value })} />
+                            <FormInput
+                                label="Check-in Time"
+                                type="time"
+                                value={form.check_in_time}
+                                onChange={(e) => setForm({ ...form, check_in_time: e.target.value })}
+                            />
 
-                            <FormInput label="Estimated Cost (₹)" type="number" value={form.estimated_cost} onChange={(e) => setForm({ ...form, estimated_cost: e.target.value })} min="0" placeholder="₹12000" />
-                            <FormInput label="Special Instructions" value={form.special_instruction} onChange={(e) => setForm({ ...form, special_instruction: e.target.value })} placeholder="e.g., Veg meal preference, room preference..." />
+                            <FormInput
+                                label="Check-out Date"
+                                required
+                                type="date"
+                                value={form.check_out_date}
+                                onChange={(e) => setForm({ ...form, check_out_date: e.target.value })}
+                            />
+
+                            <FormInput
+                                label="Check-out Time"
+                                type="time"
+                                value={form.check_out_time}
+                                onChange={(e) => setForm({ ...form, check_out_time: e.target.value })}
+                            />
+
+                            <FormInput
+                                label="Estimated Cost (₹)"
+                                type="number"
+                                value={form.estimated_cost}
+                                onChange={(e) => setForm({ ...form, estimated_cost: e.target.value })}
+                                min="0"
+                                placeholder="₹12000"
+                            />
+
+                            <div className="md:col-span-2">
+                                <FormInput
+                                    label="Special Instructions"
+                                    value={form.special_instruction}
+                                    onChange={(e) => setForm({ ...form, special_instruction: e.target.value })}
+                                    placeholder="e.g., Veg meal preference, room preference..."
+                                />
+                            </div>
                         </div>
 
+                        {/* Buttons */}
                         <div className="flex justify-end gap-3 mt-6">
-                            <Button variant="outline" onClick={() => { setForm(getEmptyAccommodation()); setEditIndex(null); }}>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setForm(getEmptyAccommodation());
+                                    setGuestHousePreferences([]);
+                                    setEditIndex(null);
+                                }}
+                            >
                                 Clear
                             </Button>
+
                             <Button icon={Plus} onClick={handleSubmit}>
-                                {editIndex !== null ? 'Update' : 'Add'} Accommodation
+                                {editIndex !== null ? "Update" : "Add"} Accommodation
                             </Button>
                         </div>
-                    </>)}
+                    </>
+                )}
             </div>
 
+            {/* TABLE */}
             <DataTable
                 columns={columns}
                 data={accommodation}
@@ -1210,14 +1359,25 @@ const AccommodationSection = ({ accommodation, setAccommodation, showToast, trav
     );
 };
 
+
 // Conveyance Section Component
-const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions, onModeChange, showToast, form, setForm, notRequired, setNotRequired }) => {
-    // const [form, setForm] = useState(getEmptyConveyance());
+const ConveyanceSection = ({
+    conveyance,
+    setConveyance,
+    travelModes,
+    subOptions,
+    onModeChange,
+    showToast,
+    form,
+    setForm,
+    notRequired,
+    setNotRequired
+}) => {
     const [editIndex, setEditIndex] = useState(null);
+    const [localGuests, setLocalGuests] = useState([]);
 
     const handleModeChange = (modeId) => {
         setForm({ ...form, vehicle_type: modeId, vehicle_sub_option: '' });
-
         if (modeId) {
             onModeChange(parseInt(modeId));
         }
@@ -1227,60 +1387,69 @@ const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions,
     const currentSubOptions = form.vehicle_type ? (subOptions[form.vehicle_type.toString()] || []) : [];
 
     const handleSubmit = () => {
+        // Validation
+        if (!form.vehicle_type || !form.vehicle_sub_option) {
+            showToast('Please select Vehicle Type and Mode Class', 'error');
+            return;
+        }
+
         if (!form.from_location || !form.to_location || !form.start_date) {
             showToast('Please fill From, To, and Start date', 'error');
             return;
         }
 
-        if (form.club_booking && !form.club_reason) {
-            showToast('Reason is required when club booking is selected.', 'error');
+        if (!form.report_at || !form.drop_location) {
+            showToast('Please fill Report At and Drop At locations', 'error');
             return;
         }
 
+        if (!form.club_booking && !form.club_reason?.trim()) {
+            showToast('Reason is required when NOT clubbing car booking', 'error');
+            return;
+        }
+
+        const bookingData = {
+            ...form,
+            guests: localGuests,
+            id: editIndex !== null ? conveyance[editIndex].id : Date.now()
+        };
 
         if (editIndex !== null) {
             const updated = [...conveyance];
-            updated[editIndex] = { ...form, id: updated[editIndex].id };
+            updated[editIndex] = bookingData;
             setConveyance(updated);
             showToast('Conveyance updated successfully', 'success');
         } else {
-            setConveyance([...conveyance, { ...form, id: Date.now() }]);
+            setConveyance([...conveyance, bookingData]);
             showToast('Conveyance added successfully', 'success');
         }
 
         setForm(getEmptyConveyance());
+        setLocalGuests([]);
         setEditIndex(null);
     };
 
     const handleEdit = (index) => {
+        const booking = conveyance[index];
         setEditIndex(index);
-        setForm(conveyance[index]);
+        setForm(booking);
+        setLocalGuests(booking.guests || []);
     };
 
     const handleDelete = (index) => {
         if (window.confirm('Delete this conveyance?')) {
             setConveyance(conveyance.filter((_, i) => i !== index));
+
+            // Reset if editing deleted item
+            if (editIndex !== null && editIndex >= index) {
+                setForm(getEmptyConveyance());
+                setLocalGuests([]);
+                setEditIndex(null);
+            }
             showToast('Conveyance deleted', 'success');
         }
     };
 
-    // const columns = [
-    //     {
-    //         label: 'Vehicle',
-    //         render: (row) => {
-    //             const mode = travelModes?.results?.find(m => m.id === parseInt(row.vehicle_type));
-    //             const modeName = mode ? mode.name : row.vehicle_type;
-
-    //             const subOption = currentSubOptions.find(s => s.id === parseInt(row.vehicle_sub_option));
-    //             const subOptionName = subOption ? subOption.name : row.vehicle_sub_option;
-
-    //             return `${modeName} - ${subOptionName}`;
-    //         }
-    //     },
-    //     { label: 'Route', render: (row) => `${row.from_location} → ${row.to_location}` },
-    //     { label: 'Start', render: (row) => `${row.start_date} ${row.start_time || ''}` },
-    //     { label: 'Cost (₹)', align: 'text-right', render: (row) => `₹${Number(row.estimated_cost || 0).toLocaleString('en-IN')}` }
-    // ];
     const columns = [
         {
             label: 'Vehicle',
@@ -1295,16 +1464,16 @@ const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions,
             render: (row) => `${row.from_location} → ${row.to_location}`,
         },
         {
-            label: 'Report At',
-            render: (row) => row.report_at || '-',
-        },
-        {
-            label: 'Drop At',
-            render: (row) => row.drop_location || '-',
-        },
-        {
             label: 'Start',
             render: (row) => `${row.start_date || '-'} ${row.start_time || ''}`,
+        },
+        {
+            label: 'Guests',
+            render: (row) => row.guests?.length > 0 ? (
+                <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+                    {row.guests.length} guest{row.guests.length > 1 ? 's' : ''}
+                </span>
+            ) : '-'
         },
         {
             label: 'Cost (₹)',
@@ -1312,7 +1481,6 @@ const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions,
             render: (row) => `₹${Number(row.estimated_cost || 0).toLocaleString('en-IN')}`,
         },
     ];
-
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
@@ -1336,6 +1504,7 @@ const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions,
                                 setNotRequired(e.target.checked);
                                 if (e.target.checked) {
                                     setForm(getEmptyConveyance());
+                                    setLocalGuests([]);
                                     setEditIndex(null);
                                 }
                             }}
@@ -1349,17 +1518,9 @@ const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions,
 
                 {!notRequired && (
                     <>
-                        <div className="mb-4">
-                            <h3 className="text-sm font-semibold text-slate-700">
-                                {editIndex !== null ? 'Edit Conveyance' : 'Add New Conveyance'}
-                            </h3>
-                            {/* ====== Car Disposal Info Note ====== */}
-                            {form.vehicle_sub_option === 'Company Car' && (
-                                <div className="col-span-full bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm rounded-lg p-3 ml-10">
-                                    You are opting for <b>Car at Disposal</b> from the start time to end time mentioned.
-                                </div>
-                            )}
-                        </div>
+                        <h3 className="text-sm font-semibold text-slate-700 mb-4">
+                            {editIndex !== null ? 'Edit Conveyance' : 'Add New Conveyance'}
+                        </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <FormSelect
@@ -1382,12 +1543,9 @@ const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions,
                                 </label>
                                 <select
                                     value={form.vehicle_sub_option}
-                                    onChange={(e) => {
-                                        const subOptionId = e.target.value;
-                                        setForm({ ...form, vehicle_sub_option: subOptionId });
-                                    }}
+                                    onChange={(e) => setForm({ ...form, vehicle_sub_option: e.target.value })}
                                     disabled={!form.vehicle_type}
-                                    className={"w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all border-slate-300 focus:ring-blue-500"}
+                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all border-slate-300 focus:ring-blue-500"
                                 >
                                     <option value="">
                                         {form.vehicle_type ? 'Select sub-option' : 'Select vehicle type first'}
@@ -1402,114 +1560,185 @@ const ConveyanceSection = ({ conveyance, setConveyance, travelModes, subOptions,
                                     }
                                 </select>
                             </div>
-                            {/* ====== Car Disposal Info Note ====== */}
-                            {form.vehicle_sub_option === 'Company Car' && (
-                                <div className="col-span-full bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm rounded-lg p-3 ml-10">
-                                    You are opting for <b>Car at Disposal</b> from the start time to end time mentioned.
-                                </div>
-                            )}
-                            {/* <FormInput label="Vehicle Type" value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} placeholder="Taxi, Car, etc." /> */}
 
-                            <FormInput label="From" required value={form.from_location} onChange={(e) => setForm({ ...form, from_location: e.target.value })} placeholder="Starting Point (e.g., Mumbai Airport)" />
-                            <FormInput label="To" required value={form.to_location} onChange={(e) => setForm({ ...form, to_location: e.target.value })} placeholder="Destination (e.g., Guest House, Andheri)" />
+                            {/* Car Disposal Warning */}
+                            {(() => {
+                                const selectedSubOption = currentSubOptions.find(
+                                    s => s.id === parseInt(form.vehicle_sub_option)
+                                );
+                                if (selectedSubOption?.name?.toLowerCase().includes('disposal')) {
+                                    return (
+                                        <div className="col-span-full bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm rounded-lg p-3">
+                                            ⚠️ You are opting for <strong>Car at Disposal</strong> from the start time to end time mentioned.
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
 
-                            <FormInput label="Report At" required value={form.report_at} onChange={(e) => setForm({ ...form, report_at: e.target.value })} placeholder="Enter report location (e.g., Office, Station)" />
-                            <FormInput label="Drop At" required value={form.drop_location} onChange={(e) => setForm({ ...form, drop_location: e.target.value })} placeholder="Enter drop location (e.g., Office, Station)" />
+                            <FormInput
+                                label="From"
+                                required
+                                value={form.from_location}
+                                onChange={(e) => setForm({ ...form, from_location: e.target.value })}
+                                placeholder="Starting Point (e.g., Mumbai Airport)"
+                            />
 
-                            <FormInput label="Start Date" required type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
-                            <FormInput label="Start Time" type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
-                            <FormInput label="Estimated Cost (₹)" type="number" value={form.estimated_cost} onChange={(e) => setForm({ ...form, estimated_cost: e.target.value })} min="0" placeholder="₹500" />
+                            <FormInput
+                                label="To"
+                                required
+                                value={form.to_location}
+                                onChange={(e) => setForm({ ...form, to_location: e.target.value })}
+                                placeholder="Destination (e.g., Guest House)"
+                            />
+
+                            <FormInput
+                                label="Report At"
+                                required
+                                value={form.report_at}
+                                onChange={(e) => setForm({ ...form, report_at: e.target.value })}
+                                placeholder="Report location (e.g., Office Gate)"
+                            />
+
+                            <FormInput
+                                label="Drop At"
+                                required
+                                value={form.drop_location}
+                                onChange={(e) => setForm({ ...form, drop_location: e.target.value })}
+                                placeholder="Drop location (e.g., Railway Station)"
+                            />
+
+                            <FormInput
+                                label="Start Date"
+                                required
+                                type="date"
+                                value={form.start_date}
+                                onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                            />
+
+                            <FormInput
+                                label="Start Time"
+                                type="time"
+                                value={form.start_time}
+                                onChange={(e) => setForm({ ...form, start_time: e.target.value })}
+                            />
+
+                            <FormInput
+                                label="Estimated Cost (₹)"
+                                type="number"
+                                value={form.estimated_cost}
+                                onChange={(e) => setForm({ ...form, estimated_cost: e.target.value })}
+                                min="0"
+                                placeholder="₹500"
+                            />
 
                             <div className="md:col-span-3">
-                                <FormInput label="Special Instructions" value={form.special_instruction} onChange={(e) => setForm({ ...form, special_instruction: e.target.value })} placeholder="Any special requirements" />
+                                <FormInput
+                                    label="Special Instructions"
+                                    value={form.special_instruction}
+                                    onChange={(e) => setForm({ ...form, special_instruction: e.target.value })}
+                                    placeholder="Any special requirements"
+                                />
                             </div>
                         </div>
 
-                        {/* ====== Club Booking Checkbox & Reason ====== */}
-                        <div className="col-span-full mt-6">
-                            <label className="flex items-center items-start gap-2 text-sm text-slate-700">
-                                <input
-                                    type="checkbox"
-                                    checked={form.club_booking || false}
-                                    onChange={(e) =>
-                                        setForm({ ...form, club_booking: e.target.checked, club_reason: '' })
-                                    }
-                                    className="mt-0.5"
-                                />
-                                <span>
-                                    I am open to club my car booking with any other officer traveling on the same route.
-                                </span>
-                            </label>
-                            {form.club_booking && (
-                                <div className="mt-4">
-                                    <FormInput
-                                        label="Reason"
-                                        required
-                                        value={form.club_reason || ''}
-                                        onChange={(e) => setForm({ ...form, club_reason: e.target.value })}
-                                        placeholder="Enter reason for clubbing car booking"
+                        {/* Club Booking & Guests */}
+                        <div className="mt-6 border-t border-slate-200 pt-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Left: Club Booking */}
+                                <div>
+                                    <label className="flex items-start gap-2 text-sm text-slate-700 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={form.club_booking || false}
+                                            onChange={(e) => setForm({
+                                                ...form,
+                                                club_booking: e.target.checked,
+                                                club_reason: e.target.checked ? '' : form.club_reason // Clear reason if checked
+                                            })}
+                                            className="mt-0.5"
+                                        />
+                                        <span>
+                                            I am open to club my car booking with any other officer traveling on the same route.
+                                        </span>
+                                    </label>
+
+                                    {/* ✅ FIX: Show reason field when NOT clubbing */}
+                                    {!form.club_booking && (
+                                        <div className="mt-3">
+                                            <FormInput
+                                                label="Reason for NOT clubbing"
+                                                required
+                                                value={form.club_reason || ''}
+                                                onChange={(e) => setForm({ ...form, club_reason: e.target.value })}
+                                                placeholder="Why do you need exclusive car?"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Right: Guest Selector */}
+                                <div>
+                                    <GuestSelector
+                                        selectedGuests={localGuests}
+                                        setSelectedGuests={setLocalGuests}
                                     />
                                 </div>
-                            )}
+                            </div>
                         </div>
 
-                        {/* ====== Static Info Table ====== */}
-                        <div className="col-span-full mt-6 overflow-x-auto">
-                            <table className="min-w-full text-sm border border-slate-300 rounded-lg border-collapse table-fixed">
-                                <thead className="bg-slate-100 text-slate-700 font-medium">
+                        {/* Info Table */}
+                        <div className="mt-6 overflow-x-auto">
+                            <table className="min-w-full text-sm border border-slate-300 rounded-lg">
+                                <thead className="bg-slate-100">
                                     <tr>
-                                        <th className="px-3 py-2 text-center border border-slate-300">Conveyance</th>
-                                        <th className="px-3 py-2 text-center border border-slate-300">Details</th>
-                                        <th className="px-3 py-2 text-center border border-slate-300">
-                                            Senior Management Approval Required
-                                        </th>
+                                        <th className="px-3 py-2 text-center border">Conveyance</th>
+                                        <th className="px-3 py-2 text-center border">Details</th>
+                                        <th className="px-3 py-2 text-center border">Senior Approval Required</th>
                                     </tr>
                                 </thead>
-                                <tbody className="text-slate-600">
+                                <tbody>
                                     <tr>
-                                        <td className="px-3 py-2 border border-slate-300">Radio Cab</td>
-                                        <td className="px-3 py-2 border border-slate-300">
-                                            For Radio Cabs one can avail company provided OLA/UBER services.
-                                        </td>
-                                        <td className="px-3 py-2 border border-slate-300">No</td>
+                                        <td className="px-3 py-2 border">Radio Cab</td>
+                                        <td className="px-3 py-2 border">Company provided OLA/UBER services</td>
+                                        <td className="px-3 py-2 border">No</td>
                                     </tr>
                                     <tr>
-                                        <td className="px-3 py-2 border border-slate-300">Pick up & Drop</td>
-                                        <td className="px-3 py-2 border border-slate-300">
-                                            Pick & Drop service will be provided only from Accommodation to Railway Station/Airport & vice-versa. Radio
-                                            Cabs service should be added with Pick Up & Drop.
-                                        </td>
-                                        <td className="px-3 py-2 border border-slate-300">No</td>
+                                        <td className="px-3 py-2 border">Pick up & Drop</td>
+                                        <td className="px-3 py-2 border">Accommodation to Station/Airport only</td>
+                                        <td className="px-3 py-2 border">No</td>
                                     </tr>
                                     <tr>
-                                        <td className="px-3 py-2 border border-slate-300">Car at Disposal</td>
-                                        <td className="px-3 py-2 border border-slate-300">Company Arranged Car will be provided.</td>
-                                        <td className="px-3 py-2 border border-slate-300">
-                                            Yes, If Radio Cab is present at the location otherwise NA
-                                        </td>
+                                        <td className="px-3 py-2 border">Car at Disposal</td>
+                                        <td className="px-3 py-2 border">Company Arranged Car</td>
+                                        <td className="px-3 py-2 border">Yes (if Radio Cab available)</td>
                                     </tr>
                                     <tr>
-                                        <td className="px-3 py-2 border border-slate-300">Company Arranged Car At All Points</td>
-                                        <td className="px-3 py-2 border border-slate-300">
-                                            Company Arranged Car will be provided according to Ticketing details.
-                                        </td>
-                                        <td className="px-3 py-2 border border-slate-700 font-semibold">Yes</td>
+                                        <td className="px-3 py-2 border">Car At All Points</td>
+                                        <td className="px-3 py-2 border">As per ticketing details</td>
+                                        <td className="px-3 py-2 border font-semibold">Yes</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-
-
                         <div className="flex justify-end gap-3 mt-6">
-                            <Button variant="outline" onClick={() => { setForm(getEmptyConveyance()); setEditIndex(null); }}>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setForm(getEmptyConveyance());
+                                    setLocalGuests([]);
+                                    setEditIndex(null);
+                                }}
+                            >
                                 Clear
                             </Button>
                             <Button icon={Plus} onClick={handleSubmit}>
                                 {editIndex !== null ? 'Update' : 'Add'} Conveyance
                             </Button>
                         </div>
-                    </>)}
+                    </>
+                )}
             </div>
 
             <DataTable
@@ -1685,6 +1914,14 @@ export default function CreateTravelApplication() {
     const [accommodationNotRequired, setAccommodationNotRequired] = useState(false);
     const [conveyanceNotRequired, setConveyanceNotRequired] = useState(false);
 
+    const [selectedGuests, setSelectedGuests] = useState<Array<{
+        id?: number;
+        employee_id?: string;
+        full_name: string;
+        department?: string;
+        is_colleague: boolean;
+    }>>([]);
+
     const [draftApplicationId, setDraftApplicationId] = useState(null);
 
     useEffect(() => {
@@ -1802,55 +2039,72 @@ export default function CreateTravelApplication() {
     const [isValidating, setIsValidating] = useState(false);
     const [validationErrors, setValidationErrors] = useState(null);
 
-    // Validation function
+    // Validation functio
     const validateApplication = async () => {
         const errors = [];
 
         // Basic validations
         if (!formData.purpose || !formData.internal_order || !formData.general_ledger) {
-            errors.push({ field: 'purpose', message: 'Purpose, Internal Order and GL Code are required' });
+            errors.push({
+                field: 'purpose',
+                message: 'Purpose, Internal Order and GL Code are required'
+            });
         }
 
-        // Check if at least one booking is required (when not marked as not_required)
-        if (
-            (!ticketingNotRequired && ticketing.length === 0) ||
-            (!accommodationNotRequired && accommodation.length === 0) ||
-            (!conveyanceNotRequired && conveyance.length === 0)
-        ) {
-            errors.push({ field: 'bookings', message: 'Add at least one booking OR mark sections as not required' });
+        // User either adds bookings OR checks "not required" OR leaves section empty
+        const hasTicketing = ticketingNotRequired || ticketing.length > 0;
+        const hasAccommodation = accommodationNotRequired || accommodation.length > 0;
+        const hasConveyance = conveyanceNotRequired || conveyance.length > 0;
+
+        if (!hasTicketing && !hasAccommodation && !hasConveyance) {
+            errors.push({
+                field: 'bookings',
+                message: 'Please add at least one booking (Ticketing, Accommodation, or Conveyance)'
+            });
         }
 
-        // Date validations for ticketing
-        ticketing.forEach((t, i) => {
-            const depDate = new Date(t.departure_date);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+        // Date validations for ticketing (only if tickets exist)
+        if (ticketing.length > 0) {
+            ticketing.forEach((t, i) => {
+                const depDate = new Date(t.departure_date);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
 
-            if (depDate < today) {
-                errors.push({ field: `ticketing_${i}`, message: `Ticket ${i + 1}: Departure date cannot be in past` });
-            }
-
-            if (t.arrival_date) {
-                const arrDate = new Date(t.arrival_date);
-                if (arrDate < depDate) {
+                if (depDate < today) {
                     errors.push({
                         field: `ticketing_${i}`,
-                        message: `Ticket ${i + 1}: Return date (${t.arrival_date}) cannot be earlier than departure date (${t.departure_date})`
+                        message: `Ticket ${i + 1}: Departure date cannot be in past`
                     });
                 }
-            }
 
-            // Advance booking check
-            const daysAhead = Math.floor((depDate - today) / (1000 * 60 * 60 * 24));
-            const mode = travelModes?.results?.find(m => m.id === parseInt(t.booking_type));
+                if (t.arrival_date) {
+                    const arrDate = new Date(t.arrival_date);
+                    if (arrDate < depDate) {
+                        errors.push({
+                            field: `ticketing_${i}`,
+                            message: `Ticket ${i + 1}: Return date cannot be earlier than departure date`
+                        });
+                    }
+                }
 
-            if (mode?.name === 'Flight' && daysAhead < 7) {
-                errors.push({ field: `ticketing_${i}`, message: `Ticket ${i + 1}: Flight requires 7 days advance booking (current: ${daysAhead} days)`, severity: 'error' });
-            }
-            if (mode?.name === 'Train' && daysAhead < 3) {
-                errors.push({ field: `ticketing_${i}`, message: `Ticket ${i + 1}: Train requires 3 days advance booking (current: ${daysAhead} days)`, severity: 'error' });
-            }
-        });
+                // Advance booking check
+                const daysAhead = Math.floor((depDate - today) / (1000 * 60 * 60 * 24));
+                const mode = travelModes?.results?.find(m => m.id === parseInt(t.booking_type));
+
+                if (mode?.name === 'Flight' && daysAhead < 7) {
+                    errors.push({
+                        field: `ticketing_${i}`,
+                        message: `Ticket ${i + 1}: Flight requires 7 days advance booking (current: ${daysAhead} days)`
+                    });
+                }
+                if (mode?.name === 'Train' && daysAhead < 3) {
+                    errors.push({
+                        field: `ticketing_${i}`,
+                        message: `Ticket ${i + 1}: Train requires 3 days advance booking (current: ${daysAhead} days)`
+                    });
+                }
+            });
+        }
 
         return errors;
     };
@@ -1892,7 +2146,8 @@ export default function CreateTravelApplication() {
 
             // Step 2: Ensure draft is saved (create/update)
             const payload = prepareSubmissionPayload();
-            console.log('Payload: <br/>\n', payload);
+            // console.log('Payload: <br/>\n', payload);
+
             let appId = draftApplicationId;
 
             if (!appId) {
@@ -1942,7 +2197,7 @@ export default function CreateTravelApplication() {
             // Clear draft ID and redirect
             setDraftApplicationId(null);
 
-            // navigate("/travel/travel-application-list");
+            navigate("/travel/travel-application-list");
 
         } catch (error) {
             console.error('Submission error:', error);
@@ -1954,7 +2209,6 @@ export default function CreateTravelApplication() {
     };
 
     const prepareSubmissionPayload = () => {
-        console.log('accommodation: ', accommodation);
         return {
             purpose: formData.purpose,
             internal_order: formData.internal_order,
@@ -1982,12 +2236,13 @@ export default function CreateTravelApplication() {
                         special_instruction: t.special_instruction
                     })),
                     ...accommodation.map(a => ({
-                        booking_type: parseInt(a.accommodation_type), // Accommodation mode ID
+                        booking_type: a.accommodation_type_id, // Accommodation mode ID
                         sub_option: parseInt(a.accommodation_sub_option),
                         estimated_cost: parseFloat(a.estimated_cost),
                         booking_details: {
-                            guest_house_id: parseInt(a.guest_house) || '',
-                            guest_house: a.guest_house || '',
+                            // guest_house_id: parseInt(a.guest_house) || '',
+                            // guest_house: a.guest_house || '',
+                            guest_house_preferences: a.guest_house_preferences || [],
                             place: a.place,
                             check_in_date: a.check_in_date,
                             check_out_date: a.check_out_date,
@@ -2011,7 +2266,14 @@ export default function CreateTravelApplication() {
                             club_booking: !!c.club_booking,
                             club_reason: c.club_reason?.trim() || '',
                             not_required: !!c.not_required,
-                        }
+                            guests: (c.guests || []).map(g => ({
+                                id: g.id || null,
+                                name: g.full_name,
+                                employee_id: g.employee_id || null,
+                                is_internal: !!g.employee_id,   // employee = internal guest
+                                is_external: !g.employee_id,   // non-employee = external
+                            })),
+                        },
                     }))
                 ]
             }]
@@ -2081,6 +2343,8 @@ export default function CreateTravelApplication() {
                                     travelModes={travelModes}
                                     subOptions={subOptions}
                                     onModeChange={loadSubOptions}
+                                    selectedGuests={selectedGuests}
+                                    setSelectedGuests={setSelectedGuests}
                                     showToast={showToast}
                                     form={conveyanceForm}
                                     setForm={setConveyanceForm}
