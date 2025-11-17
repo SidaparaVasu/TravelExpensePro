@@ -61,7 +61,8 @@ export default function GradeEntitlementMaster() {
                 travelAPI.getTravelSubOptions(),
                 locationAPI.getCityCategories(),
             ]);
-            setData(entRes.data.results || []);
+            
+            setData(entRes.data || []);
             setGrades(gradeRes.data.results || []);
             setTravelSubOptions(subRes.results || []);
             setCityCategories(cityRes.data.data.results || []);

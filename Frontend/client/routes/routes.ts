@@ -17,8 +17,8 @@ export const ROUTES = {
   travelApplicationList: "/travel/travel-application-list",
   travelApplicationView: (id: number | string) => `/travel/travel-application/${id}/`,
   travelRequestApproval: "/travel/travel-request-approval",
-  travelBookings: "/travel/bookings",
-  itineraries: "/itineraries",
+  // travelBookings: "/travel/bookings",
+  // itinerary: (id) => `/travel/itineraries/${id}`,
 
   // Expense Management
   expenseReports: "/expense-reports",

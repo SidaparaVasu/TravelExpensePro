@@ -2227,7 +2227,9 @@ export default function CreateTravelApplication() {
                         estimated_cost: parseFloat(t.estimated_cost),
                         booking_details: {
                             from_location: t.from_location,
+                            from_location_name: t.from_label,
                             to_location: t.to_location,
+                            to_location_name: t.to_label,
                             departure_date: t.departure_date,
                             departure_time: t.departure_time,
                             arrival_date: t.arrival_date,

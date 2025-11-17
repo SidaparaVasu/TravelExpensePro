@@ -34,6 +34,13 @@ urlpatterns = [
     path('approvals/<int:pk>/history/', ApprovalHistoryView.as_view(), name='approval-history'),
     path('approvals/dashboard/', ApprovalDashboardView.as_view(), name='approval-dashboard'),
 
+    # Booking
+    path('bookings/', BookingListAPIView.as_view(), name='booking-list'),
+    path('bookings/<int:pk>/', BookingDetailAPIView.as_view(), name='booking-detail'),
+
+    # Itinerary 
+    path('itinerary/<int:application_id>/', ItineraryAPIView.as_view(), name='itinerary'),
+
     # Delegation
     path('approvals/delegate/', ApprovalDelegationView.as_view(), name='delegate-approval'),
 

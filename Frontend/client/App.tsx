@@ -20,6 +20,8 @@ import MakeTravelApplication from "./pages/common/travel/MakeTravelApplication2"
 import MakeTravelApplication3 from "./pages/common/travel/MakeTravelApplication3";
 import TravelApplicationList from "./pages/common/travel/TravelApplicationList";
 import ApplicationView from "./pages/common/travel/ApplicationView";
+import BookingsPage from "./pages/common/travel/BookingsPage";
+import ItinerariesPage from "./pages/common/travel/ItineraryPage";
 // Travel approval
 import TravelRequestApprovals from "./pages/admin/TravelRequestApprovals";
 // Master Pages
@@ -40,7 +42,7 @@ import EmployeeTypeMaster from "./pages/common/master/EmployeeTypeMaster";
 // Travel Master Pages
 import GLCodeMaster from "./pages/common/master/GLCodeMaster";
 import TravelModeMaster from "./pages/common/master/TravelModeMaster";
-import GradeEntitlementMaster from "./pages/common/master/GradeEntitlementMaster";
+import GradeEntitlementMaster from "./pages/common/master/NewGradeEntitlementMaster";
 // Placeholder page
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 // Grade Master Page
@@ -150,28 +152,22 @@ const App = () => (
             }
           />
           {/* Booking */}
-          <Route
-            path="/booking"
+          {/* <Route
+            path={ROUTES.travelBookings}
             element={
               <Protected>
-                <PlaceholderPage
-                  title="Bookings"
-                  description="View and manage travel bookings"
-                />
+                <BookingsPage />
               </Protected>
             }
           />
           <Route
-            path="/itineraries"
+            path={ROUTES.itinerary(":id")}
             element={
               <Protected>
-                <PlaceholderPage
-                  title="Itineraries"
-                  description="Plan and view travel itineraries"
-                />
+                <ItinerariesPage />
               </Protected>
             }
-          />
+          /> */}
           <Route
             path="/expense-reports"
             element={

@@ -17,9 +17,9 @@ export const travelAPI = {
   },
 
   // Applications
-  getMyApplications: async (filter: string): Promise<TravelApplication[]> => {
-    const { data } = await apiClient.get(`/travel/my-applications/?status=${filter}`);
-    return data.data;
+  getMyApplications: async (filter: string, page: number): Promise<TravelApplication[]> => {
+    const { data } = await apiClient.get(`/travel/my-applications/?status=${filter}&page=${page}`);
+    return data;
   },
 
   getApplication: async (id: number): Promise<TravelApplication> => {
@@ -131,6 +131,12 @@ export const travelAPI = {
     return data;
   },
 
+  getItineraries: async (id: number) => {
+    const { data } = await apiClient.get(`/travel/itinerary/${id}/`);
+    return data;
+  },
+  
+
   // Master data
   getLocations: async (): Promise<Location[]> => {
     const { data } = await apiClient.get('/master/locations/');
@@ -238,6 +244,11 @@ export const travelAPI = {
 
   deleteGradeEntitlement: async (id: number): Promise<GLCode[]> => {
     const { data } = await apiClient.delete(`/master/grade-entitlements/${id}/`);
+    return data;
+  },
+
+  bulkCreateGradeEntitlements: async (payload: any) => {
+    const { data } = await apiClient.post('/master/grade-entitlements/bulk-create/', payload);
     return data;
   },
 };

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
 # Create your views here.
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -20,6 +20,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from .filters import TravelApplicationFilter
 from utils.rate_limiters import api_ratelimit
+from utils.pagination import StandardResultsSetPagination
 
 import logging
 
@@ -276,7 +277,8 @@ class MyTravelApplicationsView(APIView):
     Dashboard view for employee's travel applications
     """
     permission_classes = [IsAuthenticated, IsAdminUser or IsEmployee]
-    
+    pagination_class = StandardResultsSetPagination
+
     def get(self, request):
         user = request.user
         status_filter = request.query_params.get('status', 'all').lower()
@@ -284,7 +286,7 @@ class MyTravelApplicationsView(APIView):
         # Base queryset
         queryset = TravelApplication.objects.filter(employee=user)
 
-        # Apply status filtering if provided
+        # Apply status filtering
         if status_filter != 'all':
             if status_filter == 'pending':
                 queryset = queryset.filter(status__in=[
@@ -292,7 +294,7 @@ class MyTravelApplicationsView(APIView):
                 ])
             elif status_filter == 'approved':
                 queryset = queryset.filter(status__in=[
-                    'approved_manager', 'approved_chro', 'approved_ceo', 
+                    'approved_manager', 'approved_chro', 'approved_ceo',
                     'pending_travel_desk', 'booking_in_progress', 'booked'
                 ])
             elif status_filter == 'rejected':
@@ -303,19 +305,27 @@ class MyTravelApplicationsView(APIView):
                 queryset = queryset.filter(status='draft')
             elif status_filter == 'completed':
                 queryset = queryset.filter(status='completed')
-        
-        # Get statistics
+
+        queryset = queryset.select_related('general_ledger').order_by('-created_at')
+
+        # Pagination
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+
+        serializer = TravelApplicationSerializer(page, many=True)
+
+        # Statistics
         stats = {
             'total_applications': TravelApplication.objects.filter(employee=user).count(),
             'draft': TravelApplication.objects.filter(employee=user, status='draft').count(),
             'pending': TravelApplication.objects.filter(
-                employee=user, 
+                employee=user,
                 status__in=['submitted', 'pending_manager', 'pending_chro', 'pending_ceo']
             ).count(),
             'approved': TravelApplication.objects.filter(
                 employee=user,
-                status__in=['approved_manager', 'approved_chro', 'approved_ceo', 
-                          'pending_travel_desk', 'booking_in_progress', 'booked']
+                status__in=['approved_manager', 'approved_chro', 'approved_ceo',
+                            'pending_travel_desk', 'booking_in_progress', 'booked']
             ).count(),
             'rejected': TravelApplication.objects.filter(
                 employee=user,
@@ -323,22 +333,14 @@ class MyTravelApplicationsView(APIView):
             ).count(),
             'completed': TravelApplication.objects.filter(employee=user, status='completed').count(),
         }
-        
-        # Get recent applications
-        # recent_apps = TravelApplication.objects.filter(
-        #     employee=user
-        # ).select_related('general_ledger').order_by('-created_at')
-        
-        # recent_serializer = TravelApplicationSerializer(recent_apps, many=True)
 
-        # Serialize filtered applications
-        recent_apps = queryset.select_related('general_ledger').order_by('-created_at')
-        recent_serializer = TravelApplicationSerializer(recent_apps, many=True)
-        
-        return Response({
-            'statistics': stats,
-            'recent_applications': recent_serializer.data
-        })
+        return paginated_response(
+            serializer_data={
+                "statistics": stats,
+                "applications": serializer.data
+            },
+            paginator=paginator
+        )
 
 
 class TravelApplicationValidationView(APIView):
@@ -685,3 +687,103 @@ class RequestVehicleBookingView(APIView):
             results.append(result)
         
         return Response({'vehicle_bookings': results})
+    
+
+class BookingListAPIView(ListAPIView):
+    serializer_class = BookingListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = Booking.objects.select_related(
+            'booking_type', 'sub_option', 'trip_details__from_location', 'trip_details__to_location'
+        )
+
+        employee_id = self.request.query_params.get('employee_id')
+        application_id = self.request.query_params.get('application_id')
+        status = self.request.query_params.get('status')
+        booking_type = self.request.query_params.get('booking_type')
+
+        if employee_id:
+            qs = qs.filter(trip_details__application__employee_id=employee_id)
+
+        if application_id:
+            qs = qs.filter(trip_details__application_id=application_id)
+
+        if status:
+            qs = qs.filter(status=status)
+
+        if booking_type:
+            qs = qs.filter(booking_type_id=booking_type)
+
+        return qs
+
+
+class BookingDetailAPIView(RetrieveAPIView):
+    queryset = Booking.objects.all().select_related(
+        'booking_type', 'sub_option', 'trip_details'
+    )
+    serializer_class = BookingDetailSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class ItineraryAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, application_id):
+        try:
+            app = TravelApplication.objects.get(id=application_id)
+        except TravelApplication.DoesNotExist:
+            return Response({"error": "Not found"}, status=404)
+
+        trip = app.trip_details
+        bookings = Booking.objects.filter(trip_details=trip).select_related(
+            'booking_type', 'sub_option'
+        )
+
+        # Timeline
+        timeline = []
+        
+        for b in bookings:
+            bd = b.booking_details
+            
+            event = {
+                "type": b.booking_type.name.lower(),
+                "title": self._format_title(b),
+                "date": bd.get("departure_date") or trip.departure_date,
+                "start_time": bd.get("departure_time"),
+                "end_time": bd.get("arrival_time"),
+                "details": bd
+            }
+            timeline.append(event)
+
+        # Sort timeline by date
+        timeline = sorted(timeline, key=lambda x: x["date"])
+
+        response = {
+            "application_id": app.id,
+            "employee_name": app.employee.employee_name,
+            "purpose": app.purpose,
+            "locations": {
+                "from": trip.from_location.name,
+                "to": trip.to_location.name,
+            },
+            "trip_summary": {
+                "start_date": trip.departure_date,
+                "end_date": trip.return_date or trip.departure_date,
+            },
+            "timeline": timeline
+        }
+
+        return Response(response)
+
+    def _format_title(self, booking):
+        mode = booking.booking_type.name
+        details = booking.booking_details
+
+        if mode.lower() == "flight":
+            return f"Flight: {details.get('from')} → {details.get('to')}"
+        if mode.lower() == "train":
+            return f"Train: {details.get('from')} → {details.get('to')}"
+        if mode.lower() == "hotel":
+            return f"Hotel Check-in: {details.get('hotel_name')}"
+        return mode

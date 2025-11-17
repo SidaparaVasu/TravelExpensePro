@@ -44,6 +44,7 @@ urlpatterns = [
     path('travel-sub-options/<int:pk>/', TravelSubOptionDetailView.as_view(), name='travelsuboption-detail'),
     path('grade-entitlements/', GradeEntitlementListCreateView.as_view(), name='gradeentitlement-list'),
     path('grade-entitlements/<int:pk>/', GradeEntitlementDetailView.as_view(), name='gradeentitlement-detail'),
+    path('grade-entitlements/bulk-create/', GradeEntitlementBulkCreateView.as_view(), name='bulk-create-entitlements'),
     path('gl-codes/', GLCodeListCreateView.as_view(), name='gl-code-list'),
     path('gl-codes/<int:pk>/', GLCodeDetailView.as_view(), name='gl-code-detail'),
 

@@ -1,3 +1,4 @@
+from rest_framework.views import APIView
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -228,7 +229,7 @@ class GradeEntitlementListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['grade', 'sub_option__mode', 'city_category']
-    pagination_class = LargePagination
+    pagination_class = NoPagination
 
 class GradeEntitlementDetailView(RetrieveUpdateDestroyAPIView):
     queryset = GradeEntitlementMaster.objects.select_related(
@@ -237,6 +238,37 @@ class GradeEntitlementDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = GradeEntitlementSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
 
+class GradeEntitlementBulkCreateView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
+        records = request.data.get('records', [])
+        serializer = GradeEntitlementBulkSerializer(data=records, many=True)
+
+        serializer.is_valid(raise_exception=True)
+
+        created_ids = []
+
+        for record in serializer.validated_data:
+            obj, created = GradeEntitlementMaster.objects.get_or_create(
+                grade_id=record['grade'],
+                sub_option_id=record.get('sub_option'),
+                city_category_id=record.get('city_category'),
+                defaults={
+                    'max_amount': record.get('max_amount'),
+                    'is_allowed': True,
+                },
+            )
+            if created:
+                created_ids.append(obj.id)
+
+        return Response(
+            {
+                "created_count": len(created_ids),
+                "created_ids": created_ids
+            },
+            status=status.HTTP_201_CREATED
+        )
 
 # Accommodation Views
 class GuestHouseMasterViewSet(viewsets.ModelViewSet):

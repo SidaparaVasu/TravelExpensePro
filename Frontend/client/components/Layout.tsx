@@ -92,7 +92,7 @@ const getPrimaryDashboard = (): string => {
 
 const getSidebarSections = (primaryDashboard: string): readonly SidebarSection[] => [
   {
-    title: "Admin Dashboard",
+    title: "Dashboard Overview",
     icon: LayoutDashboard,
     path: primaryDashboard,
   },
@@ -104,8 +104,8 @@ const getSidebarSections = (primaryDashboard: string): readonly SidebarSection[]
       { label: "Create Request", path: ROUTES.makeTravelApplication, Icon: FilePlus },
       { label: "My Applications", path: ROUTES.travelApplicationList, Icon: ClipboardIcon },
       { label: "Approvals", path: ROUTES.travelRequestApproval, Icon: CircleCheckBig },
-      { label: "Bookings", path: "/booking", Icon: Calendar },
-      { label: "Itineraries", path: "/itineraries", Icon: MapPinned },
+      // { label: "Bookings", path: ROUTES.travelBookings, Icon: Calendar },
+      // { label: "Itineraries", path: ROUTES.itineraries, Icon: MapPinned },
     ],
   },
   {

@@ -39,8 +39,111 @@ import { useParams } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { travelAPI } from "@/src/api/travel";
 
+function Pagination({ pagination, onPageChange }) {
+  if (!pagination) return null;
+
+  const { current_page, total_pages, next, previous } = pagination;
+
+  const [jumpPage, setJumpPage] = useState("");
+
+  const handleJump = () => {
+    const pageNum = parseInt(jumpPage);
+    if (!pageNum || pageNum < 1 || pageNum > total_pages) return;
+    onPageChange(pageNum);
+    setJumpPage("");
+  };
+
+  return (
+    <div className="
+      sticky bottom-0 left-0 right-0 
+      bg-white 
+      border-t 
+      mt-4 
+      py-4 
+      px-3 
+      flex flex-col gap-3 
+      md:flex-row md:items-center md:justify-between
+      z-20
+    ">
+
+      {/* LEFT — Jump to page */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-600">Jump to:</span>
+
+        <Input
+          value={jumpPage}
+          onChange={(e) => setJumpPage(e.target.value)}
+          className="w-16 h-8 text-center"
+          placeholder="Page"
+          type="number"
+          min={1}
+          max={total_pages}
+        />
+
+        <Button
+          variant="default"
+          size="sm"
+          className="h-8 px-3"
+          onClick={handleJump}
+        >
+          Go
+        </Button>
+      </div>
+
+      {/* CENTER — Page Numbers (Responsive) */}
+      <div className="flex flex-wrap justify-center gap-2">
+
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={!previous}
+          onClick={() => onPageChange(current_page - 1)}
+          className="h-8"
+        >
+          Previous
+        </Button>
+
+        {/* Page Numbers */}
+        <div className="flex flex-wrap gap-1 justify-center">
+          {Array.from({ length: total_pages }, (_, i) => i + 1).map((page) => (
+            <Button
+              key={page}
+              size="sm"
+              variant={page === current_page ? "default" : "outline"}
+              className={`h-8 px-3 ${
+                page === current_page
+                  ? "bg-blue-600 text-white"
+                  : "border-gray-300"
+              }`}
+              onClick={() => onPageChange(page)}
+            >
+              {page}
+            </Button>
+          ))}
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={!next}
+          onClick={() => onPageChange(current_page + 1)}
+          className="h-8"
+        >
+          Next
+        </Button>
+      </div>
+
+      {/* RIGHT — Total pages */}
+      <div className="text-sm text-gray-600 text-center md:text-right">
+        Page <b>{current_page}</b> of <b>{total_pages}</b>
+      </div>
+    </div>
+  );
+}
+
 export default function TravelApplicationList() {
-  const { applications, stats, isLoading, loadApplications, loadStats, submitApplication, deleteApplication } = useTravelStore();
+  const [page, setPage] = useState(1);
+  const { applications, stats, pagination, isLoading, loadApplications, loadStats, submitApplication, deleteApplication } = useTravelStore();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [application, setApplications] = useState<TravelApplication | null>(null);
@@ -51,9 +154,9 @@ export default function TravelApplicationList() {
 
 
   useEffect(() => {
-    loadApplications(statusFilter);
+    loadApplications(statusFilter, page);
     loadStats();
-  }, [statusFilter]);
+  }, [statusFilter, page]);
 
   const queryClient = useQueryClient();
 
@@ -330,6 +433,10 @@ export default function TravelApplicationList() {
                 )}
               </TableBody>
             </Table>
+            <Pagination
+              pagination={pagination}
+              onPageChange={(newPage) => setPage(newPage)}
+            />
           </CardContent>
         </Card>
       </div>

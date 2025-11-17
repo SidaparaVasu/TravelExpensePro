@@ -9,14 +9,85 @@ from ..business_logic.validators import (
 class BookingSerializer(serializers.ModelSerializer):
     booking_type_name = serializers.CharField(source='booking_type.name', read_only=True)
     sub_option_name = serializers.CharField(source='sub_option.name', read_only=True)
-    
+
     class Meta:
         model = Booking
         fields = [
-            'id', 'booking_type', 'booking_type_name', 'sub_option', 'sub_option_name',
-            'booking_details', 'status', 'estimated_cost', 'actual_cost',
-            'booking_reference', 'vendor_reference', 'booking_file', 'special_instruction'
+            'id', 
+            'booking_type', 'booking_type_name', 
+            'sub_option', 'sub_option_name',
+            'booking_details', 
+            'status', 
+            'estimated_cost', 
+            'actual_cost',
+            'booking_reference', 
+            'vendor_reference', 
+            'booking_file', 
+            'special_instruction',
         ]
+
+class BookingListSerializer(serializers.ModelSerializer):
+    booking_type_name = serializers.CharField(source='booking_type.name', read_only=True)
+    sub_option_name = serializers.CharField(source='sub_option.name', read_only=True)
+    
+    from_location = serializers.CharField(
+        source='trip_details.from_location.name',
+        read_only=True
+    )
+    to_location = serializers.CharField(
+        source='trip_details.to_location.name',
+        read_only=True
+    )
+    departure_date = serializers.DateField(
+        source='trip_details.departure_date',
+        read_only=True
+    )
+
+    class Meta:
+        model = Booking
+        fields = [
+            'id', 
+            'booking_type', 'booking_type_name', 
+            'sub_option', 'sub_option_name',
+            'from_location', 'to_location', #
+            'booking_details', 
+            'departure_date', #
+            'status', 
+            'estimated_cost', 
+            'actual_cost',
+            'booking_reference', 
+            'vendor_reference', 
+            'booking_file', 
+            'special_instruction',
+            'created_at', #
+        ]
+
+class BookingDetailSerializer(serializers.ModelSerializer):
+    booking_type_name = serializers.CharField(source='booking_type.name', read_only=True)
+    sub_option_name = serializers.CharField(source='sub_option.name', read_only=True)
+
+    class Meta:
+        model = Booking
+        fields = '__all__'
+
+
+class ItineraryEventSerializer(serializers.Serializer):
+    type = serializers.CharField()
+    title = serializers.CharField()
+    date = serializers.DateField()
+    start_time = serializers.CharField(allow_null=True)
+    end_time = serializers.CharField(allow_null=True)
+    details = serializers.JSONField()
+
+
+class ItinerarySerializer(serializers.Serializer):
+    application_id = serializers.IntegerField()
+    employee_name = serializers.CharField()
+    purpose = serializers.CharField()
+    locations = serializers.DictField()
+    trip_summary = serializers.DictField()
+    timeline = ItineraryEventSerializer(many=True)
+
 
 class TravelAdvanceRequestSerializer(serializers.ModelSerializer):
     class Meta:
@@ -107,8 +178,8 @@ class TravelApplicationSerializer(serializers.ModelSerializer):
             
             # Booking validation
             bookings_data = trip_data.get('bookings', [])
-            # if not bookings_data:
-            #     trip_errors['bookings'] = 'At least one booking is required per trip'
+            if not bookings_data:
+                trip_errors['bookings'] = 'At least one booking is required per trip'
             
             if trip_errors:
                 errors[f'trip_{idx}'] = trip_errors

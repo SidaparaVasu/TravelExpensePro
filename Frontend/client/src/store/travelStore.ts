@@ -5,6 +5,7 @@ import { TravelApplication, TravelStats, Location, TravelMode, GLCode } from '@/
 interface TravelState {
   applications: TravelApplication[];
   stats: TravelStats | null;
+  pagination: [];
   locations: Location[];
   travelModes: TravelMode[];
   glCodes: GLCode[];
@@ -25,6 +26,7 @@ interface TravelState {
 export const useTravelStore = create<TravelState>((set, get) => ({
   applications: [],
   stats: null,
+  pagination: {} as any,
   locations: [],
   travelModes: [],
   glCodes: [],
@@ -43,14 +45,17 @@ export const useTravelStore = create<TravelState>((set, get) => ({
     set({ arcHotels: data });
   },
 
-  loadApplications: async (filter: string) => {
+  loadApplications: async (filter: string, page = 1) => {
     set({ isLoading: true });
     try {
-      const fetched_applications = await travelAPI.getMyApplications(filter);
-      const applications = fetched_applications.recent_applications
-      const stats = fetched_applications.statistics;
+      const fetched_applications = await travelAPI.getMyApplications(filter, page);
+      const applications = fetched_applications.data.applications
+      const stats = fetched_applications.data.statistics;
+      const pagination = fetched_applications.meta.pagination;
+      
       set({ applications, isLoading: false });
       set({ stats });
+      set({ pagination });
     } catch (error) {
       set({ isLoading: false });
       throw error;

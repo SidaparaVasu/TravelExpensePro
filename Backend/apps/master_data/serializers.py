@@ -124,6 +124,14 @@ class GradeEntitlementSerializer(serializers.ModelSerializer):
             'max_amount', 'is_allowed'
         ]
 
+class GradeEntitlementBulkSerializer(serializers.Serializer):
+    grade = serializers.IntegerField()
+    sub_option = serializers.IntegerField(required=False, allow_null=True)
+    city_category = serializers.IntegerField(required=False, allow_null=True)
+    max_amount = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False, allow_null=True
+    )
+
 class GLCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = GLCodeMaster

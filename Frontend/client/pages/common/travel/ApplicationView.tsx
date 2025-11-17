@@ -244,7 +244,7 @@ const InfoItem = ({ label, value, highlight = false }: { label: string; value: a
    TripCard (Collapsible whole-card)
    ========================== */
 const TripCard = ({ trip, parentPurpose, guestHousesMap }: any) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   // Collapse/expand animation variants
   const containerVariants = {
@@ -318,7 +318,7 @@ const TripCard = ({ trip, parentPurpose, guestHousesMap }: any) => {
                 <div className="space-y-6">
                   {/* Booking sections rendered in order */}
                   {ticketing.length > 0 && (
-                    <BookingSection title="Flight & Train Bookings" icon={Plane} bookings={ticketing} type="ticketing" />
+                    <BookingSection title="Flight & Train Bookings" icon={Plane} bookings={ticketing} type="ticketing" fromLocationName={trip.from_location_name} toLocationName={trip.to_location_name}/>
                   )}
                   {accommodation.length > 0 && (
                     <BookingSection title="Accommodation" icon={Home} bookings={accommodation} type="accommodation" guestHousesMap={guestHousesMap} />
