@@ -1,68 +1,70 @@
+// App.tsx
 import "./global.css";
 import { createRoot } from "react-dom/client";
 
-import { isAuthenticated, isAdminUser } from "@/lib/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-// Route
+
+import ProtectedRoute from "@/routes/ProtectedRoute";
 import { ROUTES } from "@/routes/routes";
 
-// Common pages
-import NotFound from "./pages/common/NotFound";
+// Layouts
+import { AdminLayout } from "@/components/layouts/AdminLayout";
+import { EmployeeLayout } from "@/components/layouts/EmployeeLayout";
+import { DeskAgentLayout } from "@/components/layouts/DeskAgentLayout";
+
+// Common Pages
 import Login from "./pages/common/Login";
+import NotFound from "./pages/common/NotFound";
 import NewProfile from "./pages/common/NewProfile";
-// Dashboard
+
+// Dashboards
 import AdminIndex from "./pages/admin/Index";
 import EmployeeIndex from "./pages/employee/Index";
-// Travel application
+import DeskAgentIndex from "./pages/deskagent/Index";
+
+// Travel
 import MakeTravelApplicationOld from "./pages/common/travel/MakeTravelApplication";
-import MakeTravelApplication from "./pages/common/travel/MakeTravelApplication2";
 import MakeTravelApplication3 from "./pages/common/travel/MakeTravelApplication3";
 import TravelApplicationList from "./pages/common/travel/TravelApplicationList";
 import ApplicationView from "./pages/common/travel/ApplicationView";
+import TravelRequestApprovals from "./pages/common/travel/TravelRequestApprovals";
 import BookingsPage from "./pages/common/travel/BookingsPage";
 import ItinerariesPage from "./pages/common/travel/ItineraryPage";
-// Travel approval
-import TravelRequestApprovals from "./pages/admin/TravelRequestApprovals";
-// Master Pages
+
+// Master Pages (Admin Only)
 import MasterPage from "./pages/common/master/MasterIndex";
-// Employee Master Pages
 import EmployeeMasterPage from "./pages/common/master/employee-master/Index";
-// Accommodation Pages
 import GuestHouseMaster from "./pages/common/master/guest-house/Index";
 import ARCHotelMaster from "./pages/common/master/arc-hotel/Index";
 import LocationSPOCMasterPage from "./pages/common/master/LocationSPOCMaster";
-// Geo. Master Pages
 import GeographyMasters from "./pages/common/master/GeographyMaster";
 import CityCategoriesMaster from "./pages/common/master/CityCategoriesMaster";
 import LocationMasterPage from "./pages/common/master/LocationMaster";
-// Org. Master Pages
 import OrganizationMasters from "./pages/common/master/OrganizationMaster";
 import EmployeeTypeMaster from "./pages/common/master/EmployeeTypeMaster";
-// Travel Master Pages
 import GLCodeMaster from "./pages/common/master/GLCodeMaster";
 import TravelModeMaster from "./pages/common/master/TravelModeMaster";
 import GradeEntitlementMaster from "./pages/common/master/NewGradeEntitlementMaster";
-// Placeholder page
-import { PlaceholderPage } from "./pages/PlaceholderPage";
-// Grade Master Page
 import GradeMasterPage from "./pages/common/master/GradeMaster";
-// Approval Master Pages
 import ApprovalMatrixMasterPage from "./pages/common/master/ApprovalMatrixMaster";
-import DAIncidentalMasterPage  from "./pages/common/master/DAIncidentalsMaster";
+import DAIncidentalMasterPage from "./pages/common/master/DAIncidentalsMaster";
 import ConveyanceRateMasterPage from "./pages/common/master/ConveyanceRateMaster";
-// UI Elements
+
+// UI
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 const queryClient = new QueryClient();
 
-function Protected({ children }: { children: JSX.Element }) {
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
+/**
+ * Basic Auth Guard (employee/admin)
+ */
+function AuthOnly({ children }: { children: JSX.Element }) {
+  return localStorage.getItem("access_token")
+    ? children
+    : <Navigate to={ROUTES.login} replace />;
 }
 
 const App = () => (
@@ -70,309 +72,240 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+
       <BrowserRouter>
         <Routes>
-          <Route path={ROUTES.root} element={<Login />} />
-          {/* Login Page */}
+
+          {/* ---------------- AUTH ---------------- */}
+          <Route path="/" element={<Login />} />
           <Route path={ROUTES.login} element={<Login />} />
-          {/* Dashboard Index Page */}
-          <Route
-            path={ROUTES.adminDashboard}
-            element={
-              <Protected>
-                <AdminIndex />
-              </Protected>
-            }
-          />
+
+          {/* ---------------- EMPLOYEE DASHBOARD ---------------- */}
           <Route
             path={ROUTES.employeeDashboard}
             element={
-              <Protected>
-                <EmployeeIndex />
-              </Protected>
+              <AuthOnly>
+                <EmployeeLayout>
+                  <EmployeeIndex />
+                </EmployeeLayout>
+              </AuthOnly>
             }
           />
-          {/* Profile Page */}
+
+          {/* ---------------- ADMIN DASHBOARD ---------------- */}
+          <Route
+            path={ROUTES.adminDashboard}
+            element={
+              <ProtectedRoute requiredDashboard="admin">
+                <AdminLayout>
+                  <AdminIndex />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ---------------- DESK AGENT DASHBOARD ---------------- */}
+          <Route
+            path={ROUTES.deskAgentDashboard}
+            element={
+              <ProtectedRoute requiredDashboard="travel-desk">
+                  <DeskAgentIndex />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ---------------- PROFILE ---------------- */}
           <Route
             path={ROUTES.profile}
             element={
-              <Protected>
-                <NewProfile />
-              </Protected>
+              <AuthOnly>
+                <EmployeeLayout>
+                  <NewProfile />
+                </EmployeeLayout>
+              </AuthOnly>
             }
           />
-          {/* Travel Application */}
+
+          {/* ---------------- TRAVEL (EMPLOYEE + ADMIN) ---------------- */}
           <Route
             path={ROUTES.makeTravelApplicationOld}
             element={
-              <Protected>
-                <MakeTravelApplicationOld />
-              </Protected>
+              <AuthOnly>
+                <EmployeeLayout>
+                  <MakeTravelApplicationOld />
+                </EmployeeLayout>
+              </AuthOnly>
             }
           />
-          {/* <Route
-            path={ROUTES.makeTravelApplication}
-            element={
-              <Protected>
-                <MakeTravelApplication />
-              </Protected>
-            }
-          /> */}
+
           <Route
             path={ROUTES.makeTravelApplication}
             element={
-              <Protected>
-                <MakeTravelApplication3 />
-              </Protected>
+              <AuthOnly>
+                <EmployeeLayout>
+                  <MakeTravelApplication3 />
+                </EmployeeLayout>
+              </AuthOnly>
             }
           />
+
           <Route
             path={ROUTES.travelApplicationList}
             element={
-              <Protected>
-                <TravelApplicationList />
-              </Protected>
+              <AuthOnly>
+                <EmployeeLayout>
+                  <TravelApplicationList />
+                </EmployeeLayout>
+              </AuthOnly>
             }
           />
+
           <Route
             path={ROUTES.travelRequestApproval}
             element={
-              <Protected>
-                <TravelRequestApprovals />
-              </Protected>
+              <AuthOnly>
+                <EmployeeLayout>
+                  <TravelRequestApprovals />
+                </EmployeeLayout>
+              </AuthOnly>
+            }
+          />
+
+          <Route
+            path="/travel/itineraries/:id"
+            element={
+              <AuthOnly>
+                <EmployeeLayout>
+                  <ItinerariesPage />
+                </EmployeeLayout>
+              </AuthOnly>
+            }
+          />
+
+          <Route
+            path="/travel/bookings"
+            element={
+              <AuthOnly>
+                <EmployeeLayout>
+                  <BookingsPage />
+                </EmployeeLayout>
+              </AuthOnly>
             }
           />
 
           <Route
             path={ROUTES.travelApplicationView(":id")}
             element={
-              <Protected>
-                <ApplicationView />
-              </Protected>
+              <AuthOnly>
+                <EmployeeLayout>
+                  <ApplicationView />
+                </EmployeeLayout>
+              </AuthOnly>
             }
           />
-          {/* Booking */}
-          {/* <Route
-            path={ROUTES.travelBookings}
-            element={
-              <Protected>
-                <BookingsPage />
-              </Protected>
-            }
-          />
-          <Route
-            path={ROUTES.itinerary(":id")}
-            element={
-              <Protected>
-                <ItinerariesPage />
-              </Protected>
-            }
-          /> */}
-          <Route
-            path="/expense-reports"
-            element={
-              <Protected>
-                <PlaceholderPage
-                  title="Expense Reports"
-                  description="Submit and track expense reports"
-                />
-              </Protected>
-            }
-          />
-          <Route
-            path="/reimbursements"
-            element={
-              <Protected>
-                <PlaceholderPage
-                  title="Reimbursements"
-                  description="Manage expense reimbursements"
-                />
-              </Protected>
-            }
-          />
-          <Route
-            path="/approvals"
-            element={
-              <Protected>
-                <PlaceholderPage
-                  title="Approvals"
-                  description="Review and approve travel requests"
-                />
-              </Protected>
-            }
-          />
-          {/* Administration */}
+
+          {/* ---------------- MASTER PAGES (ADMIN ONLY) ---------------- */}
           <Route
             path={ROUTES.master}
             element={
-              <Protected>
-                <MasterPage />
-              </Protected>
+              <ProtectedRoute requiredDashboard="admin">
+                <AdminLayout>
+                  <MasterPage />
+                </AdminLayout>
+              </ProtectedRoute>
             }
           />
-          {/* Employee Master */}
-          <Route 
+
+          <Route
             path={ROUTES.employeeMasterPage}
             element={
-              <Protected>
-                <EmployeeMasterPage />
-              </Protected>
+              <ProtectedRoute requiredDashboard="admin">
+                <AdminLayout>
+                  <EmployeeMasterPage />
+                </AdminLayout>
+              </ProtectedRoute>
             }
           />
-          {/* Administation/Master  */}
-          {/* Org. master routes */}
-          <Route
-            path={ROUTES.orgMaster}
-            element={
-              <Protected>
-                <OrganizationMasters />
-              </Protected>
-            }
-          />
-          <Route
-            path={ROUTES.employeeTypeMaster}
-            element={
-              <Protected>
-                <EmployeeTypeMaster />
-              </Protected>
-            }
-          />
-          {/* Geo. master routes */}
-          <Route
-            path={ROUTES.geographyMaster}
-            element={
-              <Protected>
-                <GeographyMasters />
-              </Protected>
-            }
-          />
-          <Route
-            path={ROUTES.cityCategoryMaster}
-            element={
-              <Protected>
-                <CityCategoriesMaster />
-              </Protected>
-            }
-          />
-          <Route
-            path={ROUTES.locationMaster}
-            element={
-              <Protected>
-                <LocationMasterPage />
-              </Protected>
-            }
-          />
-          {/* Grade master routes */}
-          <Route
-            path={ROUTES.gradeMaster}
-            element={
-              <Protected>
-                <GradeMasterPage />
-              </Protected>
-            }
-          />
-          {/* Approval master routes */}
-          <Route
-            path={ROUTES.approvalMatrixMaster}
-            element={
-              <Protected>
-                <ApprovalMatrixMasterPage />
-              </Protected>
-            }
-          />
-          {/* Conveyance Rate master routes */}
-          <Route
-            path={ROUTES.daIncidentalMaster}
-            element={
-              <Protected>
-                <DAIncidentalMasterPage />
-              </Protected>
-            }
-          />
-          {/* Conveyance Rate master routes */}
-          <Route
-            path={ROUTES.conveyanceRateMaster}
-            element={
-              <Protected>
-                <ConveyanceRateMasterPage />
-              </Protected>
-            }
-          />
-          {/* Travel master routes */}
-          <Route
-            path={ROUTES.glCodeMaster}
-            element={
-              <Protected>
-                <GLCodeMaster />
-              </Protected>
-            }
-          />
-          <Route
-            path={ROUTES.travelModeMaster}
-            element={
-              <Protected>
-                <TravelModeMaster />
-              </Protected>
-            }
-          />
-          <Route
-            path={ROUTES.gradeEntitlementMaster}
-            element={
-              <Protected>
-                <GradeEntitlementMaster />
-              </Protected>
-            }
-          />
-          {/* Guest House master routes */}
-          <Route
-            path={ROUTES.guestHouseMaster}
-            element={
-              <Protected>
-                <GuestHouseMaster />
-              </Protected>
-            }
-          />
-          {/* ARC Hotel master routes */}
-          <Route
-            path={ROUTES.arcHotelMaster}
-            element={
-              <Protected>
-                <ARCHotelMaster />
-              </Protected>
-            }
-          />
-          {/* Location SPOC master routes */}
-          <Route
-            path={ROUTES.locationSPOCMaster}
-            element={
-              <Protected>
-                <LocationSPOCMasterPage />
-              </Protected>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <Protected>
-                <PlaceholderPage
-                  title="Settings"
-                  description="Configure system settings"
-                />
-              </Protected>
-            }
-          />
-          <Route
-            path="/reports"
-            element={
-              <Protected>
-                <PlaceholderPage
-                  title="Reports"
-                  description="View analytics and reports"
-                />
-              </Protected>
-            }
-          />
-          {/* <Route path="*" element={<NotFound />} /> */}
+
+          {/* All other master routes */}
+          <Route path={ROUTES.orgMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><OrganizationMasters /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.employeeTypeMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><EmployeeTypeMaster /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.geographyMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><GeographyMasters /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.cityCategoryMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><CityCategoriesMaster /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.locationMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><LocationMasterPage /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.gradeMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><GradeMasterPage /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.approvalMatrixMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><ApprovalMatrixMasterPage /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.daIncidentalMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><DAIncidentalMasterPage /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.conveyanceRateMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><ConveyanceRateMasterPage /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.glCodeMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><GLCodeMaster /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.travelModeMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><TravelModeMaster /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.gradeEntitlementMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><GradeEntitlementMaster /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.guestHouseMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><GuestHouseMaster /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.arcHotelMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><ARCHotelMaster /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.locationSPOCMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><LocationSPOCMasterPage /></AdminLayout>
+            </ProtectedRoute>} />
+
+          {/* ---------------- 404 ---------------- */}
+          <Route path="*" element={<NotFound />} />
+
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

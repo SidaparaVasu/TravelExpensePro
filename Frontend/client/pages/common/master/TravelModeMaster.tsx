@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Plane, Train, Car, Hotel, ChevronDown, ChevronRight, Plus, Edit2, Trash2, X, Save, Search, ToggleLeft, ToggleRight } from "lucide-react";
 import { toast } from "sonner";
 import { travelAPI } from "@/src/api/travel";
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 import { ConfirmDialog } from "@/pages/common/reusables/ConfirmDialog";
 
 const ICON_MAP = {
@@ -260,19 +260,20 @@ export default function TravelModeMaster() {
 
     if (loading) {
         return (
-            <Layout>
+            // <Layout>
                 <div className="p-6 bg-slate-50 from-slate-50 to-gray-100 min-h-screen flex items-center justify-center">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                         <div className="text-slate-600 font-medium">Loading...</div>
                     </div>
                 </div>
-            </Layout>
+            // </Layout>
         );
     }
 
     return (
-        <Layout>
+        // <Layout>
+        <div>
             <div className="p-6 bg-slate-50 from-slate-50 to-gray-100 min-h-screen">
                 <div className="max-w-7xl mx-auto">
                     <div className="mb-6 flex items-center justify-between">
@@ -344,7 +345,8 @@ export default function TravelModeMaster() {
                 onConfirm={confirmDialog.onConfirm}
                 onCancel={() => setConfirmDialog({ ...confirmDialog, open: false })}
             />
-        </Layout>
+        </div>
+        // </Layout>
     );
 }
 

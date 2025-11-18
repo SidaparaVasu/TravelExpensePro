@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { Check, Building2, FileText, MapPin, Phone, Users, Wrench, DollarSign, Trash2 } from 'lucide-react';
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 import { accommodationAPI } from '@/src/api/master_accommodation';
 import { locationAPI } from '@/src/api/master_location';
 
@@ -545,7 +545,7 @@ const ARCHotelForm = ({ editId = null, onCancel }) => {
     };
 
     return (
-        <Layout>
+        // <Layout>
             <div className="min-h-screen bg-gray-50 p-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="bg-white rounded-lg border border-b overflow-hidden">
@@ -604,7 +604,7 @@ const ARCHotelForm = ({ editId = null, onCancel }) => {
                     </div>
                 </div>
             </div>
-        </Layout>
+        // </Layout>
     );
 };
 

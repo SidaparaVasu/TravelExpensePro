@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Edit, Trash2, Plus, Eye, X, ToggleLeft, ToggleRight, Star } from 'lucide-react';
 import { toast } from "sonner";
-import {Layout} from "@/components/Layout";
+// import {Layout} from "@/components/Layout";
 import ARCHotelDetailModal from './ARCHotelDetailModel';
 import { accommodationAPI } from "@/src/api/master_accommodation";
 
@@ -124,7 +124,7 @@ const ARCHotelList = ({ onEdit }) => {
     };
 
     return (
-        <Layout>
+        // <Layout>
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
@@ -281,7 +281,7 @@ const ARCHotelList = ({ onEdit }) => {
                 )}
             </div>
         </div>
-        </Layout>
+        // </Layout>
     );
 };
 

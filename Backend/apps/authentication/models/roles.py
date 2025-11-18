@@ -19,11 +19,22 @@ class Role(models.Model):
     DASHBOARD_CHOICES = [
         ('employee', 'Employee Dashboard'),
         ('admin', 'Admin Dashboard'),
+        ('travel_desk', 'Travel Desk Dashboard'),
     ]
     
     name = models.CharField(max_length=50, unique=True)
     role_type = models.CharField(max_length=20, choices=ROLE_TYPES)
-    dashboard_access = models.CharField(max_length=20, choices=DASHBOARD_CHOICES)
+    
+    # Instead of static choices, allow ANY dashboard path
+    dashboard_access = models.CharField(max_length=50, default='employee')
+
+    # NEW flexible redirect path for each role
+    redirect_path = models.CharField(
+        max_length=200,
+        default='/employee/dashboard',
+        help_text="Frontend redirect path after login for users with this role"
+    )
+    
     is_active = models.BooleanField(default=True)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)

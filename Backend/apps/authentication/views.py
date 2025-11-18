@@ -90,7 +90,8 @@ class LoginView(APIView):
                     ]
                 },
                 'permissions': user.get_user_permissions_list(),
-                'redirect_to': f"/{primary_role.dashboard_access if primary_role else 'employee'}/dashboard"
+                # 'redirect_to': f"/{primary_role.dashboard_access if primary_role else 'employee'}/dashboard"
+                'redirect_to': primary_role.redirect_path if primary_role else '/employee/dashboard'
             }
         }
         

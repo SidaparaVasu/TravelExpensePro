@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { Check, AlertCircle, Building2, DollarSign, MapPin, Phone, Users, Clock, Trash2 } from 'lucide-react';
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 import { masterAPI } from "@/src/api/master";
 import { locationAPI } from "@/src/api/master_location";
 import { accommodationAPI } from '@/src/api/master_accommodation';
@@ -24,7 +24,7 @@ const GuestHouseForm = ({ editId = null, onCancel }) => {
 
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);  
+  const [cities, setCities] = useState([]);
 
   // States
   const [dropdownData, setDropdownData] = useState({
@@ -43,7 +43,7 @@ const GuestHouseForm = ({ editId = null, onCancel }) => {
           locationAPI.getCountries(),
           masterAPI.getGLCodes(),
         ]);
-        
+
         const countriesList = countryRes.data.results || countryRes.data.data || [];
         const glCodeList = glCodeRes.data.results || glCodeRes.data.results || [];
 
@@ -510,7 +510,8 @@ const GuestHouseForm = ({ editId = null, onCancel }) => {
   };
 
   return (
-    <Layout>
+    // <Layout>
+    <div>
       {loading ? (
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
@@ -585,7 +586,8 @@ const GuestHouseForm = ({ editId = null, onCancel }) => {
           </div>
         </div>
       )}
-    </Layout>
+    {/* </Layout> */}
+    </div >
   );
 };
 

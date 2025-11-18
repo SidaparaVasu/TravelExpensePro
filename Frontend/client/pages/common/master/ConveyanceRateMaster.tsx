@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2, X, Check, AlertCircle, XCircle } from 'lucide-react';
 import { conveyanceRateAPI } from "@/src/api/master_conveyance";
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 
 const ConveyanceRateMaster = () => {
   const [rates, setRates] = useState([]);
@@ -186,7 +186,7 @@ const ConveyanceRateMaster = () => {
   };
 
   return (
-    <Layout>
+    // <Layout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
         {/* Notification */}
         {notification && (
@@ -577,7 +577,7 @@ const ConveyanceRateMaster = () => {
           )}
         </div>
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

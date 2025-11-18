@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Globe, Plus, Edit2, Trash2, X, Save, Search, MapPin, Map } from "lucide-react";
 import { toast } from "sonner";
 import { locationAPI } from "@/src/api/master_location";
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 
 function Modal({ isOpen, onClose, title, children }) {
     if (!isOpen) return null;
@@ -406,7 +406,7 @@ export default function GeographyMaster() {
     }
 
     return (
-        <Layout>
+        // <Layout>
             <div className="p-6 bg-gray-50 min-h-screen mb-10">
                 <div className="max-w-7xl mx-auto">
                     <div className="mb-6">
@@ -512,7 +512,7 @@ export default function GeographyMaster() {
                     </Modal>
                 </div>
             </div>
-        </Layout>
+        //</Layout>
     );
 }
 

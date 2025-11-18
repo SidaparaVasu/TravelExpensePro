@@ -1,63 +1,79 @@
 export const ROUTES = {
-  // Auth
+  // ---------------- AUTH ----------------
   login: "/login",
   root: "/",
 
-  // Dashboards
+  // ---------------- DASHBOARDS ----------------
   adminDashboard: "/admin/dashboard",
   employeeDashboard: "/employee/dashboard",
+  deskAgentDashboard: "/travel-desk/dashboard",
 
-  // Profile
+  // ---------------- PROFILE ----------------
   profile: "/profile",
 
-  // Travel Management
+  // ---------------- TRAVEL (Employee/Admin) ----------------
   makeTravelApplicationOld: "/travel/make-travel-application-old",
-  // makeTravelApplication: "/travel/make-travel-application",
   makeTravelApplication: "/travel/make-travel-application",
   travelApplicationList: "/travel/travel-application-list",
-  travelApplicationView: (id: number | string) => `/travel/travel-application/${id}/`,
+  travelApplicationView: (id: number | string) =>
+    `/travel/travel-application/${id}/`,
   travelRequestApproval: "/travel/travel-request-approval",
-  // travelBookings: "/travel/bookings",
-  // itinerary: (id) => `/travel/itineraries/${id}`,
 
-  // Expense Management
+  // Employee/Admin bookings
+  travelBookings: "/travel/bookings",
+  travelItinerary: (id: number | string) =>
+    `/travel/itineraries/${id}`,
+
+  // ---------------- EXPENSE MANAGEMENT ----------------
   expenseReports: "/expense-reports",
   reimbursements: "/reimbursements",
   approvals: "/approvals",
 
-  // Administration
-  // Masters
+  // ---------------- ADMIN: MASTER PAGES ----------------
   master: "/masters",
-  // employee master
-  employeeMasterPage: "/master/employees",
+
+  // Employee Master
+  employeeMasterPage: "/masters/employees",
   employeeMasterForm: "/masters/add-employee",
-  // company masters
+
+  // Organization Masters
   orgMaster: "/masters/organizations",
-  employeeTypeMaster: "/master/employee-type",
-  // geography masters
+  employeeTypeMaster: "/masters/employee-type",
+
+  // Geography Masters
   geographyMaster: "/masters/geography",
   cityCategoryMaster: "/masters/city-categories",
   locationMaster: "/masters/location",
-  // grade master
+
+  // Grade Master
   gradeMaster: "/masters/grade",
-  // travel master
-  gradeEntitlementMaster: "/master/grade-entitlement",
-  // approval masters
+
+  // Travel Master
+  gradeEntitlementMaster: "/masters/grade-entitlement",
+
+  // Approval Matrix
   approvalMatrixMaster: "/masters/approval-matrix",
-  // accommodation masters
+
+  // Accommodation Masters
   guestHouseMaster: "/masters/guest-house",
   guestHouseMasterForm: "/masters/create-guest-house",
   arcHotelMaster: "/masters/arc-hotel",
   arcHotelMasterForm: "/masters/create-arc-hotel",
+
+  // SPOC
   locationSPOCMaster: "/masters/location-spoc",
-  // conveyance rate masters
+
+  // Conveyance Rate
   conveyanceRateMaster: "/masters/conveyance-rate",
-  // da incidentals masters
+
+  // DA Incidentals
   daIncidentalMaster: "/masters/da-incidentals",
-  
-  // travel master
+
+  // Travel Master
   glCodeMaster: "/masters/gl-code",
   travelModeMaster: "/masters/travel-mode",
+
+  // ---------------- SETTINGS / REPORTS ----------------
   settings: "/settings",
   reports: "/reports",
 };

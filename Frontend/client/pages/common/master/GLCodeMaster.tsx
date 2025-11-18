@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { travelAPI } from "@/src/api/travel";
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 import { FormModal } from "@/pages/common/reusables/Reusables";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -88,7 +88,7 @@ export default function GLCodeMasterPage() {
 
 
     return (
-        <Layout>
+        // <Layout>
             <div className="p-6 bg-gray-50 min-h-screen">
                 <header className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-semibold text-slate-800">GL Code Master</h1>
@@ -198,6 +198,6 @@ export default function GLCodeMasterPage() {
                     )
                 }
             </div >
-        </Layout >
+        // </Layout >
     )
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from "react-router-dom";
 import {
@@ -93,7 +93,7 @@ const MASTER_CATEGORIES = [
         title: 'Employees',
         icon: Users,
         items: [
-            {id: 'employee', title: "Employees", route: '/master/employees'},
+            {id: 'employee', title: "Employees", route: ROUTES.employeeMasterPage},
         ]
     },
     {
@@ -207,7 +207,7 @@ export default function MasterSettingsPage() {
     }, [selectedIndex]);
 
     return (
-        <Layout>
+        // <Layout>
             <div className="p-6 bg-gray-50 min-h-screen">
                 <div className="max-w-[960px] mx-auto">
                     <header className="mb-6">
@@ -288,6 +288,6 @@ export default function MasterSettingsPage() {
                     </footer>
                 </div>
             </div>
-        </Layout>
+        // </Layout>
     );
 }

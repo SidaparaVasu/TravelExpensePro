@@ -20,7 +20,8 @@ export default function Login() {
     try {
       const redirectTo = await login(username, password);
       toast({ title: 'Login Successful', description: 'Redirecting to Dashboard' });
-      navigate(redirectTo);
+      // navigate(redirectTo);
+      navigate(redirectTo.startsWith('/') ? redirectTo : `/${redirectTo}`);
     } catch (error: any) {
       const response = JSON.parse(error.request?.response || '{}');
       const message = response.errors?.non_field_errors?.[0] || 'Invalid credentials';

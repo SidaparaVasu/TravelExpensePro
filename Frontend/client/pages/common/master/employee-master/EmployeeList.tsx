@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Edit, Trash2, Plus, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Layout } from '@/components/Layout';
+// import { Layout } from '@/components/Layout';
 import { userAPI, User } from '@/src/api/users';
 import { useToast } from '@/components/ui/use-toast';
 import EmployeeDetailModal from './EmployeeDetailModal';
@@ -93,7 +93,7 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ onEdit }) => {
   };
 
   return (
-    <Layout>
+    // <Layout>
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -316,7 +316,7 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ onEdit }) => {
           />
         )}
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { masterAPI } from "@/src/api/master";
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 import { FormModal } from "@/pages/common/reusables/Reusables";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -107,7 +107,7 @@ export default function GradeMasterPage() {
     ];
 
     return (
-        <Layout>
+        // <Layout>
             <div className="p-6 bg-gray-50 min-h-screen">
                 <header className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-semibold text-slate-800">Grade Master</h1>
@@ -217,7 +217,7 @@ export default function GradeMasterPage() {
                     )
                 }
             </div >
-        </Layout >
+        // </Layout >
     );
 }
 

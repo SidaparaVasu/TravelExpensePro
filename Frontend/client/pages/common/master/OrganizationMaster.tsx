@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Building2, ChevronDown, ChevronRight, Plus, Edit2, Trash2, X, Save, Search, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { organizationMasterAPI } from "@/src/api/master_company";
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 
 function Modal({ isOpen, onClose, title, children }) {
     if (!isOpen) return null;
@@ -543,7 +543,7 @@ export default function OrganizationMaster() {
     }
 
     return (
-        <Layout>
+        // <Layout>
             <div className="p-6 bg-gray-50 min-h-screen">
                 <div className="max-w-7xl mx-auto">
                     <div className="mb-6 flex items-center justify-between">
@@ -620,7 +620,7 @@ export default function OrganizationMaster() {
                     </Modal>
                 </div>
             </div>
-        </Layout>
+        // </Layout>
     );
 }
 

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 
 export default function Profile() {
     const { user, loadProfile, logout, isLoading } = useAuthStore();
@@ -33,7 +33,7 @@ export default function Profile() {
     };
 
     return (
-        <Layout>
+        // <Layout>
             <div className="relative overflow-auto w-full min-h-screen flex flex-col gap-6">
                 <div className="space-y-6">
                     <div className="flex justify-between items-center">
@@ -119,6 +119,6 @@ export default function Profile() {
                 </div>
 
             </div>
-        </Layout>
+        // </Layout>
     );
 }

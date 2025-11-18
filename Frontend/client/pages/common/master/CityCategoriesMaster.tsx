@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 import { X, Plus, Edit2, Trash2, Save, Search, ChevronDown } from 'lucide-react';
 import { locationAPI } from "@/src/api/master_location";
 
@@ -180,7 +180,7 @@ export default function CityCategoryManager() {
     };
 
     return (
-        <Layout>
+        // <Layout>
             <div className="p-6 bg-gray-50 min-h-screen">
                 <div className="max-w-7xl mx-auto">
                     <div className="mb-6 flex items-center justify-between">
@@ -319,7 +319,7 @@ export default function CityCategoryManager() {
                     )}
                 </div>
             </div>
-        </Layout>
+        // </Layout>
     );
 }
 

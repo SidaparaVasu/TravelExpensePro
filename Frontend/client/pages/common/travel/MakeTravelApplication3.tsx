@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Save, Send, ChevronRight, ChevronLeft, Calendar, MapPin, Plane, Home, Car, Wallet } from 'lucide-react';
-import { Layout } from '@/components/Layout';
+// import { Layout } from '@/components/Layout';
 import { useAuthStore } from '@/src/store/authStore';
 import { travelAPI } from '@/src/api/travel';
 import { locationAPI } from '@/src/api/master_location';
@@ -2283,7 +2283,8 @@ export default function CreateTravelApplication() {
     };
 
     return (
-        <Layout>
+        // <Layout>
+        <div>
             <div className="min-h-screen">
                 {/* Toast Notification */}
                 {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
@@ -2454,6 +2455,7 @@ export default function CreateTravelApplication() {
                     </div>
                 </div>
             )}
-        </Layout>
+        </div>
+        // </Layout>
     );
 }

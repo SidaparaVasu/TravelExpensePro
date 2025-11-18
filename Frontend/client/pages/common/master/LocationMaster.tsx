@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2, X, Check, AlertCircle, XCircle, MapPin } from 'lucide-react';
-import { Layout } from '@/components/Layout';
+// import { Layout } from '@/components/Layout';
 import { organizationMasterAPI } from '@/src/api/master_company';
 import { locationAPI } from '@/src/api/master_location';
 
@@ -239,7 +239,7 @@ const LocationMaster = () => {
     };
 
     return (
-        <Layout>
+        // <Layout>
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
                 {/* Notification */}
                 {notification && (
@@ -661,7 +661,7 @@ const LocationMaster = () => {
                     )}
                 </div>
             </div>
-        </Layout>
+        // </Layout>
     );
 };
 

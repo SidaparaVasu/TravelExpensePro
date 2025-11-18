@@ -21,12 +21,14 @@ export interface LoginResponse {
     roles: {
       primary: {
         name: string;
-        dashboard: 'employee' | 'admin';
+        dashboard: string;
+        redirect_path?: string; // optional — backend may also return this
       };
       available: Array<{
         id: number;
         name: string;
         dashboard: string;
+        redirect_path?: string;
       }>;
     };
     permissions: string[];

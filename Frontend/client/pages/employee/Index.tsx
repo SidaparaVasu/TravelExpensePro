@@ -3,8 +3,8 @@ import { DashboardOverview } from "@/components/DashboardOverview";
 
 export default function EmployeeIndex() {
   return (
-    <Layout>
+    // <Layout>
       <DashboardOverview />
-    </Layout>
+    // </Layout>
   );
 }

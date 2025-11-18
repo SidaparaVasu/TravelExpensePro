@@ -7,7 +7,7 @@ import TravelApplication from "../pages/employee/TravelApplication";
 // Admin pages
 import AdminDashboard from "../pages/admin/Index";
 // import ManageUsers from "../pages/admin/ManageUsers"; // example
-import TravelRequestApprovals from "../pages/admin/TravelRequestApprovals";
+import TravelRequestApprovals from "../pages/common/travel/TravelRequestApprovals";
 import MyApplicationsPage from "../pages/common/travel/ApplicationView";
 // Manager pages
 // import ManagerDashboard from "../pages/manager/Dashboard";

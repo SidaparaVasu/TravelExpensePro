@@ -9,7 +9,7 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -267,19 +267,19 @@ export default function GradeEntitlementMaster() {
 
     if (loading) {
         return (
-            <Layout>
+            // <Layout>
                 <div className="p-6 flex items-center justify-center min-h-screen">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                         <p className="text-slate-600">Loading entitlements...</p>
                     </div>
                 </div>
-            </Layout>
+            // </Layout>
         );
     }
 
     return (
-        <Layout>
+        // <Layout>
             <div className="p-6 bg-gradient-to-br from-slate-50 to-gray-100 min-h-screen">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
@@ -558,6 +558,6 @@ export default function GradeEntitlementMaster() {
                     </Dialog>
                 </div>
             </div>
-        </Layout>
+        // </Layout>
     );
 }

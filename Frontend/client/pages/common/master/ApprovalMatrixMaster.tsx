@@ -3,7 +3,7 @@ import { Search, Plus, Edit2, Trash2, Filter, X, Check, AlertCircle } from 'luci
 import { approvalMatrixAPI } from "@/src/api/master_approvalmatrix";
 import { masterAPI } from "@/src/api/master";
 import { travelAPI } from "@/src/api/travel";
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 
 const ApprovalMatrix = () => {
     const [matrices, setMatrices] = useState([]);
@@ -198,7 +198,7 @@ const ApprovalMatrix = () => {
     };
 
     return (
-        <Layout>
+        // <Layout>
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
                 {/* Notification */}
                 {notification && (
@@ -561,7 +561,7 @@ const ApprovalMatrix = () => {
                     )}
                 </div>
             </div>
-        </Layout>
+        //</Layout>
     );
 };
 

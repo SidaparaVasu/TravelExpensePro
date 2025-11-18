@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout } from '@/components/Layout';
+// import { Layout } from '@/components/Layout';
 import { userAPI, UserCreatePayload, User } from '@/src/api/users';
 import { organizationMasterAPI } from '@/src/api/master_company';
 import { masterAPI } from '@/src/api/master';
@@ -238,19 +238,19 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
 
   if (loading) {
     return (
-      <Layout>
+      // <Layout>
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading form data...</p>
           </div>
         </div>
-      </Layout>
+      // </Layout>
     );
   }
 
   return (
-    <Layout>
+    // <Layout>
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white border rounded-lg overflow-hidden">
@@ -636,7 +636,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ editId, onCancel }) => {
           </div>
         </div>
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

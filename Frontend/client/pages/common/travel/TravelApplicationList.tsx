@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTravelStore } from '@/src/store/travelStore';
-import { Layout } from '@/components/Layout';
+// import { Layout } from '@/components/Layout';
 import { Input } from "@/components/ui/input";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -231,11 +231,14 @@ export default function TravelApplicationList() {
   };
 
   if (isLoading) {
-    return <Layout><div className="p-4">Loading...</div></Layout>;
+    return 
+      // <Layout>
+        <div className="p-4">Loading...</div>
+      // </Layout>;
   }
 
   return (
-    <Layout>
+    // <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -440,6 +443,6 @@ export default function TravelApplicationList() {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    // </Layout>
   );
 }

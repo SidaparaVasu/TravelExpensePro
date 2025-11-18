@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Edit, Trash2, Plus, Eye, Filter, X, ToggleLeft, ToggleRight } from 'lucide-react';
-import { Layout } from '@/components/Layout';
+// import { Layout } from '@/components/Layout';
 import { accommodationAPI } from '@/src/api/master_accommodation';
 import { masterAPI } from "@/src/api/master";
 import GuestHouseDetailModal from './GuestHouseDetailModal';
@@ -63,7 +63,7 @@ const GuestHouseList = ({ onEdit }) => {
   };
 
   return (
-    <Layout>
+    // <Layout>
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -197,7 +197,7 @@ const GuestHouseList = ({ onEdit }) => {
           />
         )}
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

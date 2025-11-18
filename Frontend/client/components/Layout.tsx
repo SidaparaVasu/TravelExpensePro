@@ -27,8 +27,12 @@ import {
   Database,
   Users,
   LogOut,
+  FilePlus,
+  ClipboardIcon,
+  Car,
+  Hotel,
+  Briefcase,
 } from "lucide-react";
-import { FilePlus, ClipboardIcon } from "lucide-react";
 import { authAPI } from "@/src/api/auth";
 import { ROUTES } from "@/routes/routes";
 import { hasRole } from "@/src/utils/roles";
@@ -58,7 +62,7 @@ interface SidebarItem {
   label: string;
   path: string;
   Icon: any;
-  adminOnly?: boolean;
+  roles?: string[];
 }
 
 interface SidebarSection {
@@ -66,7 +70,7 @@ interface SidebarSection {
   icon: any;
   items?: readonly SidebarItem[];
   path?: string;
-  adminOnly?: boolean;
+  roles?: string[];
   collapsible?: boolean;
 }
 
@@ -86,8 +90,33 @@ const getUserInfo = (): any => {
   }
 };
 
+// const getPrimaryDashboard = (): string => {
+//   return localStorage.getItem("primary_dashboard") || "/dashboard";
+// };
+
 const getPrimaryDashboard = (): string => {
-  return localStorage.getItem("primary_dashboard") || "/dashboard";
+  const v = localStorage.getItem("primary_dashboard");
+  if (!v) return "/employee/dashboard";
+  // ensure leading slash
+  return v.startsWith("/") ? v : `/${v}`;
+};
+
+// const getUserRoles = (): string[] => {
+//   try {
+//     const rolesData = JSON.parse(localStorage.getItem("roles") || "{}");
+//     return rolesData.available?.map((role: any) => role.name) || [];
+//   } catch {
+//     return [];
+//   }
+// };
+
+const getUserRoles = (): string[] => {
+  try {
+    const rolesData = JSON.parse(localStorage.getItem("roles") || "{}");
+    return (rolesData.available || []).map((role: any) => (role.name || "").trim());
+  } catch {
+    return [];
+  }
 };
 
 const getSidebarSections = (primaryDashboard: string): readonly SidebarSection[] => [
@@ -96,54 +125,91 @@ const getSidebarSections = (primaryDashboard: string): readonly SidebarSection[]
     icon: LayoutDashboard,
     path: primaryDashboard,
   },
+  // Travel Section - All users
   {
     title: "Travel",
     icon: Plane,
     collapsible: true,
     items: [
-      { label: "Create Request", path: ROUTES.makeTravelApplication, Icon: FilePlus },
-      { label: "My Applications", path: ROUTES.travelApplicationList, Icon: ClipboardIcon },
-      { label: "Approvals", path: ROUTES.travelRequestApproval, Icon: CircleCheckBig },
-      // { label: "Bookings", path: ROUTES.travelBookings, Icon: Calendar },
-      // { label: "Itineraries", path: ROUTES.itineraries, Icon: MapPinned },
+      {
+        label: "Create Request",
+        path: ROUTES.makeTravelApplication,
+        Icon: FilePlus,
+        roles: ["Employee", "Admin", "Manager"]
+      },
+      {
+        label: "My Applications",
+        path: ROUTES.travelApplicationList,
+        Icon: ClipboardIcon,
+        roles: ["Employee", "Admin", "Manager"]
+      },
+      {
+        label: "Approvals",
+        path: ROUTES.travelRequestApproval,
+        Icon: CircleCheckBig,
+        roles: ["Manager", "Admin", "CHRO", "CEO"]
+      },
     ],
   },
+  // Bookings Section - Desk Agent specific
+  {
+    title: "Bookings",
+    icon: Briefcase,
+    collapsible: true,
+    roles: ["Travel Desk", "Admin"],
+    items: [
+      { label: "Flight Bookings", path: "/bookings/flights", Icon: Plane },
+      { label: "Hotel Bookings", path: "/bookings/hotels", Icon: Hotel },
+      { label: "Vehicle Bookings", path: "/bookings/vehicles", Icon: Car },
+    ],
+  },
+  // Expense Section
   {
     title: "Expense",
     icon: ReceiptIndianRupee,
     collapsible: true,
     items: [
-      { label: "Reports", path: "/expense-reports", Icon: FileText },
-      { label: "Reimbursements", path: "/reimbursements", Icon: CreditCard },
-      { label: "Approvals", path: "/approvals", Icon: CircleCheckBig },
+      {
+        label: "Reports",
+        path: "/expense-reports",
+        Icon: FileText,
+        roles: ["Employee", "Admin", "Manager"]
+      },
+      {
+        label: "Reimbursements",
+        path: "/reimbursements",
+        Icon: CreditCard,
+        roles: ["Employee", "Admin", "Manager"]
+      },
+      {
+        label: "Approvals",
+        path: "/expense-approvals",
+        Icon: CircleCheckBig,
+        roles: ["Manager", "Admin", "Finance Team"]
+      },
     ],
   },
+  // Reports Section - Admin only
   {
     title: "Reports",
     icon: ChartColumnIncreasing,
     path: "/reports",
-    adminOnly: true,
+    roles: ["Admin", "CEO", "CHRO", "Finance Team"],
   },
+  // Settings Section - Admin only
   {
     title: "Settings",
     icon: Settings,
     collapsible: true,
-    adminOnly: true,
+    roles: ["Admin"],
     items: [
       { label: "Masters", path: ROUTES.master, Icon: Database },
-      // { label: "Permission", path: "/settings/permission", Icon: Database },
-      // { label: "Approval Workflow", path: "/settings/workflow", Icon: Database },
-      // { label: "Import", path: "/settings/import", Icon: Database },
-      // { label: "Email Setting", path: "/settings/email", Icon: Database },
-      // { label: "Other Configurations", path: "/settings/config", Icon: Database },
+      // { label: "Users", path: "/settings/users", Icon: Users },
     ],
   },
 ] as const;
 
-// ──────────────────────────────
 // UI COMPONENTS
-// ──────────────────────────────
-
 const Logo = memo(({ expanded }: { expanded: boolean }) => (
   <div className="flex items-center gap-3">
     <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-700 to-blue-600 flex items-center justify-center flex-shrink-0">
@@ -244,9 +310,7 @@ const UserMenu = memo(({ user, onLogout, onNavigate }: {
 ));
 UserMenu.displayName = "UserMenu";
 
-// ──────────────────────────────
 // MAIN LAYOUT COMPONENT
-// ──────────────────────────────
 export function Layout({ children }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
@@ -255,6 +319,7 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
 
   const user = useMemo(() => getUserInfo(), []);
+  const userRoles = useMemo(() => getUserRoles(), []);
   const primaryDashboard = useMemo(() => getPrimaryDashboard(), []);
   const sections = useMemo(() => getSidebarSections(primaryDashboard), [primaryDashboard]);
   const sidebarExpanded = !sidebarCollapsed;
@@ -303,10 +368,28 @@ export function Layout({ children }: LayoutProps) {
     setActiveSection(title);
   };
 
+  // const canViewSection = (section: SidebarSection): boolean => {
+  //   if (!section.roles || section.roles.length === 0) return true;
+  //   return section.roles.some(role => userRoles.includes(role));
+  // };
+
+  // const canViewItem = (item: SidebarItem): boolean => {
+  //   if (!item.roles || item.roles.length === 0) return true;
+  //   return item.roles.some(role => userRoles.includes(role));
+  // };
+
   const canViewSection = (section: SidebarSection): boolean => {
-    if (!section.adminOnly) return true;
-    return hasRole("Admin") || hasRole("CEO") || hasRole("CHRO");
+    if (!section.roles || section.roles.length === 0) return true;
+    const userRolesLower = userRoles.map(r => r.toLowerCase());
+    return section.roles.some(role => userRolesLower.includes(role.toLowerCase()));
   };
+
+  const canViewItem = (item: SidebarItem): boolean => {
+    if (!item.roles || item.roles.length === 0) return true;
+    const userRolesLower = userRoles.map(r => r.toLowerCase());
+    return item.roles.some(role => userRolesLower.includes(role.toLowerCase()));
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -329,7 +412,8 @@ export function Layout({ children }: LayoutProps) {
 
                 const Icon = section.icon;
                 const isOpen = openSections[section.title];
-                const hasItems = section.items && section.items.length > 0;
+                const visibleItems = section.items?.filter(canViewItem) || [];
+                const hasItems = visibleItems.length > 0;
                 const isActive = activeSection === section.title;
 
                 return (
@@ -353,7 +437,7 @@ export function Layout({ children }: LayoutProps) {
 
                     {sidebarExpanded && section.collapsible && hasItems && isOpen && (
                       <div className="mt-1 space-y-1">
-                        {section.items?.map((item) => {
+                        {visibleItems.map((item) => {
                           const ItemIcon = item.Icon;
                           return (
                             <SubNavItem

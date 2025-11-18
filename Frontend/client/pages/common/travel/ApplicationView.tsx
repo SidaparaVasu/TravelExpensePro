@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from "framer-motion";
 import { travelAPI } from "@/lib/api/travel";
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -80,20 +80,20 @@ const ApplicationView: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout>
+      // <Layout>
         <div className="flex items-center justify-center h-72">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-slate-600">Loading application...</p>
           </div>
         </div>
-      </Layout>
+      // </Layout> 
     );
   }
 
   if (error) {
     return (
-      <Layout>
+      // <Layout>
         <div className="max-w-4xl mx-auto p-6">
           <Card className="border-red-200 bg-red-50">
             <CardContent className="pt-6">
@@ -101,14 +101,14 @@ const ApplicationView: React.FC = () => {
             </CardContent>
           </Card>
         </div>
-      </Layout>
+      // </Layout>
     );
   }
 
   if (!application) return null;
 
   return (
-    <Layout>
+    // <Layout>
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         <HeaderCard
           application={application}
@@ -127,7 +127,7 @@ const ApplicationView: React.FC = () => {
           />
         ))}
       </div>
-    </Layout>
+    // </Layout>
   );
 };
 

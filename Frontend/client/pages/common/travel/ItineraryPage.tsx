@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { travelAPI } from "@/src/api/travel"; // your existing axios instance
 import { bookingAPI } from "@/src/api/bookingApi";
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 
 /* ----------------------- ICONS ----------------------- */
 
@@ -181,7 +181,7 @@ export default function ItineraryPage({ applicationId: propId }) {
   /* ----------------------- RENDER ----------------------- */
 
   return (
-    <Layout>
+    // <Layout>
       <div className="p-6">
 
         {/* HEADER */}
@@ -283,7 +283,7 @@ export default function ItineraryPage({ applicationId: propId }) {
           </div>
         </FullScreenDrawer>
       </div>
-    </Layout>
+    // {/* </Layout> */}
   );
 }
 

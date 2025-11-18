@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Layout } from "@/components/Layout";
+// import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
@@ -281,17 +281,17 @@ export default function TravelRequestApprovals() {
 
   if (loading) {
     return (
-      <Layout>
+      // <Layout>
         <div className="flex items-center justify-center h-96">
           <div className="text-lg">Loading...</div>
         </div>
-      </Layout>
+      // </Layout>
     );
   }
 
 
   return (
-    <Layout>
+    // <Layout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -638,6 +638,6 @@ export default function TravelRequestApprovals() {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    // </Layout>
   );
 }
