@@ -1,39 +1,19 @@
 from django.db import models
 from django.contrib.auth.models import Permission as DjangoPermission
 
+
 class Role(models.Model):
     """
-    Custom roles for TSF system with dashboard access control
+    Custom roles for TSF system - Simplified for flexible access control
     """
-    ROLE_TYPES = [
-        ('employee', 'Employee'),
-        ('admin', 'Admin'),
-        ('travel_desk', 'Travel Desk'),
-        ('manager', 'Manager'),
-        ('chro', 'CHRO'),
-        ('ceo', 'CEO'),
-        ('finance', 'Finance Team'),
-        ('spoc', 'SPOC'),  # Vehicle booking coordinators
-    ]
-    
-    DASHBOARD_CHOICES = [
-        ('employee', 'Employee Dashboard'),
-        ('admin', 'Admin Dashboard'),
-        ('travel_desk', 'Travel Desk Dashboard'),
-    ]
-    
     name = models.CharField(max_length=50, unique=True)
-    role_type = models.CharField(max_length=20, choices=ROLE_TYPES)
-    
-    # Instead of static choices, allow ANY dashboard path
-    dashboard_access = models.CharField(max_length=50, default='employee')
-
-    # NEW flexible redirect path for each role
-    redirect_path = models.CharField(
-        max_length=200,
-        default='/employee/dashboard',
-        help_text="Frontend redirect path after login for users with this role"
+    role_type = models.CharField(
+        max_length=50,
+        help_text="Role category (e.g., employee, admin, manager). No fixed choices."
     )
+    
+    # REMOVED: dashboard_access, redirect_path, DASHBOARD_CHOICES
+    # Frontend will handle routing based on role information
     
     is_active = models.BooleanField(default=True)
     description = models.TextField(blank=True)
@@ -42,6 +22,9 @@ class Role(models.Model):
 
     class Meta:
         ordering = ['name']
+        db_table = 'roles'
+        verbose_name = 'Role'
+        verbose_name_plural = 'Roles'
 
     def __str__(self):
         return self.name
@@ -49,7 +32,10 @@ class Role(models.Model):
     def get_permissions(self):
         """Get all permissions for this role"""
         return self.rolepermission_set.select_related('permission').all()
-    
+
+
+# Keep Permission, UserRole, RolePermission models as they are
+# They don't need changes
 
 class Permission(models.Model):
     """
@@ -73,10 +59,11 @@ class Permission(models.Model):
 
     class Meta:
         ordering = ['category', 'name']
+        db_table = 'permissions'
 
     def __str__(self):
         return f"{self.name} ({self.codename})"
-    
+
 
 class UserRole(models.Model):
     """
@@ -84,7 +71,7 @@ class UserRole(models.Model):
     """
     user = models.ForeignKey('User', on_delete=models.CASCADE)
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
-    is_primary = models.BooleanField(default=False)  # Determines default dashboard
+    is_primary = models.BooleanField(default=False)  # Determines default role
     assigned_at = models.DateTimeField(auto_now_add=True)
     assigned_by = models.ForeignKey(
         'User', 
@@ -99,6 +86,7 @@ class UserRole(models.Model):
         indexes = [
             models.Index(fields=['user', 'is_primary']),
         ]
+        db_table = 'user_roles'
 
     def __str__(self):
         primary = " (Primary)" if self.is_primary else ""
@@ -109,7 +97,7 @@ class UserRole(models.Model):
         if self.is_primary:
             UserRole.objects.filter(user=self.user).update(is_primary=False)
         super().save(*args, **kwargs)
-        
+
 
 class RolePermission(models.Model):
     """
@@ -121,6 +109,7 @@ class RolePermission(models.Model):
 
     class Meta:
         unique_together = ('role', 'permission')
+        db_table = 'role_permissions'
 
     def __str__(self):
         return f"{self.role.name} has {self.permission.name}"

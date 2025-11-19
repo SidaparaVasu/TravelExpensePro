@@ -8,7 +8,7 @@ class IsAdminUser(BasePermission):
         return (
             request.user and 
             request.user.is_authenticated and 
-            request.user.can_access_dashboard('admin')
+            request.user.has_role('admin')
         )
     
 class IsAdminUser(BasePermission):
@@ -18,7 +18,7 @@ class IsAdminUser(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.can_access_dashboard('admin')
+        return request.user.has_role('admin')
     
     message = "Admin access required"
 
@@ -30,7 +30,7 @@ class IsEmployee(BasePermission):
         return (
             request.user and 
             request.user.is_authenticated and 
-            request.user.can_access_dashboard('employee')
+            request.user.has_role('employee')
         )
     
 class IsEmployee(BasePermission):
@@ -40,7 +40,7 @@ class IsEmployee(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.can_access_dashboard('employee')
+        return request.user.has_role('employee')
     
     message = "Employee access required"
 

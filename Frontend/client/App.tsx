@@ -7,11 +7,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import { ROUTES } from "@/routes/routes";
+import UnauthorizedPage from "./pages/common/UnauthorizedPage";
 
 // Layouts
 import { AdminLayout } from "@/components/layouts/AdminLayout";
 import { EmployeeLayout } from "@/components/layouts/EmployeeLayout";
-import { DeskAgentLayout } from "@/components/layouts/DeskAgentLayout";
+import { BookingAgentLayout } from "@/components/layouts/BookingAgentLayout";
 
 // Common Pages
 import Login from "./pages/common/Login";
@@ -34,6 +35,7 @@ import ItinerariesPage from "./pages/common/travel/ItineraryPage";
 
 // Master Pages (Admin Only)
 import MasterPage from "./pages/common/master/MasterIndex";
+import UserManagementPage from "./pages/common/master/user-management/Index";
 import EmployeeMasterPage from "./pages/common/master/employee-master/Index";
 import GuestHouseMaster from "./pages/common/master/guest-house/Index";
 import ARCHotelMaster from "./pages/common/master/arc-hotel/Index";
@@ -75,6 +77,9 @@ const App = () => (
 
       <BrowserRouter>
         <Routes>
+          {/* ---------------- UNAUTHORIZED / 404 ---------------- */}
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
+          <Route path="*" element={<NotFound />} />
 
           {/* ---------------- AUTH ---------------- */}
           <Route path="/" element={<Login />} />
@@ -109,7 +114,7 @@ const App = () => (
             path={ROUTES.deskAgentDashboard}
             element={
               <ProtectedRoute requiredDashboard="travel-desk">
-                  <DeskAgentIndex />
+                <DeskAgentIndex />
               </ProtectedRoute>
             }
           />
@@ -228,6 +233,11 @@ const App = () => (
           />
 
           {/* All other master routes */}
+          <Route path={ROUTES.userManagement} element={
+              <ProtectedRoute requiredDashboard="admin">
+                <AdminLayout><UserManagementPage /></AdminLayout>
+              </ProtectedRoute> } />
+
           <Route path={ROUTES.orgMaster} element={
             <ProtectedRoute requiredDashboard="admin">
               <AdminLayout><OrganizationMasters /></AdminLayout>
@@ -302,9 +312,6 @@ const App = () => (
             <ProtectedRoute requiredDashboard="admin">
               <AdminLayout><LocationSPOCMasterPage /></AdminLayout>
             </ProtectedRoute>} />
-
-          {/* ---------------- 404 ---------------- */}
-          <Route path="*" element={<NotFound />} />
 
         </Routes>
       </BrowserRouter>

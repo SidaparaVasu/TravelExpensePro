@@ -41,9 +41,9 @@ function TravelModeCard({ mode, subOptions, expanded, onToggle, onEdit, onDelete
                         <button onClick={onToggle} className="text-slate-600 hover:text-slate-800 transition-colors">
                             {expanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
                         </button>
-                        <div className="p-3 bg-white rounded-lg shadow-sm">
+                        {/* <div className="p-3 bg-white rounded-lg shadow-sm">
                             <Icon className="w-7 h-7 text-blue-600" />
-                        </div>
+                        </div> */}
                         <div className="flex-1">
                             <div className="flex items-center gap-3">
                                 <h3 className="text-xl font-semibold text-slate-800">{mode.name}</h3>

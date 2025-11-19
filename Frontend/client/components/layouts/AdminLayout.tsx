@@ -51,16 +51,30 @@ const getUser = () => {
 
 const getRoles = () => {
   try {
-    const data = JSON.parse(localStorage.getItem("roles") || "{}");
-    return data.available?.map((r) => r.name?.toLowerCase()) || [];
+    const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+    return roles.map((r: any) => r.name?.toLowerCase()) || [];
+  } catch {
+    return [];
+  }
+};
+
+const getRoleTypes = () => {
+  try {
+    const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+    return roles.map((r: any) => r.role_type?.toLowerCase()) || [];
   } catch {
     return [];
   }
 };
 
 const userHasAdminRole = () => {
-  const roles = getRoles();
-  return roles.includes("admin") || roles.includes("ceo");
+  const roleTypes = getRoleTypes();
+  return roleTypes.includes("admin") || roleTypes.includes("ceo");
+};
+
+const HAS_DESK_ROLE = () => {
+  const roleTypes = getRoleTypes();
+  return roleTypes.includes("travel_desk") || roleTypes.includes("admin");
 };
 
 const getPrimaryDashboard = () => {

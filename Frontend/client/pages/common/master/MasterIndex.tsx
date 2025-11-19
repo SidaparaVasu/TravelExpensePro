@@ -89,11 +89,12 @@ const MASTER_CATEGORIES = [
     //     items: [{ id: 'approval-workflow', title: 'Approval Workflow', route: '/masters/approval-workflow' }],
     // },
     {
-        id: 'employees',
-        title: 'Employees',
+        id: 'users',
+        title: 'Users',
         icon: Users,
         items: [
             {id: 'employee', title: "Employees", route: ROUTES.employeeMasterPage},
+            {id: 'user-mng', title: "User Management", route: ROUTES.userManagement},
         ]
     },
     {

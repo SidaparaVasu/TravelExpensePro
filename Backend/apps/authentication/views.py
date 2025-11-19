@@ -45,11 +45,11 @@ class RegisterView(CreateAPIView):
 
 class LoginView(APIView):
     """
-    Enhanced login with role information for dashboard routing
+    Enhanced login with role information for frontend routing
+    NO MORE dashboard_access or redirect_path - frontend handles routing
     """
     permission_classes = []
 
-    # @api_ratelimit(rate='5/m')
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -60,6 +60,57 @@ class LoginView(APIView):
         # Get user's roles and permissions
         primary_role = user.get_primary_role()
         all_roles = user.get_all_roles()
+        
+        # Get profile data based on user_type
+        profile_data = None
+        if user.user_type == 'organizational':
+            profile = getattr(user, 'organizational_profile', None)
+            if profile:
+                profile_data = {
+                    'type': 'organizational',
+                    'employee_id': profile.employee_id,
+                    'company': {
+                        'id': profile.company.id,
+                        'name': profile.company.name
+                    } if profile.company else None,
+                    'department': {
+                        'id': profile.department.department_id,
+                        'name': profile.department.dept_name
+                    } if profile.department else None,
+                    'designation': {
+                        'id': profile.designation.designation_id,
+                        'name': profile.designation.designation_name
+                    } if profile.designation else None,
+                    'grade': {
+                        'id': profile.grade.id,
+                        'name': profile.grade.name
+                    } if profile.grade else None,
+                    'base_location': {
+                        'id': profile.base_location.location_id,
+                        'name': profile.base_location.location_name,
+                        'city_id': profile.base_location.city_id,
+                        'city_name': profile.base_location.city.city_name,
+                        'state_id': profile.base_location.state_id,
+                        'state_name': profile.base_location.state.state_name
+                    } if profile.base_location else None,
+                    'reporting_manager': {
+                        'id': profile.reporting_manager.id,
+                        'name': profile.reporting_manager.get_full_name(),
+                        'username': profile.reporting_manager.username
+                    } if profile.reporting_manager else None
+                }
+        elif user.user_type == 'external':
+            profile = getattr(user, 'external_profile', None)
+            if profile:
+                profile_data = {
+                    'type': 'external',
+                    'profile_type': profile.profile_type,
+                    'profile_type_display': profile.get_profile_type_display(),
+                    'organization_name': profile.organization_name,
+                    'contact_person': profile.contact_person,
+                    'service_categories': profile.service_categories,
+                    'is_verified': profile.is_verified
+                }
         
         response_data = {
             'success': True,
@@ -72,30 +123,82 @@ class LoginView(APIView):
                 'user': {
                     'id': user.id,
                     'username': user.username,
-                    'employee_id': user.employee_id,
+                    'email': user.email,
                     'full_name': user.get_full_name(),
-                    'email': user.email
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'gender': user.gender,
+                    'user_type': user.user_type
                 },
-                'roles': {
-                    'primary': {
-                        'name': primary_role.name if primary_role else 'Employee',
-                        'dashboard': primary_role.dashboard_access if primary_role else 'employee'
-                    },
-                    'available': [
-                        {
-                            'id': role.id,
-                            'name': role.name,
-                            'dashboard': role.dashboard_access
-                        } for role in all_roles
-                    ]
-                },
-                'permissions': user.get_user_permissions_list(),
-                # 'redirect_to': f"/{primary_role.dashboard_access if primary_role else 'employee'}/dashboard"
-                'redirect_to': primary_role.redirect_path if primary_role else '/employee/dashboard'
+                'profile': profile_data,
+                'roles': [
+                    {
+                        'id': role.id,
+                        'name': role.name,
+                        'role_type': role.role_type,
+                        'description': role.description,
+                        'is_primary': primary_role and role.id == primary_role.id
+                    } for role in all_roles
+                ],
+                'permissions': user.get_user_permissions_list()
             }
         }
         
         return Response(response_data, status=status.HTTP_200_OK)
+    
+# class LoginView(APIView):
+#     """
+#     Enhanced login with role information for dashboard routing
+#     """
+#     permission_classes = []
+
+#     # @api_ratelimit(rate='5/m')
+#     def post(self, request):
+#         serializer = LoginSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+        
+#         user = serializer.validated_data['user']
+#         refresh = RefreshToken.for_user(user)
+        
+#         # Get user's roles and permissions
+#         primary_role = user.get_primary_role()
+#         all_roles = user.get_all_roles()
+        
+#         response_data = {
+#             'success': True,
+#             'message': 'Login successful',
+#             'data': {
+#                 'tokens': {
+#                     'access': str(refresh.access_token),
+#                     'refresh': str(refresh)
+#                 },
+#                 'user': {
+#                     'id': user.id,
+#                     'username': user.username,
+#                     'employee_id': user.employee_id,
+#                     'full_name': user.get_full_name(),
+#                     'email': user.email
+#                 },
+#                 'roles': {
+#                     'primary': {
+#                         'name': primary_role.name if primary_role else 'Employee',
+#                         'dashboard': primary_role.dashboard_access if primary_role else 'employee'
+#                     },
+#                     'available': [
+#                         {
+#                             'id': role.id,
+#                             'name': role.name,
+#                             'dashboard': role.dashboard_access
+#                         } for role in all_roles
+#                     ]
+#                 },
+#                 'permissions': user.get_user_permissions_list(),
+#                 # 'redirect_to': f"/{primary_role.dashboard_access if primary_role else 'employee'}/dashboard"
+#                 'redirect_to': primary_role.redirect_path if primary_role else '/employee/dashboard'
+#             }
+#         }
+        
+#         return Response(response_data, status=status.HTTP_200_OK)
 
 class LogoutView(APIView):
     """
@@ -156,6 +259,86 @@ class UserCreateView(ListCreateAPIView):
 class UserListCreateView(ListCreateAPIView):
     """
     List all users or create a new user (Admin only)
+    Supports search by: username, first_name, last_name, email
+    Supports filtering by: user_type, is_active
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['user_type', 'is_active']
+    search_fields = ['username', 'first_name', 'last_name', 'email']
+    ordering_fields = ['username', 'first_name', 'last_name', 'date_joined']
+    ordering = ['-date_joined']
+    
+    def get_queryset(self):
+        queryset = User.objects.filter(is_superuser=False)
+        
+        # Prefetch profiles for better performance
+        queryset = queryset.prefetch_related('organizational_profile', 'external_profile')
+        queryset = queryset.prefetch_related('userrole_set__role')
+        
+        return queryset
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return UserCreateSerializer
+        return UserListSerializer
+
+
+class UserDetailView(RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete a user (Admin only)
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    
+    def get_queryset(self):
+        return User.objects.prefetch_related(
+            'organizational_profile',
+            'external_profile',
+            'userrole_set__role'
+        ).all()
+    
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return UserDetailSerializer
+        elif self.request.method in ['PUT', 'PATCH']:
+            return UserUpdateSerializer
+        return UserDetailSerializer
+    
+    def destroy(self, request, *args, **kwargs):
+        """Soft delete by setting is_active to False"""
+        instance = self.get_object()
+        instance.is_active = False
+        instance.save()
+        return Response(
+            {'success': True, 'message': 'User deactivated successfully'},
+            status=status.HTTP_200_OK
+        )
+
+
+class UserProfileView(RetrieveAPIView):
+    """
+    Get current user's profile with organizational information
+    """
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+    
+    def retrieve(self, request, *args, **kwargs):
+        """Override to return standardized response"""
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        
+        return Response({
+            'success': True,
+            'message': 'Profile retrieved successfully',
+            'data': serializer.data
+        })
+'''
+class UserListCreateView(ListCreateAPIView):
+    """
+    List all users or create a new user (Admin only)
     Supports search by: username, first_name, last_name, email, employee_id
     Supports filtering by: department, designation, company, base_location, is_active
     """
@@ -212,10 +395,12 @@ class UserProfileView(RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+'''
 
 class SwitchRoleView(APIView):
     """
     Allow users to switch between their assigned roles
+    Frontend will handle routing based on new role
     """
     permission_classes = [IsAuthenticated]
     
@@ -230,18 +415,55 @@ class SwitchRoleView(APIView):
             
             new_role = Role.objects.get(name=role_name)
             return Response({
+                'success': True,
                 'message': 'Role switched successfully',
-                'redirect_to': f"/{new_role.dashboard_access}/dashboard",
-                'role': {
-                    'name': new_role.name,
-                    'dashboard': new_role.dashboard_access
+                'data': {
+                    'role': {
+                        'id': new_role.id,
+                        'name': new_role.name,
+                        'role_type': new_role.role_type,
+                        'description': new_role.description
+                    },
+                    'permissions': request.user.get_user_permissions_list()
                 }
             })
         except ValueError as e:
-            return Response(
-                {'error': str(e)}, 
-                status=status.HTTP_403_FORBIDDEN
-            )
+            return Response({
+                'success': False,
+                'message': str(e),
+                'data': None,
+                'errors': {'detail': str(e)}
+            }, status=status.HTTP_403_FORBIDDEN)
+
+# class SwitchRoleView(APIView):
+#     """
+#     Allow users to switch between their assigned roles
+#     """
+#     permission_classes = [IsAuthenticated]
+    
+#     def post(self, request):
+#         serializer = SwitchRoleSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+        
+#         role_name = serializer.validated_data['role_name']
+        
+#         try:
+#             RoleManager.switch_primary_role(request.user, role_name)
+            
+#             new_role = Role.objects.get(name=role_name)
+#             return Response({
+#                 'message': 'Role switched successfully',
+#                 'redirect_to': f"/{new_role.dashboard_access}/dashboard",
+#                 'role': {
+#                     'name': new_role.name,
+#                     'dashboard': new_role.dashboard_access
+#                 }
+#             })
+#         except ValueError as e:
+#             return Response(
+#                 {'error': str(e)}, 
+#                 status=status.HTTP_403_FORBIDDEN
+#             )
 
 # Enhanced Role Management Views
 class RoleListCreateView(ListCreateAPIView):

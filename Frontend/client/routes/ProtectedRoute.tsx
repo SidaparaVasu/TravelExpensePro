@@ -3,33 +3,40 @@ import { useAuthStore } from "@/src/store/authStore";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredDashboard?: string; // "admin" | "employee" | "travel-desk"
+  requiredDashboard?: string;
 }
 
 export default function ProtectedRoute({
   children,
   requiredDashboard,
 }: ProtectedRouteProps) {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
+  // Not authenticated → go to login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  // Extract roles correctly
-  const assignedRoles = user?.roles?.available || [];
-  const primaryRole = user?.roles?.primary;
-
-  // If no requiredDashboard → allow access
+  // No dashboard requirement → allow access
   if (!requiredDashboard) return <>{children}</>;
 
-  // Check role based access
-  const hasAccess =
-    primaryRole?.dashboard === requiredDashboard ||
-    assignedRoles.some(
-      (r) => String(r.dashboard).toLowerCase() === requiredDashboard.toLowerCase()
-    );
+  // Get roles from localStorage
+  const roles = JSON.parse(localStorage.getItem('roles') || '[]');
+  
+  // Check if user has a role with matching role_type
+  const hasAccess = roles.some((r: any) => {
+    const roleType = r.role_type?.toLowerCase();
+    const required = requiredDashboard.toLowerCase();
+    
+    // Match exact role_type or common aliases
+    if (roleType === required) return true;
+    if (roleType === 'travel_desk' && required === 'travel-desk') return true;
+    if (roleType === 'admin' && required === 'admin') return true;
+    
+    return false;
+  });
 
+  // No access → go to unauthorized page
   if (!hasAccess) {
     return <Navigate to="/unauthorized" replace />;
   }

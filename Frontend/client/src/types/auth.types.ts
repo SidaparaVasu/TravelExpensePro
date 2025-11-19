@@ -14,25 +14,34 @@ export interface LoginResponse {
     user: {
       id: number;
       username: string;
-      employee_id: string;
-      full_name: string;
       email: string;
+      full_name: string;
+      first_name: string;
+      last_name: string;
+      gender: string;
+      user_type: string; // 'organizational' | 'external'
     };
-    roles: {
-      primary: {
-        name: string;
-        dashboard: string;
-        redirect_path?: string; // optional — backend may also return this
-      };
-      available: Array<{
-        id: number;
-        name: string;
-        dashboard: string;
-        redirect_path?: string;
-      }>;
-    };
+    profile: {
+      type: string;
+      employee_id?: string;
+      company?: { id: number; name: string };
+      department?: { id: number; name: string };
+      designation?: { id: number; name: string };
+      grade?: { id: number; name: string };
+      base_location?: { id: number; name: string; city: string; state: string };
+      reporting_manager?: { id: number; name: string; username: string };
+      // External profile fields
+      organization_name?: string;
+      profile_type?: string;
+    } | null;
+    roles: Array<{
+      id: number;
+      name: string;
+      role_type: string;
+      description: string;
+      is_primary: boolean;
+    }>;
     permissions: string[];
-    redirect_to: string;
   };
 }
 
@@ -42,16 +51,15 @@ export interface UserProfile {
   first_name: string;
   last_name: string;
   email: string;
-  employee_id: string;
-  employee_type: string,
+  gender: string;
+  user_type: string;
+  profile: any;
   roles: Array<{
+    id: number;
     name: string;
-    dashboard: string;
+    role_type: string;
     is_primary: boolean;
+    description: string;
   }>;
-  department: string;
-  designation: string;
-  grade: string;
-  employeeType: string;
-  company: string;
+  permissions: string[];
 }
