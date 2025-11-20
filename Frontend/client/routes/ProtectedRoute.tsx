@@ -30,7 +30,7 @@ export default function ProtectedRoute({
     
     // Match exact role_type or common aliases
     if (roleType === required) return true;
-    if (roleType === 'travel_desk' && required === 'travel-desk') return true;
+    if (roleType === 'travel_desk' && required === 'travel_desk') return true;
     if (roleType === 'admin' && required === 'admin') return true;
     
     return false;

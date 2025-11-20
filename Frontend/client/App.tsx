@@ -113,7 +113,7 @@ const App = () => (
           <Route
             path={ROUTES.deskAgentDashboard}
             element={
-              <ProtectedRoute requiredDashboard="travel-desk">
+              <ProtectedRoute requiredDashboard="travel_desk">
                 <DeskAgentIndex />
               </ProtectedRoute>
             }

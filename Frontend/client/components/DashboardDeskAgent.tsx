@@ -1,632 +1,484 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
-import { Eye, Check, XCircle, Clock, CheckCircle, AlertTriangle } from "lucide-react";
-import { ROUTES } from "@/routes/routes";
+import { Eye, Check, X, Clock, AlertCircle, Plane, Train, Car, Home, ChevronDown, Search, Filter } from "lucide-react";
 
-/**
- * DeskAgentDashboard.tsx
- *
- * Single-file Desk Agent dashboard with mock API embedded.
- * Header: "TSF Travel — Desk Agent"
- *
- * Notes:
- * - This is read-only for applications (view only). Approve sends to booking agent (mock).
- * - Reject requires a reason.
- * - Mock API persists to localStorage under "mock_da_pending" and "mock_da_recent".
- * - Replace mock functions with real apiClient calls when backend is ready.
- */
-
-/* ============================
-   MOCK API (embedded)
-   ============================ */
-
-const LS_PENDING = "mock_da_pending";
-const LS_RECENT = "mock_da_recent";
-const LS_APPLICATIONS = "mock_da_applications";
-
-function mockDelay(ms = 450) {
-  return new Promise((r) => setTimeout(r, ms));
-}
-
-function seedMockDataOnce() {
-  if (!localStorage.getItem(LS_PENDING)) {
-    const pending = [
-      {
-        id: 201,
-        application_id: "TR-2025-00201",
-        employee_name: "Rohan Gupta",
-        purpose: "Client Meeting — Delhi",
-        from_location: "Jamshedpur",
-        to_location: "New Delhi",
-        travel_mode: "Flight",
-        departure_date: "2025-11-25T09:00:00Z",
-        approved_date: "2025-11-20T10:15:00Z",
-        status: "approved_by_manager"
-      },
-      {
-        id: 202,
-        application_id: "TR-2025-00202",
-        employee_name: "Sneha Patel",
-        purpose: "CSR Audit — Ranchi",
-        from_location: "Ranchi",
-        to_location: "Jamshedpur",
-        travel_mode: "Car",
-        departure_date: "2025-11-24T07:00:00Z",
-        approved_date: "2025-11-20T11:20:00Z",
-        status: "approved_by_manager"
-      },
-      {
-        id: 203,
-        application_id: "TR-2025-00203",
-        employee_name: "Arjun Mehta",
-        purpose: "Training Workshop",
-        from_location: "Kolkata",
-        to_location: "Jamshedpur",
-        travel_mode: "Train",
-        departure_date: "2025-11-30T06:00:00Z",
-        approved_date: "2025-11-19T13:00:00Z",
-        status: "approved_by_manager"
-      }
-    ];
-    localStorage.setItem(LS_PENDING, JSON.stringify(pending));
-  }
-
-  if (!localStorage.getItem(LS_RECENT)) {
-    const recent = [
-      {
-        id: 101,
-        application_id: "TR-2025-00101",
-        employee_name: "Amit Sharma",
-        booking_type: "Flight Booking",
-        vendor: "Eastern Travels",
-        confirmed_at: "2025-11-10T09:00:00Z"
-      },
-      {
-        id: 102,
-        application_id: "TR-2025-00105",
-        employee_name: "Kavita Rao",
-        booking_type: "Hotel Booking",
-        vendor: "Clarks Inn",
-        confirmed_at: "2025-11-11T16:30:00Z"
-      }
-    ];
-    localStorage.setItem(LS_RECENT, JSON.stringify(recent));
-  }
-
-  if (!localStorage.getItem(LS_APPLICATIONS)) {
-    const apps = {
-      "TR-2025-00201": {
-        application_id: "TR-2025-00201",
-        employee_name: "Rohan Gupta",
-        purpose: "Client Meeting — Delhi",
-        itinerary: [
-          { leg: 1, from: "Jamshedpur", to: "New Delhi", date: "2025-11-25T09:00:00Z", mode: "Flight" }
-        ],
-        approvals: [{ level: "manager", approver: "Suresh", status: "approved", at: "2025-11-20T10:15:00Z" }],
-        booking_status: [
-          // booking agent uploads later
-        ],
-        attachments: [] // booking agent documents (tickets/invoice) will be in this array
-      },
-      "TR-2025-00202": {
-        application_id: "TR-2025-00202",
-        employee_name: "Sneha Patel",
-        purpose: "CSR Audit — Ranchi",
-        itinerary: [{ leg: 1, from: "Ranchi", to: "Jamshedpur", date: "2025-11-24T07:00:00Z", mode: "Car" }],
-        approvals: [{ level: "manager", approver: "A. Kumar", status: "approved", at: "2025-11-20T11:20:00Z" }],
-        booking_status: [],
-        attachments: []
-      },
-      "TR-2025-00203": {
-        application_id: "TR-2025-00203",
-        employee_name: "Arjun Mehta",
-        purpose: "Training Workshop",
-        itinerary: [{ leg: 1, from: "Kolkata", to: "Jamshedpur", date: "2025-11-30T06:00:00Z", mode: "Train" }],
-        approvals: [{ level: "manager", approver: "N. Singh", status: "approved", at: "2025-11-19T13:00:00Z" }],
-        booking_status: [],
-        attachments: []
-      }
-    };
-    localStorage.setItem(LS_APPLICATIONS, JSON.stringify(apps));
-  }
-}
-seedMockDataOnce();
-
-const mockDeskAgentAPI = {
-  async getPendingRequests() {
-    await mockDelay(400);
-    const raw = JSON.parse(localStorage.getItem(LS_PENDING) || "[]");
-    return { data: { results: raw } };
+// Mock Data Store
+const MOCK_APPLICATIONS = {
+  "TSF-TR-2025-000016": {
+    id: 16,
+    travel_request_id: "TSF-TR-2025-000016",
+    employee_name: "Soniya Lalwani",
+    employee_grade: "B-2A",
+    purpose: "Client Meeting & Site Visit",
+    internal_order: "IO-2025-123",
+    advance_amount: "3000.00",
+    estimated_total_cost: "13000.00",
+    status: "approved_by_manager",
+    approved_at: "2025-11-20T10:15:00Z",
+    trip_details: [{
+      from_location_name: "Ahmedabad",
+      to_location_name: "Mumbai",
+      departure_date: "2026-02-09",
+      return_date: "2026-02-13",
+      duration_days: 5,
+      city_category: "B",
+      bookings: [
+        { id: 18, booking_type_name: "Flight", sub_option_name: "Business Class", estimated_cost: "5500.00", status: "pending", booking_details: { departure_date: "2026-02-09", departure_time: "05:30" } },
+        { id: 19, booking_type_name: "Train", sub_option_name: "1st AC", estimated_cost: "1800.00", status: "pending", booking_details: { departure_date: "2026-02-13", departure_time: "21:00" } },
+        { id: 20, booking_type_name: "Accommodation", sub_option_name: "Guest House", estimated_cost: "4000.00", status: "pending" },
+        { id: 21, booking_type_name: "Car", sub_option_name: "Company Car", estimated_cost: "950.00", status: "pending" }
+      ]
+    }]
   },
-
-  async getRecentBookings() {
-    await mockDelay(300);
-    const raw = JSON.parse(localStorage.getItem(LS_RECENT) || "[]");
-    return { data: { results: raw } };
+  "TSF-TR-2025-000017": {
+    id: 17,
+    travel_request_id: "TSF-TR-2025-000017",
+    employee_name: "Rajesh Kumar",
+    employee_grade: "B-3",
+    purpose: "Training Workshop",
+    internal_order: "IO-2025-124",
+    advance_amount: "2500.00",
+    estimated_total_cost: "8500.00",
+    status: "approved_by_manager",
+    approved_at: "2025-11-21T14:30:00Z",
+    trip_details: [{
+      from_location_name: "Delhi",
+      to_location_name: "Bangalore",
+      departure_date: "2025-11-28",
+      return_date: "2025-12-02",
+      duration_days: 5,
+      bookings: [
+        { id: 23, booking_type_name: "Flight", sub_option_name: "Economy Class", estimated_cost: "4500.00", status: "pending" },
+        { id: 24, booking_type_name: "Accommodation", sub_option_name: "3-Star Hotel", estimated_cost: "3000.00", status: "pending" },
+        { id: 25, booking_type_name: "Car", sub_option_name: "Taxi", estimated_cost: "1000.00", status: "pending" }
+      ]
+    }]
   },
-
-  async getApplication(applicationId: string) {
-    await mockDelay(350);
-    const apps = JSON.parse(localStorage.getItem(LS_APPLICATIONS) || "{}");
-    const app = apps[applicationId];
-    if (!app) throw new Error("Application not found");
-    return { data: app };
-  },
-
-  // send to booking agent (approve for booking)
-  async sendToBooking(id: number) {
-    await mockDelay(450);
-    const pending = JSON.parse(localStorage.getItem(LS_PENDING) || "[]");
-    const item = pending.find((p: any) => p.id === id);
-    if (!item) throw new Error("Pending item not found");
-
-    // remove from pending
-    const updated = pending.filter((p: any) => p.id !== id);
-    localStorage.setItem(LS_PENDING, JSON.stringify(updated));
-
-    // push to recent bookings (mock behavior: booking agent will pick it)
-    const recent = JSON.parse(localStorage.getItem(LS_RECENT) || "[]");
-    recent.unshift({
-      id,
-      application_id: item.application_id,
-      employee_name: item.employee_name,
-      booking_type: `${item.travel_mode} Booking`,
-      vendor: "Eastern Travels",
-      confirmed_at: null
-    });
-    localStorage.setItem(LS_RECENT, JSON.stringify(recent));
-    return { data: { success: true, message: "Forwarded to booking agent" } };
-  },
-
-  // reject with reason
-  async rejectRequest(id: number, reason: string) {
-    await mockDelay(450);
-    const pending = JSON.parse(localStorage.getItem(LS_PENDING) || "[]");
-    const item = pending.find((p: any) => p.id === id);
-    if (!item) throw new Error("Pending item not found");
-
-    // remove from pending
-    const updated = pending.filter((p: any) => p.id !== id);
-    localStorage.setItem(LS_PENDING, JSON.stringify(updated));
-
-    // log rejection to console (or store in LS if you want)
-    console.log("DeskAgent REJECTED:", { id, application_id: item.application_id, reason, at: new Date().toISOString() });
-
-    return { data: { success: true, message: "Rejected" } };
+  "TSF-TR-2025-000018": {
+    id: 18,
+    travel_request_id: "TSF-TR-2025-000018",
+    employee_name: "Priya Sharma",
+    employee_grade: "B-4A",
+    purpose: "Supplier Audit",
+    internal_order: "IO-2025-125",
+    advance_amount: "1800.00",
+    estimated_total_cost: "5200.00",
+    status: "approved_by_manager",
+    approved_at: "2025-11-19T09:00:00Z",
+    trip_details: [{
+      from_location_name: "Pune",
+      to_location_name: "Kolkata",
+      departure_date: "2025-11-25",
+      return_date: "2025-11-27",
+      duration_days: 3,
+      bookings: [
+        { id: 26, booking_type_name: "Train", sub_option_name: "2nd AC", estimated_cost: "2800.00", status: "pending" },
+        { id: 27, booking_type_name: "Accommodation", sub_option_name: "Guest House", estimated_cost: "1800.00", status: "pending" },
+        { id: 28, booking_type_name: "Car", sub_option_name: "Taxi", estimated_cost: "600.00", status: "pending" }
+      ]
+    }]
   }
 };
 
-/* ============================
-   Component
-   ============================ */
-
-type PendingItem = {
-  id: number;
-  application_id: string;
-  employee_name: string;
-  purpose: string;
-  from_location: string;
-  to_location: string;
-  travel_mode: string;
-  departure_date: string;
-  approved_date: string;
-  status: string;
-};
+const BOOKING_AGENTS = [
+  { id: 1, name: "Eastern Travels", contact: "+91-9876543210" },
+  { id: 2, name: "Sky Routes", contact: "+91-9876543211" },
+  { id: 3, name: "Metro Bookings", contact: "+91-9876543212" }
+];
 
 export default function DeskAgentDashboard() {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const [pending, setPending] = useState<PendingItem[]>([]);
-  const [recentBookings, setRecentBookings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
-
-  // Modal state
-  const [viewOpen, setViewOpen] = useState(false);
-  const [viewingApp, setViewingApp] = useState<any | null>(null);
-
-  // Reject modal
-  const [isRejectOpen, setIsRejectOpen] = useState(false);
+  const [applications, setApplications] = useState(Object.values(MOCK_APPLICATIONS));
+  const [selectedApp, setSelectedApp] = useState(null);
+  const [viewModal, setViewModal] = useState(false);
+  const [actionModal, setActionModal] = useState(false);
+  const [actionType, setActionType] = useState("");
+  const [selectedAgent, setSelectedAgent] = useState("");
   const [rejectReason, setRejectReason] = useState("");
-  const [selectedForAction, setSelectedForAction] = useState<PendingItem | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [expandedRow, setExpandedRow] = useState(null);
 
-  // KPIs
-  const [kPending, setKPending] = useState(0);
-  const [kDueToday, setKDueToday] = useState(0);
-  const [k24h, setK24h] = useState(0);
-
-  useEffect(() => {
-    loadAll();
-  }, []);
-
-  async function loadAll() {
-    setLoading(true);
-    try {
-      const resPend = await mockDeskAgentAPI.getPendingRequests();
-      const pend: PendingItem[] = resPend.data.results || [];
-      setPending(pend);
-
-      const resRecent = await mockDeskAgentAPI.getRecentBookings();
-      setRecentBookings(resRecent.data.results || []);
-
-      // KPIs
-      setKPending(pend.length);
-      const today = new Date();
-      const dueToday = pend.filter(p => {
-        if (!p.departure_date) return false;
-        const d = new Date(p.departure_date);
-        return d.toDateString() === today.toDateString();
-      }).length;
-      setKDueToday(dueToday);
-
-      const next24 = pend.filter(p => {
-        if (!p.departure_date) return false;
-        const d = new Date(p.departure_date);
-        const diff = d.getTime() - Date.now();
-        return diff > 0 && diff <= 24 * 3600 * 1000;
-      }).length;
-      setK24h(next24);
-
-    } catch (err: any) {
-      console.error("Failed to load dashboard", err);
-      toast({
-        title: "Load failed",
-        description: err?.message || "Could not fetch data",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function formatDate(iso?: string | null) {
-    if (!iso) return "-";
-    try {
-      const d = new Date(iso);
-      return d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    } catch {
-      return iso;
-    }
-  }
-
-  const handleView = async (appIdOrItem: PendingItem) => {
-    try {
-      const applicationId = appIdOrItem.application_id || appIdOrItem.id;
-      const res = await mockDeskAgentAPI.getApplication(applicationId);
-      setViewingApp(res.data);
-      setViewOpen(true);
-    } catch (err: any) {
-      toast({ title: "Failed", description: err?.message || "Cannot fetch application", variant: "destructive" });
-    }
+  const handleView = (app) => {
+    setSelectedApp(app);
+    setViewModal(true);
   };
 
-  const handleSendToBooking = async (item: PendingItem) => {
-    setActionLoadingId(item.id);
-    try {
-      await mockDeskAgentAPI.sendToBooking(item.id);
-      toast({ title: "Forwarded", description: `${item.application_id} forwarded to booking agent.` });
-      await loadAll();
-    } catch (err: any) {
-      console.error(err);
-      toast({ title: "Failed", description: err?.message || "Failed to forward", variant: "destructive" });
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
-  const openReject = (item: PendingItem) => {
-    setSelectedForAction(item);
+  const handleAction = (app, type) => {
+    setSelectedApp(app);
+    setActionType(type);
+    setActionModal(true);
+    setSelectedAgent("");
     setRejectReason("");
-    setIsRejectOpen(true);
   };
 
-  const confirmReject = async () => {
-    if (!selectedForAction) return;
-    if (!rejectReason || rejectReason.trim().length < 3) {
-      toast({ title: "Validation", description: "Please provide a rejection reason", variant: "destructive" });
+  const confirmAction = () => {
+    if (actionType === "forward" && !selectedAgent) {
+      alert("Please select a booking agent");
       return;
     }
-    setActionLoadingId(selectedForAction.id);
-    try {
-      await mockDeskAgentAPI.rejectRequest(selectedForAction.id, rejectReason);
-      toast({ title: "Rejected", description: `${selectedForAction.application_id} rejected.` });
-      setIsRejectOpen(false);
-      setSelectedForAction(null);
-      await loadAll();
-    } catch (err: any) {
-      console.error(err);
-      toast({ title: "Failed", description: err?.message || "Reject failed", variant: "destructive" });
-    } finally {
-      setActionLoadingId(null);
+    if (actionType === "reject" && !rejectReason.trim()) {
+      alert("Please provide rejection reason");
+      return;
     }
+
+    // Remove from list
+    setApplications(prev => prev.filter(a => a.id !== selectedApp.id));
+    setActionModal(false);
+    
+    const msg = actionType === "forward" 
+      ? `✅ Forwarded to ${BOOKING_AGENTS.find(a => a.id === parseInt(selectedAgent))?.name}`
+      : `❌ Application rejected`;
+    
+    setTimeout(() => alert(msg), 100);
   };
 
-  const headerUser = (() => {
-    try {
-      const u = localStorage.getItem("user");
-      if (!u) return { username: "DeskAgent" };
-      return JSON.parse(u);
-    } catch {
-      return { username: "DeskAgent" };
-    }
-  })();
+  const filteredApps = applications.filter(app => {
+    const matchesSearch = app.travel_request_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         app.employee_name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
 
-  const handleLogout = () => {
-    // clear auth tokens and redirect to login
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
-    window.location.href = ROUTES.login || "/login";
+  const kpiData = {
+    total: applications.length,
+    urgent: applications.filter(a => {
+      const depDate = new Date(a.trip_details[0]?.departure_date);
+      const diff = (depDate - new Date()) / (1000 * 60 * 60);
+      return diff > 0 && diff <= 48;
+    }).length,
+    dueToday: applications.filter(a => {
+      const depDate = new Date(a.trip_details[0]?.departure_date);
+      return depDate.toDateString() === new Date().toDateString();
+    }).length
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Minimal header */}
-      <header className="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200">
-        <div className="flex items-center gap-4">
-          <div className="h-10 w-10 rounded-md bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold">
-            TS
-          </div>
-          <div>
-            <div className="text-lg font-semibold">TSF Travel — Desk Agent</div>
-            <div className="text-xs text-gray-500">Operational queue & monitoring</div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-700">Hello, <span className="font-medium">{headerUser.username || headerUser.full_name || headerUser.email}</span></div>
-          <button className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700" onClick={handleLogout}>Logout</button>
-        </div>
-      </header>
-
-      <main className="p-6 space-y-6">
-        {/* KPI Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader><CardTitle>Pending Requests</CardTitle></CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">{kPending}</div>
-              <div className="text-sm text-muted-foreground mt-1">Awaiting action (approved by manager)</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle>Due Today</CardTitle></CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">{kDueToday}</div>
-              <div className="text-sm text-muted-foreground mt-1">Departures scheduled today</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle>Within 24h</CardTitle></CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">{k24h}</div>
-              <div className="text-sm text-muted-foreground mt-1">Trips starting within 24 hours</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Pending Requests (main) */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader><CardTitle>Pending Travel Requests (Approved by Manager)</CardTitle></CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="py-8 text-center text-gray-500">Loading...</div>
-                ) : pending.length === 0 ? (
-                  <div className="py-12 text-center text-gray-500">No pending requests at the moment.</div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Application ID</TableHead>
-                          <TableHead>Employee</TableHead>
-                          <TableHead>Route</TableHead>
-                          <TableHead>Mode</TableHead>
-                          <TableHead>Departure</TableHead>
-                          <TableHead>Approved At</TableHead>
-                          <TableHead className="text-center">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {pending.map((row) => (
-                          <TableRow key={row.id}>
-                            <TableCell className="font-mono">{row.application_id}</TableCell>
-                            <TableCell>{row.employee_name}</TableCell>
-                            <TableCell>{row.from_location} → {row.to_location}</TableCell>
-                            <TableCell>{row.travel_mode}</TableCell>
-                            <TableCell>{formatDate(row.departure_date)}</TableCell>
-                            <TableCell>{formatDate(row.approved_date)}</TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <Button variant="ghost" size="sm" onClick={() => handleView(row)} title="View application">
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-
-                                <Button variant="outline" size="sm" onClick={() => handleSendToBooking(row)} disabled={actionLoadingId === row.id}>
-                                  {actionLoadingId === row.id ? "Processing..." : <span className="flex items-center gap-2"><Check className="w-4 h-4" /> Send</span>}
-                                </Button>
-
-                                <Button variant="destructive" size="sm" onClick={() => openReject(row)}>
-                                  <XCircle className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right column: Recent bookings & Alerts */}
-          <div className="space-y-4">
-            <Card>
-              <CardHeader><CardTitle>Recent Bookings</CardTitle></CardHeader>
-              <CardContent>
-                {recentBookings.length === 0 ? (
-                  <div className="text-sm text-gray-500">No recent bookings</div>
-                ) : (
-                  <ul className="space-y-3">
-                    {recentBookings.slice(0, 6).map((b: any) => (
-                      <li key={b.id} className="flex items-start gap-3">
-                        <div className="mt-1">
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium">{b.application_id} — {b.booking_type}</div>
-                          <div className="text-xs text-gray-500">{b.employee_name} • {b.vendor || "Partner"}</div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader><CardTitle>Alerts & SLA</CardTitle></CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                  <div className="text-sm text-gray-700">
-                    {pending.filter(p => {
-                      if (!p.departure_date) return false;
-                      const diff = new Date(p.departure_date).getTime() - Date.now();
-                      return diff > 0 && diff <= 48 * 3600 * 1000;
-                    }).length} requests starting within 48 hours
-                  </div>
-                </div>
-                <div className="mt-4 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    <span>Standard SLA: 24 hours from manager approval</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Reject modal */}
-        {isRejectOpen && selectedForAction && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
-              <h3 className="text-lg font-semibold mb-2">Reject Travel Request</h3>
-              <p className="text-sm text-gray-600 mb-4">Rejection will close the travel request and notify the requester. Provide a reason for audit.</p>
-
-              <div className="mb-4">
-                <label className="text-sm font-medium block mb-1">Application</label>
-                <div className="text-sm text-gray-800 font-mono">{selectedForAction.application_id} — {selectedForAction.employee_name}</div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/20">
+      {/* Header */}
+      <div className="bg-white border-b shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                TD
               </div>
-
-              <div className="mb-4">
-                <label className="text-sm font-medium block mb-1">Reason</label>
-                <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Enter rejection reason (min 10 characters)" />
+              <div>
+                <h1 className="text-xl font-bold text-slate-800">Travel Desk Agent</h1>
+                <p className="text-sm text-slate-600">Booking Operations</p>
               </div>
+            </div>
+            <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
 
-              <div className="flex justify-end gap-2">
-                <Button variant="ghost" onClick={() => { setIsRejectOpen(false); setSelectedForAction(null); }}>Cancel</Button>
-                <Button variant="destructive" onClick={confirmReject} disabled={actionLoadingId === selectedForAction.id}>
-                  {actionLoadingId === selectedForAction.id ? "Rejecting..." : "Confirm Reject"}
-                </Button>
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">Pending Requests</p>
+                <p className="text-3xl font-bold text-slate-800">{kpiData.total}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <Clock className="w-6 h-6 text-blue-600" />
               </div>
             </div>
           </div>
-        )}
 
-        {/* View application modal */}
-        {viewOpen && viewingApp && (
-          <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto p-6 bg-black/40">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold">{viewingApp.application_id} — {viewingApp.employee_name}</h3>
-                  <p className="text-sm text-gray-600">{viewingApp.purpose}</p>
-                </div>
-                <div>
-                  <button className="px-3 py-2 text-sm text-gray-600" onClick={() => setViewOpen(false)}>Close</button>
-                </div>
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">Urgent (48h)</p>
+                <p className="text-3xl font-bold text-orange-600">{kpiData.urgent}</p>
               </div>
-
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-medium mb-2">Itinerary</h4>
-                  <ul className="space-y-2">
-                    {viewingApp.itinerary?.map((it: any) => (
-                      <li key={`${it.leg}-${it.date}`} className="text-sm">
-                        <div className="font-medium">{it.from} → {it.to}</div>
-                        <div className="text-xs text-gray-500">{new Date(it.date).toLocaleString()} • {it.mode}</div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-medium mb-2">Approvals</h4>
-                  <ul className="space-y-2 text-sm text-gray-700">
-                    {viewingApp.approvals?.map((ap: any, idx: number) => (
-                      <li key={idx}>
-                        <div className="font-medium">{ap.level} — {ap.approver}</div>
-                        <div className="text-xs text-gray-500">{ap.status} • {new Date(ap.at).toLocaleString()}</div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-orange-600" />
               </div>
+            </div>
+          </div>
 
-              <div className="mt-6">
-                <h4 className="font-medium mb-2">Booking status & attachments (Booking Agent uploads)</h4>
-                {Array.isArray(viewingApp.booking_status) && viewingApp.booking_status.length === 0 && viewingApp.attachments?.length === 0 ? (
-                  <div className="text-sm text-gray-500">No booking actions performed yet by booking agent.</div>
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 mb-1">Due Today</p>
+                <p className="text-3xl font-bold text-green-600">{kpiData.dueToday}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <Check className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Search & Filters */}
+        <div className="bg-white rounded-xl shadow-sm border p-4">
+          <div className="flex gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search by ID or employee name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Applications List */}
+        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+          <div className="bg-slate-50 px-6 py-4 border-b">
+            <h2 className="font-semibold text-slate-800">Manager Approved Applications</h2>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Request ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Employee</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Route</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Departure</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase">Amount</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {filteredApps.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                      No pending applications
+                    </td>
+                  </tr>
                 ) : (
-                  <>
-                    <div className="space-y-3">
-                      {viewingApp.booking_status?.map((b: any, i: number) => (
-                        <div key={i} className="p-3 border rounded-md">
-                          <div className="flex items-center justify-between">
-                            <div className="font-medium">{b.type} • {b.status}</div>
-                            <div className="text-xs text-gray-500">{b.updated_at ? new Date(b.updated_at).toLocaleString() : "-"}</div>
+                  filteredApps.map(app => (
+                    <React.Fragment key={app.id}>
+                      <tr className="hover:bg-slate-50">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setExpandedRow(expandedRow === app.id ? null : app.id)}
+                              className="p-1 hover:bg-slate-200 rounded"
+                            >
+                              <ChevronDown className={`w-4 h-4 transition-transform ${expandedRow === app.id ? 'rotate-180' : ''}`} />
+                            </button>
+                            <span className="font-mono text-sm font-medium">{app.travel_request_id}</span>
                           </div>
-                          <div className="text-xs text-gray-600 mt-1">{b.note}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div>
+                            <p className="font-medium text-slate-800">{app.employee_name}</p>
+                            <p className="text-xs text-slate-500">{app.employee_grade}</p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm">
+                            {app.trip_details[0]?.from_location_name} → {app.trip_details[0]?.to_location_name}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm">
+                          {new Date(app.trip_details[0]?.departure_date).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 text-right font-semibold">
+                          ₹{parseFloat(app.estimated_total_cost).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleView(app)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="View Details"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleAction(app, "forward")}
+                              className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-xs font-medium flex items-center gap-1"
+                            >
+                              <Check className="w-4 h-4" />
+                              Forward
+                            </button>
+                            <button
+                              onClick={() => handleAction(app, "reject")}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Reject"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      
+                      {expandedRow === app.id && (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-4 bg-slate-50">
+                            <div className="space-y-3">
+                              <p className="text-sm font-medium text-slate-700">Bookings Required:</p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {app.trip_details[0]?.bookings.map(booking => (
+                                  <div key={booking.id} className="bg-white p-3 rounded-lg border">
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex-1">
+                                        <p className="font-medium text-sm">{booking.booking_type_name}</p>
+                                        <p className="text-xs text-slate-500">{booking.sub_option_name}</p>
+                                      </div>
+                                      <p className="text-sm font-semibold">₹{parseFloat(booking.estimated_cost).toLocaleString()}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* View Modal */}
+      {viewModal && selectedApp && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold">{selectedApp.travel_request_id}</h3>
+                <p className="text-sm text-slate-600">{selectedApp.employee_name} • {selectedApp.employee_grade}</p>
+              </div>
+              <button onClick={() => setViewModal(false)} className="p-2 hover:bg-slate-100 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div>
+                <h4 className="font-semibold mb-2">Purpose</h4>
+                <p className="text-sm text-slate-700">{selectedApp.purpose}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-slate-500">Internal Order</p>
+                  <p className="font-medium">{selectedApp.internal_order}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500">Advance Amount</p>
+                  <p className="font-medium">₹{parseFloat(selectedApp.advance_amount).toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-3">Trip Details</h4>
+                {selectedApp.trip_details.map((trip, idx) => (
+                  <div key={idx} className="bg-slate-50 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{trip.from_location_name} → {trip.to_location_name}</p>
+                        <p className="text-xs text-slate-500">
+                          {new Date(trip.departure_date).toLocaleDateString()} - {new Date(trip.return_date).toLocaleDateString()} ({trip.duration_days} days)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Bookings:</p>
+                      {trip.bookings.map(booking => (
+                        <div key={booking.id} className="bg-white p-3 rounded border flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {booking.booking_type_name === 'Flight' && <Plane className="w-4 h-4 text-blue-600" />}
+                            {booking.booking_type_name === 'Train' && <Train className="w-4 h-4 text-green-600" />}
+                            {booking.booking_type_name === 'Car' && <Car className="w-4 h-4 text-orange-600" />}
+                            {booking.booking_type_name === 'Accommodation' && <Home className="w-4 h-4 text-purple-600" />}
+                            <div>
+                              <p className="text-sm font-medium">{booking.booking_type_name}</p>
+                              <p className="text-xs text-slate-500">{booking.sub_option_name}</p>
+                            </div>
+                          </div>
+                          <p className="text-sm font-semibold">₹{parseFloat(booking.estimated_cost).toLocaleString()}</p>
                         </div>
                       ))}
                     </div>
-
-                    <div className="mt-4">
-                      <div className="font-medium mb-2">Attachments</div>
-                      <ul className="space-y-2">
-                        {viewingApp.attachments?.map((att: any, idx: number) => (
-                          <li key={idx} className="text-sm">
-                            <a href={att.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
-                              {att.filename || `Attachment ${idx + 1}`}
-                            </a>
-                            <div className="text-xs text-gray-500">{att.type || "document"}</div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </>
-                )}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
+
+      {/* Action Modal */}
+      {actionModal && selectedApp && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="border-b px-6 py-4">
+              <h3 className="text-lg font-bold">
+                {actionType === "forward" ? "Forward to Booking Agent" : "Reject Application"}
+              </h3>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <p className="text-sm text-slate-600 mb-2">Application: <span className="font-mono font-medium">{selectedApp.travel_request_id}</span></p>
+              </div>
+
+              {actionType === "forward" ? (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Select Booking Agent *</label>
+                  <select
+                    value={selectedAgent}
+                    onChange={(e) => setSelectedAgent(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Choose agent...</option>
+                    {BOOKING_AGENTS.map(agent => (
+                      <option key={agent.id} value={agent.id}>
+                        {agent.name} ({agent.contact})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Rejection Reason *</label>
+                  <textarea
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    placeholder="Enter reason for rejection..."
+                    rows={4}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="border-t px-6 py-4 flex justify-end gap-3">
+              <button
+                onClick={() => setActionModal(false)}
+                className="px-4 py-2 border rounded-lg hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAction}
+                className={`px-4 py-2 rounded-lg text-white font-medium ${
+                  actionType === "forward" 
+                    ? "bg-green-600 hover:bg-green-700" 
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
+              >
+                {actionType === "forward" ? "Forward" : "Reject"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -189,7 +189,474 @@ class TravelApplicationDetailView(RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return TravelApplication.objects.select_related('employee', 'general_ledger')
 
+
 class TravelApplicationSubmitView(APIView):
+    """
+    Submit a travel application for approval.
+    This version uses ApprovalEngineV2.
+    """
+    permission_classes = [IsAuthenticated]
+
+    @transaction.atomic
+    def post(self, request, pk):
+
+        # 1) Load travel application
+        try:
+            travel_app = TravelApplication.objects.get(
+                pk=pk,
+                employee=request.user,
+                status="draft"
+            )
+        except TravelApplication.DoesNotExist:
+            return error_response(
+                message="Travel application not found or already submitted",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        # 2) Validate serializer (minimal payload to enforce internal checks)
+        serializer = TravelApplicationSubmissionSerializer(
+            instance=travel_app,
+            data={},
+            partial=True
+        )
+        if not serializer.is_valid():
+            return validation_error_response(serializer.errors)
+
+        # 3) Validate transition: draft → pending_manager
+        can_submit, msg = travel_app.can_transition_to("pending_manager")
+        if not can_submit:
+            return error_response(
+                message="Cannot submit travel request",
+                errors={"validation": msg},
+                status_code=400
+            )
+
+        # 4) Collect warnings (advance-booking)
+        warnings = []
+        today = timezone.now().date()
+
+        for trip in travel_app.trip_details.all():
+            if not trip.departure_date:
+                continue
+
+            days_ahead = (trip.departure_date - today).days
+
+            for booking in trip.bookings.all():
+                mode = booking.booking_type.name.lower()
+
+                if "flight" in mode and days_ahead < 7:
+                    warnings.append({
+                        "type": "advance_booking_violation",
+                        "mode": "Flight",
+                        "message": f"Flight booking is only {days_ahead} days ahead (policy: 7 days minimum)",
+                        "severity": "warning"
+                    })
+
+                if "train" in mode and days_ahead < 3:
+                    warnings.append({
+                        "type": "advance_booking_violation",
+                        "mode": "Train",
+                        "message": f"Train booking is only {days_ahead} days ahead (policy: 3 days minimum)",
+                        "severity": "warning"
+                    })
+
+        # 5) Calculate estimated cost
+        try:
+            travel_app.calculate_estimated_cost()
+        except Exception as e:
+            logger.warning(f"[SubmitView] Cost calculation failed for TA {travel_app.id}: {e}")
+
+        # 6) Build approver chain using ApprovalEngineV2
+        from apps.travel.business_logic.approval_engine_v2 import ApprovalEngineV2
+
+        engine = ApprovalEngineV2(travel_app, request.user)
+        approver_entries = engine.build()     # list[ApproverEntry]
+
+        org_profile = getattr(request.user, "organizational_profile", None)
+        reporting_manager = getattr(org_profile, "reporting_manager", None)
+
+        # Role checks using UserRole table
+        from apps.authentication.models import UserRole
+
+        is_ceo = UserRole.objects.filter(
+            user=request.user,
+            role__name__iexact="CEO",
+            is_active=True
+        ).exists()
+
+        is_chro = UserRole.objects.filter(
+            user=request.user,
+            role__name__iexact="CHRO",
+            is_active=True
+        ).exists()
+
+        # Determine rule triggers based on built approver list
+        ceo_required = any(a.level == "ceo" for a in approver_entries)
+        chro_required = any(a.level == "chro" for a in approver_entries)
+
+        if reporting_manager == request.user:
+            # CEO rule triggered AND user is CEO → remove manager
+            if is_ceo and ceo_required:
+                approver_entries = [a for a in approver_entries if a.level != "manager"]
+
+            # CHRO rule triggered AND user is CHRO → remove manager
+            if is_chro and chro_required:
+                approver_entries = [a for a in approver_entries if a.level != "manager"]
+
+            # Re-normalize sequence numbers
+            for i, a in enumerate(approver_entries, start=1):
+                a.sequence = i
+
+        if not approver_entries:
+            return error_response(
+                "No valid approvers available. Reporting manager or role setup may be incorrect.",
+                status_code=400
+            )
+
+        # 7) Create TravelApprovalFlow rows
+        from apps.travel.models import TravelApprovalFlow
+
+        approval_chain = []
+        for entry in approver_entries:
+            flow = TravelApprovalFlow.objects.create(
+                travel_application=travel_app,
+                approver=entry.user,
+                approval_level=entry.level,
+                sequence=entry.sequence,
+                status="pending",
+                can_view=entry.can_view,
+                can_approve=entry.can_approve,
+                is_required=entry.is_required
+            )
+
+            approval_chain.append({
+                "sequence": flow.sequence,
+                "approval_level": flow.approval_level,
+                "approver": flow.approver.get_full_name(),
+                "approver_email": flow.approver.email,
+                "status": flow.status
+            })
+
+        # 8) Update travel application
+        travel_app.status = "pending_manager"
+        travel_app.submitted_at = timezone.now()
+        travel_app.current_approver = approver_entries[0].user
+        travel_app.set_settlement_due_date()
+        travel_app.save()
+
+        # 9) Send email notification
+        try:
+            from apps.notifications.services import EmailNotificationService
+            EmailNotificationService.send_travel_request_submitted(travel_app)
+        except Exception as e:
+            logger.warning(f"[SubmitView] Email sending failed: {e}")
+
+        # 10) Final response
+        return success_response(
+            data={
+                "travel_request_id": travel_app.get_travel_request_id(),
+                "status": travel_app.status,
+                "current_approver": travel_app.current_approver.get_full_name(),
+                "approval_chain": approval_chain,
+                "warnings": warnings,
+                "estimated_cost": float(travel_app.estimated_total_cost),
+                "settlement_due_date": str(travel_app.settlement_due_date)
+            },
+            message="Travel application submitted successfully",
+            status_code=200
+        )
+
+
+class TravelApplicationSubmitViewOld(APIView):
+    """
+    Submit travel application for approval
+    """
+    permission_classes = [IsAuthenticated]
+
+    @transaction.atomic
+    def post(self, request, pk):
+        # -----------------------------
+        # LOAD APPLICATION
+        # -----------------------------
+        try:
+            travel_app = TravelApplication.objects.get(
+                pk=pk,
+                employee=request.user,
+                status='draft'
+            )
+        except TravelApplication.DoesNotExist:
+            return error_response(
+                message='Travel application not found or already submitted',
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+        # -----------------------------
+        # VALIDATE BASIC FIELDS
+        # -----------------------------
+        serializer = TravelApplicationSubmissionSerializer(
+            instance=travel_app,
+            data={}
+        )
+        if not serializer.is_valid():
+            return validation_error_response(serializer.errors)
+
+        # -----------------------------
+        # VALIDATE STATE TRANSITION
+        # -----------------------------
+        can_submit, validation_msg = travel_app.can_transition_to("pending_manager")
+        if not can_submit:
+            return error_response(
+                message="Cannot submit travel request",
+                errors={"validation": validation_msg},
+                status_code=400
+            )
+
+        # -----------------------------
+        # WARNINGS: ADVANCE BOOKING
+        # -----------------------------
+        warnings = []
+        today = timezone.now().date()
+
+        for trip in travel_app.trip_details.all():
+            if not trip.departure_date:
+                continue
+
+            days_ahead = (trip.departure_date - today).days
+
+            for booking in trip.bookings.all():
+                mode_name = booking.booking_type.name.lower()
+
+                if 'flight' in mode_name and days_ahead < 7:
+                    warnings.append({
+                        "type": "advance_booking_violation",
+                        "mode": "Flight",
+                        "message": f"Flight booking is only {days_ahead} days ahead (policy: 7 days minimum)",
+                        "severity": "warning"
+                    })
+
+                elif 'train' in mode_name and days_ahead < 3:
+                    warnings.append({
+                        "type": "advance_booking_violation",
+                        "mode": "Train",
+                        "message": f"Train booking is only {days_ahead} days ahead (policy: 3 days minimum)",
+                        "severity": "warning"
+                    })
+
+        # -----------------------------
+        # COST CALCULATION
+        # -----------------------------
+        try:
+            travel_app.calculate_estimated_cost()
+        except Exception as e:
+            logger.warning(f"Cost calculation failed for TravelApp {travel_app.id}: {str(e)}")
+
+        # -----------------------------
+        # GATHER ALL BOOKINGS
+        # -----------------------------
+        all_bookings = []
+        for trip in travel_app.trip_details.all():
+            all_bookings.extend(list(trip.bookings.all()))
+
+        # ================================================================================
+        # APPROVER RESOLUTION ENGINE
+        # ================================================================================
+        from apps.authentication.models import Role, UserRole
+
+        def get_role_user(role_name: str):
+            role = Role.objects.filter(name=role_name).first()
+            if not role:
+                return None
+            ur = UserRole.objects.filter(role=role, is_active=True).first()
+            return ur.user if ur else None
+
+        def user_has_role(user, role_name: str):
+            """Check if user has a specific role"""
+            role = Role.objects.filter(name__iexact=role_name).first()
+            if not role:
+                return False
+            return UserRole.objects.filter(user=user, role=role, is_active=True).exists()
+
+        def resolve_approvers(user, all_bookings):
+            approvers = []
+
+            org_profile = getattr(user, "organizational_profile", None)
+            reporting_manager = getattr(org_profile, "reporting_manager", None)
+
+            is_ceo = user_has_role(user, "CEO")
+            is_chro = user_has_role(user, "CHRO")
+
+            # 1️) MANAGER APPROVAL
+            if reporting_manager == user:
+                approvers.append({
+                    "level": "manager",
+                    "user": user,
+                    "is_required": True,
+                    "can_view": True,
+                    "can_approve": True,
+                })
+            else:
+                if not reporting_manager:
+                    raise Exception("Reporting manager is not assigned.")
+                approvers.append({
+                    "level": "manager",
+                    "user": reporting_manager,
+                    "is_required": True,
+                    "can_view": True,
+                    "can_approve": True,
+                })
+
+            # 2️) SPECIAL RULE: FLIGHT > 10k → CEO
+            flight_bookings = [
+                b for b in all_bookings if "flight" in b.booking_type.name.lower()
+            ]
+            exp_flight = any(b.estimated_cost and b.estimated_cost > 10000 for b in flight_bookings)
+
+            if exp_flight:
+                if is_ceo:
+                    approvers.append({
+                        "level": "ceo",
+                        "user": user,
+                        "is_required": True,
+                        "can_view": True,
+                        "can_approve": True,
+                    })
+                else:
+                    ceo_user = get_role_user("CEO")
+                    if ceo_user:
+                        approvers.append({
+                            "level": "ceo",
+                            "user": ceo_user,
+                            "is_required": True,
+                            "can_view": True,
+                            "can_approve": True,
+                        })
+
+            # 3️) SPECIAL RULE: CAR DISTANCE >150km → CHRO
+            car_bookings = [b for b in all_bookings if "car" in b.booking_type.name.lower()]
+            for cb in car_bookings:
+                dist = cb.booking_details.get("distance_km", 0)
+                if dist > 150:
+                    if is_ceo:
+                        # CEO overrides → CEO self-approval
+                        approvers.append({
+                            "level": "chro",
+                            "user": user,
+                            "is_required": True,
+                            "can_view": True,
+                            "can_approve": True,
+                        })
+                    elif is_chro:
+                        approvers.append({
+                            "level": "chro",
+                            "user": user,
+                            "is_required": True,
+                            "can_view": True,
+                            "can_approve": True,
+                        })
+                    else:
+                        chro_user = get_role_user("CHRO")
+                        if chro_user:
+                            approvers.append({
+                                "level": "chro",
+                                "user": chro_user,
+                                "is_required": True,
+                                "can_view": True,
+                                "can_approve": True,
+                            })
+
+            # 4️) DEDUPE + NORMALIZE
+            deduped = []
+            seen = {}
+
+            for ap in approvers:
+                uid = ap["user"].id
+                if uid not in seen:
+                    seen[uid] = ap
+                    deduped.append(ap)
+                else:
+                    existing = seen[uid]
+                    existing["is_required"] |= ap["is_required"]
+                    existing["can_view"] |= ap["can_view"]
+                    existing["can_approve"] |= ap["can_approve"]
+
+            # normalize sequence
+            for i, ap in enumerate(deduped, start=1):
+                ap["sequence"] = i
+
+            return deduped
+
+        # FINAL RESOLUTION
+        approvers_needed = resolve_approvers(request.user, all_bookings)
+
+        if not approvers_needed:
+            return error_response(
+                "No valid approvers available. Reporting manager or role setup may be incorrect.",
+                status_code=400
+            )
+
+        # -----------------------------
+        # CREATE APPROVAL FLOW ENTRIES
+        # -----------------------------
+        from ..models import TravelApprovalFlow
+
+        approval_chain = []
+
+        for ap in approvers_needed:
+            flow = TravelApprovalFlow.objects.create(
+                travel_application=travel_app,
+                approver=ap["user"],
+                approval_level=ap["level"],
+                sequence=ap["sequence"],
+                status='pending',
+                can_view=ap["can_view"],
+                can_approve=ap["can_approve"],
+                is_required=ap["is_required"],
+            )
+
+            approval_chain.append({
+                "sequence": flow.sequence,
+                "approval_level": flow.approval_level,
+                "approver": flow.approver.get_full_name(),
+                "approver_email": flow.approver.email,
+                "status": flow.status
+            })
+
+        # -----------------------------
+        # UPDATE APPLICATION
+        # -----------------------------
+        travel_app.status = "pending_manager"
+        travel_app.submitted_at = timezone.now()
+        travel_app.current_approver = approvers_needed[0]["user"]
+        travel_app.set_settlement_due_date()
+        travel_app.save()
+
+        # -----------------------------
+        # SEND EMAIL NOTIFICATION
+        # -----------------------------
+        try:
+            from apps.notifications.services import EmailNotificationService
+            EmailNotificationService.send_travel_request_submitted(travel_app)
+        except Exception as e:
+            logger.warning(f"Email sending failed: {str(e)}")
+
+        # -----------------------------
+        # SUCCESS RESPONSE
+        # -----------------------------
+        return success_response(
+            data={
+                "travel_request_id": travel_app.get_travel_request_id(),
+                "status": travel_app.status,
+                "current_approver": travel_app.current_approver.get_full_name(),
+                "approval_chain": approval_chain,
+                "warnings": warnings,
+                "estimated_cost": float(travel_app.estimated_total_cost),
+                "settlement_due_date": str(travel_app.settlement_due_date)
+            },
+            message="Travel application submitted successfully",
+            status_code=200
+        )
+
+class TravelApplicationSubmitViewOlder(APIView):
     """
     Submit travel application for approval
     """
@@ -507,7 +974,7 @@ class TravelApplicationValidationView(APIView):
             'has_warnings': has_warnings,
             'validation_summary': {
                 'total_trips': len(validation_results),
-                'errors_count': sum(len(trip.get('issues', [])) + 
+                'errors_count': sum(len(trip.get('issues', [])) +
                                   sum(len(booking.get('issues', [])) for booking in trip.get('bookings', [])) 
                                   for trip in validation_results),
                 'warnings_count': sum(len([issue for issue in trip.get('issues', []) if issue.get('severity') == 'warning']) +

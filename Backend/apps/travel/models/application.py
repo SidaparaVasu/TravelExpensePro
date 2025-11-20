@@ -199,124 +199,125 @@ class TravelApplication(models.Model):
         
         self.save()
 
-    # def can_transition_to(self, new_status):
-    #     """
-    #     Check if status transition is valid
-    #     Returns: (is_valid: bool, error_message: str)
-    #     """
-    #     current_status = self.status
+    def can_transition_to(self, new_status):
+        """
+        Check if status transition is valid
+        Returns: (is_valid: bool, error_message: str)
+        """
+        current_status = self.status
         
-    #     # Check if transition is allowed
-    #     allowed_transitions = self.VALID_STATUS_TRANSITIONS.get(current_status, [])
+        # Check if transition is allowed
+        allowed_transitions = self.VALID_STATUS_TRANSITIONS.get(current_status, [])
         
-    #     if new_status not in allowed_transitions:
-    #         return False, f"Cannot transition from '{current_status}' to '{new_status}'. Allowed transitions: {', '.join(allowed_transitions)}"
+        if new_status not in allowed_transitions:
+            return False, f"Cannot transition from '{current_status}' to '{new_status}'. Allowed transitions: {', '.join(allowed_transitions)}"
         
-    #     # Additional business rule validations
+        # Additional business rule validations
         
-    #     # Cannot submit without trip details
-    #     if new_status in ['submitted', 'pending_manager'] and not self.trip_details.exists():
-    #         return False, "Cannot submit travel request without trip details"
+        # Cannot submit without trip details
+        if new_status in ['submitted', 'pending_manager'] and not self.trip_details.exists():
+            return False, "Cannot submit travel request without trip details"
         
-    #     # Cannot submit without bookings
-    #     if new_status in ['submitted', 'pending_manager']:
-    #         has_bookings = any(trip.bookings.exists() for trip in self.trip_details.all())
-    #         if not has_bookings:
-    #             return False, "Cannot submit travel request without booking details"
+        # Cannot submit without bookings
+        if new_status in ['submitted', 'pending_manager']:
+            has_bookings = any(trip.bookings.exists() for trip in self.trip_details.all())
+            if not has_bookings:
+                return False, "Cannot submit travel request without booking details"
         
-    #     # Cannot move to booking stages without approvals
-    #     if new_status == 'pending_travel_desk':
-    #         required_approvals = self.approval_flows.filter(is_required=True)
-    #         if required_approvals.exists():
-    #             pending_approvals = required_approvals.filter(status='pending')
-    #             if pending_approvals.exists():
-    #                 return False, "Cannot proceed to travel desk with pending approvals"
+        # Cannot move to booking stages without approvals
+        if new_status == 'pending_travel_desk':
+            required_approvals = self.approval_flows.filter(is_required=True)
+            if required_approvals.exists():
+                pending_approvals = required_approvals.filter(status='pending')
+                if pending_approvals.exists():
+                    return False, "Cannot proceed to travel desk with pending approvals"
         
-    #     # Cannot complete without bookings confirmed
-    #     if new_status == 'completed' and self.status != 'booked':
-    #         return False, "Cannot mark as completed without confirmed bookings"
+        # Cannot complete without bookings confirmed
+        if new_status == 'completed' and self.status != 'booked':
+            return False, "Cannot mark as completed without confirmed bookings"
         
-    #     return True, "Transition allowed"
+        return True, "Transition allowed"
     
     # def _create_status_audit_log(self, old_status, new_status, user, notes):
     #     """Create audit log for status changes (placeholder for future enhancement)"""
     #     # TODO: Implement StatusChangeLog model if detailed audit trail needed
     #     pass
 
-    # def can_cancel(self, user):
-    #     """Check if user can cancel this application"""
-    #     # Can cancel if:
-    #     # 1. Owner and status is not completed
-    #     # 2. Admin/Travel Desk can cancel any
-    #     # 3. Cannot cancel if travel already started
+    def can_cancel(self, user):
+        """Check if user can cancel this application"""
+        # Can cancel if:
+        # 1. Owner and status is not completed
+        # 2. Admin/Travel Desk can cancel any
+        # 3. Cannot cancel if travel already started
         
-    #     if self.status == 'completed':
-    #         return False, "Cannot cancel completed travel"
+        if self.status == 'completed':
+            return False, "Cannot cancel completed travel"
         
-    #     if self.status == 'cancelled':
-    #         return False, "Already cancelled"
+        if self.status == 'cancelled':
+            return False, "Already cancelled"
         
-    #     # Check if travel has started
-    #     earliest_departure = self.trip_details.aggregate(
-    #         min_date=models.Min('departure_date')
-    #     )['min_date']
+        # Check if travel has started
+        earliest_departure = self.trip_details.aggregate(
+            min_date=models.Min('departure_date')
+        )['min_date']
         
-    #     if earliest_departure and earliest_departure <= timezone.now().date():
-    #         return False, "Cannot cancel - travel has already started"
+        if earliest_departure and earliest_departure <= timezone.now().date():
+            return False, "Cannot cancel - travel has already started"
         
-    #     # Check user permission
-    #     if self.employee == user:
-    #         return True, "Can cancel"
+        # Check user permission
+        if self.employee == user:
+            return True, "Can cancel"
         
-    #     if user.has_role('Admin') or user.has_role('Travel Desk'):
-    #         return True, "Can cancel"
+        if user.has_role('Admin') or user.has_role('Travel Desk'):
+            return True, "Can cancel"
         
-    #     return False, "You don't have permission to cancel this application"
+        return False, "You don't have permission to cancel this application"
 
-    # def cancel_application(self, cancelled_by, reason):
-    #     """Cancel the travel application"""
-    #     can_cancel, message = self.can_cancel(cancelled_by)
+    def cancel_application(self, cancelled_by, reason):
+        """Cancel the travel application"""
+        can_cancel, message = self.can_cancel(cancelled_by)
         
-    #     if not can_cancel:
-    #         raise ValidationError(message)
+        if not can_cancel:
+            raise ValidationError(message)
         
-    #     self.status = 'cancelled'
-    #     self.cancelled_by = cancelled_by
-    #     self.cancellation_reason = reason
-    #     self.cancellation_requested_at = timezone.now()
-    #     self.cancellation_approved_at = timezone.now()
-    #     self.save()
+        self.status = 'cancelled'
+        self.cancelled_by = cancelled_by
+        self.cancellation_reason = reason
+        self.cancellation_requested_at = timezone.now()
+        self.cancellation_approved_at = timezone.now()
+        self.save()
         
-    #     # Cancel all bookings
-    #     self._cancel_all_bookings()
+        # Cancel all bookings
+        self._cancel_all_bookings()
         
-    #     # Send cancellation emails
-    #     self._send_cancellation_notifications()
+        # Send cancellation emails
+        self._send_cancellation_notifications()
 
-    # def _cancel_all_bookings(self):
-    #     """Cancel all associated bookings"""
-    #     from apps.travel.models import AccommodationBooking, VehicleBooking
+    def _cancel_all_bookings(self):
+        """Cancel all associated bookings"""
+        from apps.travel.models import AccommodationBooking, VehicleBooking
         
-    #     # Cancel accommodation bookings
-    #     AccommodationBooking.objects.filter(
-    #         trip_details__travel_application=self
-    #     ).update(status='cancelled')
+        # Cancel accommodation bookings
+        AccommodationBooking.objects.filter(
+            trip_details__travel_application=self
+        ).update(status='cancelled')
         
-    #     # Cancel vehicle bookings
-    #     VehicleBooking.objects.filter(
-    #         trip_details__travel_application=self
-    #     ).update(status='cancelled')
+        # Cancel vehicle bookings
+        VehicleBooking.objects.filter(
+            trip_details__travel_application=self
+        ).update(status='cancelled')
         
-    #     # Cancel generic bookings
-    #     for trip in self.trip_details.all():
-    #         trip.bookings.update(status='cancelled')
+        # Cancel generic bookings
+        for trip in self.trip_details.all():
+            trip.bookings.update(status='cancelled')
 
-    # def _send_cancellation_notifications(self):
-    #     """Send cancellation notifications"""
-    #     # Notify employee
-    #     # Notify approvers
-    #     # Notify travel desk
-    #     pass  # Implement email logic
+    def _send_cancellation_notifications(self):
+        """Send cancellation notifications"""
+        # Notify employee
+        # Notify approvers
+        # Notify travel desk
+        pass  # Implement email logic when notifications ready
+
 
     # def calculate_da_entitlement(self):
     #     """Calculate DA/Incidentals for entire travel"""
