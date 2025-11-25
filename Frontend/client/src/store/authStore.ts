@@ -14,6 +14,16 @@ interface AuthState {
   initializeAuth: () => void;
 }
 
+function roleCheck(role) {
+  if (role == 'admin' || role == 'manager' || role == 'ceo' || role == 'chro') {
+    return 'admin';
+  } else if (role == 'travel_desk'){
+    return 'travel_desk';
+  } else {
+    return role
+  }
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -54,7 +64,7 @@ export const useAuthStore = create<AuthState>()(
           // Determine redirect
           const primaryRole = roles.find(r => r.is_primary);
           const redirectTo = primaryRole
-            ? `/${primaryRole.role_type}/dashboard`
+            ? `/${roleCheck(primaryRole.role_type)}/dashboard`
             : '/employee/dashboard';
 
           // Update store

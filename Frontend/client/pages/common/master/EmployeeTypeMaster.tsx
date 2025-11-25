@@ -89,7 +89,7 @@ export default function GradeMasterPage() {
                     <h1 className="text-2xl font-semibold text-slate-800">Employee Type Master</h1>
                     <button
                         onClick={handleAdd}
-                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
                         <Plus className="w-4 h-4" /> Add Employee Type
                     </button>
@@ -118,7 +118,7 @@ export default function GradeMasterPage() {
                                                 <div className="flex justify-center gap-2">
                                                     <button
                                                         onClick={() => handleEdit(type)}
-                                                        className="p-1.5 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                                                        className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>

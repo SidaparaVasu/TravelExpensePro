@@ -231,15 +231,6 @@ class TravelApplicationSubmitView(APIView):
                 status_code=400
             )
 
-        # EARLY CHECK - Collect all bookings
-        all_bookings = []
-        for trip in travel_app.trip_details.all():
-            all_bookings.extend(list(trip.bookings.all()))
-
-        # STEP 5: Check special rules BEFORE engine
-        ceo_required = False
-        chro_required = False
-
         # 4) Collect warnings (advance-booking)
         warnings = []
         today = timezone.now().date()
@@ -281,28 +272,16 @@ class TravelApplicationSubmitView(APIView):
         engine = ApprovalEngineV2(travel_app, request.user)
         approver_entries = engine.build()
 
-        # If no approvers → treat as self approval
-        if len(approver_entries) == 0 and travel_app.self_approved:
-            travel_app.status = "pending_travel_desk"
-            # travel_app.save(update_fields=["status", "self_approved"])
-            travel_app.save(update_fields=["status"])
-
-        # STEP 6.5: CHECK FOR SELF-APPROVAL (NEW)
-        self_approved = False
-        if not approver_entries:
-            self_approved = True
-
         # -----------------------------------------
         # SELF-APPROVAL SCENARIO (NO APPROVERS)
         # -----------------------------------------
-        if self_approved or not approver_entries:
+        if not approver_entries:
             # Directly move to travel desk
             travel_app.status = "pending_travel_desk"
             travel_app.submitted_at = timezone.now()
             travel_app.current_approver = None
             travel_app.set_settlement_due_date()
-            # travel_app.save()
-            travel_app.save(update_fields=["status"]) 
+            travel_app.save()
 
             return success_response(
                 data={

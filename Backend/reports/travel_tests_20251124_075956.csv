@@ -1,0 +1,6 @@
+Test ID,Phase,Expected Result,Actual Result,Status,Notes,Started At,Finished At
+T1.1,1,(see spec),"Exception: Login failed for John: 400 {""success"":false,""message"":""Validation failed"",""data"":null,""errors"":{""non_field_errors"":[""Invalid credentials or inactive user.""]}}",FAIL,Exception during test execution,2025-11-24T07:59:48,2025-11-24T07:59:48
+T1.2,1,pending_manager,pending_manager,PASS,travel_request_id=TSF-TR-2025-000039,2025-11-24T07:59:48,2025-11-24T07:59:56
+T1.3,1,(see spec),"Exception: Login failed for John: 400 {""success"":false,""message"":""Validation failed"",""data"":null,""errors"":{""non_field_errors"":[""Invalid credentials or inactive user.""]}}",FAIL,Exception during test execution,2025-11-24T07:59:56,2025-11-24T07:59:56
+T1.4,1,(see spec),"Exception: Login failed for John: 400 {""success"":false,""message"":""Validation failed"",""data"":null,""errors"":{""non_field_errors"":[""Invalid credentials or inactive user.""]}}",FAIL,Exception during test execution,2025-11-24T07:59:56,2025-11-24T07:59:56
+T1.5,1,(see spec),"Exception: Login failed for John: 400 {""success"":false,""message"":""Validation failed"",""data"":null,""errors"":{""non_field_errors"":[""Invalid credentials or inactive user.""]}}",FAIL,Exception during test execution,2025-11-24T07:59:56,2025-11-24T07:59:56

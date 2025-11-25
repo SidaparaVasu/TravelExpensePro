@@ -29,22 +29,22 @@ class TravelApplication(models.Model):
     ]
 
     VALID_STATUS_TRANSITIONS = {
-        'draft': ['submitted', 'pending_manager', 'cancelled'],
-        'submitted': ['pending_manager', 'cancelled'],
+        'draft': ['submitted', 'pending_manager', 'pending_ceo', 'pending_chro', 'pending_travel_desk', 'cancelled'],
+        'submitted': ['pending_manager', 'pending_ceo', 'pending_chro', 'cancelled'],
         'pending_manager': ['approved_manager', 'rejected_manager', 'cancelled'],
         'approved_manager': ['pending_chro', 'pending_ceo', 'pending_travel_desk', 'cancelled'],
-        'rejected_manager': ['draft', 'cancelled'],  # Allow resubmission
+        'rejected_manager': ['draft', 'cancelled'],
         'pending_chro': ['approved_chro', 'rejected_chro', 'cancelled'],
         'approved_chro': ['pending_ceo', 'pending_travel_desk', 'cancelled'],
-        'rejected_chro': ['draft', 'cancelled'],  # Allow resubmission
+        'rejected_chro': ['draft', 'cancelled'],
         'pending_ceo': ['approved_ceo', 'rejected_ceo', 'cancelled'],
         'approved_ceo': ['pending_travel_desk', 'cancelled'],
-        'rejected_ceo': ['draft', 'cancelled'],  # Allow resubmission
+        'rejected_ceo': ['draft', 'cancelled'],
         'pending_travel_desk': ['booking_in_progress', 'cancelled'],
         'booking_in_progress': ['booked', 'pending_travel_desk', 'cancelled'],
         'booked': ['completed', 'cancelled'],
-        'completed': ['completed'],  # Terminal state
-        'cancelled': ['cancelled'],  # Terminal state
+        'completed': ['completed'],
+        'cancelled': ['cancelled'],
     }
 
 
@@ -117,6 +117,8 @@ class TravelApplication(models.Model):
         blank=True,
         related_name='pending_approvals'
     )
+
+    self_approved = models.BooleanField(default=False)
     
     class Meta:
         ordering = ['-created_at']
@@ -215,11 +217,12 @@ class TravelApplication(models.Model):
         # Additional business rule validations
         
         # Cannot submit without trip details
-        if new_status in ['submitted', 'pending_manager'] and not self.trip_details.exists():
+        submit_statuses = ['submitted', 'pending_manager', 'pending_ceo', 'pending_chro', 'pending_travel_desk']
+        if new_status in submit_statuses and not self.trip_details.exists():
             return False, "Cannot submit travel request without trip details"
-        
+
         # Cannot submit without bookings
-        if new_status in ['submitted', 'pending_manager']:
+        if new_status in submit_statuses:
             has_bookings = any(trip.bookings.exists() for trip in self.trip_details.all())
             if not has_bookings:
                 return False, "Cannot submit travel request without booking details"
@@ -406,10 +409,32 @@ class TripDetails(models.Model):
     # Dates
     departure_date = models.DateField()
     return_date = models.DateField()
+
+    # (NEW Fields) Times
+    start_time = models.TimeField(
+        help_text="Exact start time of travel",
+        null=False,
+        blank=False
+    )
+
+    end_time = models.TimeField(
+        help_text="Exact end time of travel",
+        null=True,
+        blank=True
+    )
     
     # Trip specific details
     trip_purpose = models.TextField(blank=True, help_text="Specific purpose for this trip segment")
     guest_count = models.PositiveIntegerField(default=0, help_text="Number of guests accompanying")
+
+    # Distance tracking for DA calculation
+    estimated_distance_km = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Estimated one-way distance in kilometers"
+    )
     
     class Meta:
         ordering = ['departure_date']

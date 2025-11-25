@@ -1,11 +1,7 @@
 from rest_framework import serializers
 from django.db import transaction
 from ..models import TravelApplication, TripDetails, Booking, TravelAdvanceRequest
-from ..business_logic.validators import (
-    validate_advance_booking, validate_travel_entitlement,
-    validate_duplicate_travel_request
-)
-
+from ..business_logic.validators import *
 class BookingSerializer(serializers.ModelSerializer):
     booking_type_name = serializers.CharField(source='booking_type.name', read_only=True)
     sub_option_name = serializers.CharField(source='sub_option.name', read_only=True)
@@ -108,7 +104,7 @@ class TripDetailsSerializer(serializers.ModelSerializer):
         model = TripDetails
         fields = [
             'id', 'from_location', 'from_location_name', 'to_location', 'to_location_name',
-            'departure_date', 'return_date', 'trip_purpose', 'guest_count',
+            'departure_date', 'start_time', 'return_date', 'end_time', 'trip_purpose', 'guest_count', 'estimated_distance_km',
             'duration_days', 'city_category', 'bookings', 'travel_advance'
         ]
     
@@ -169,6 +165,12 @@ class TravelApplicationSerializer(serializers.ModelSerializer):
             if return_date and departure and return_date < departure:
                 trip_errors['dates'] = 'Return date cannot be earlier than departure date'
             
+            # Max duration validation
+            try:
+                validate_max_trip_duration(departure, return_date, max_days=90)
+            except Exception as e:
+                trip_errors['duration'] = str(e)
+            
             # Check for duplicate travel (only if not draft)
             if not self.instance and self.context.get('status') != 'draft':
                 try:
@@ -212,6 +214,10 @@ class TravelApplicationSerializer(serializers.ModelSerializer):
                 if booking_data.get('booking_details', {}).get('transport_type') == 'own_car':
                     from apps.travel.business_logic.validators import validate_own_car_booking
                     
+                    distance = booking_data.get('booking_details', {}).get('distance_km')
+                    if distance is None and trip_data.get('estimated_distance_km'):
+                        distance = trip_data.get('estimated_distance_km')
+
                     errors = validate_own_car_booking(
                         booking_data['booking_details'],
                         booking_data.get('booking_details', {}).get('distance_km')
@@ -289,7 +295,7 @@ class TravelApplicationSubmissionSerializer(serializers.Serializer):
                             booking.booking_type,
                             booking.sub_option,
                             # trip.to_location.city.category
-                            trip.to_location.category.name
+                            trip.to_location.category
                         )
                         
                 except Exception as e:

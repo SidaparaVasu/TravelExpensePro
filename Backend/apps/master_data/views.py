@@ -17,6 +17,7 @@ from utils.pagination import *
 class CompanyListCreateView(ListCreateAPIView):
     queryset = CompanyInformation.objects.all()
     serializer_class = CompanyInformationSerializer
+    parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAuthenticated, IsAdminUser]
 
 class CompanyDetailView(RetrieveUpdateDestroyAPIView):
@@ -202,24 +203,28 @@ class TravelModeListCreateView(ListCreateAPIView):
     queryset = TravelModeMaster.objects.all()
     serializer_class = TravelModeSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = NoPagination
 
 class TravelModeDetailView(RetrieveUpdateDestroyAPIView):
     queryset = TravelModeMaster.objects.all()
     serializer_class = TravelModeSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
+    pagination_class = NoPagination
 
 class TravelSubOptionListCreateView(ListCreateAPIView):
     # queryset = TravelSubOptionMaster.objects.select_related('mode').filter(is_active=True)
-    queryset = TravelSubOptionMaster.objects.select_related('mode').all()
+    queryset = TravelSubOptionMaster.objects.select_related('mode').filter(is_active=True)
     serializer_class = TravelSubOptionSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['mode']
+    pagination_class = NoPagination
 
 class TravelSubOptionDetailView(RetrieveUpdateDestroyAPIView):
     queryset = TravelSubOptionMaster.objects.select_related('mode').all()
     serializer_class = TravelSubOptionSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
+    pagination_class = NoPagination
 
 class GradeEntitlementListCreateView(ListCreateAPIView):
     queryset = GradeEntitlementMaster.objects.select_related(
@@ -436,11 +441,13 @@ class ApprovalMatrixListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['travel_mode', 'employee_grade']
+    pagination_class = NoPagination
 
 class ApprovalMatrixDetailView(RetrieveUpdateDestroyAPIView):
     queryset = ApprovalMatrix.objects.select_related('travel_mode', 'employee_grade').all()
     serializer_class = ApprovalMatrixSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
+    pagination_class = NoPagination
 
 class DAIncidentalListCreateView(ListCreateAPIView):
     queryset = DAIncidentalMaster.objects.select_related('grade', 'city_category').all()

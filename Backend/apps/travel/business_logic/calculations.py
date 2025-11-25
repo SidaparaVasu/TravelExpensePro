@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from decimal import Decimal
 from django.utils import timezone
 from apps.master_data.models import DAIncidentalMaster, ConveyanceRateMaster
@@ -49,7 +50,10 @@ from apps.master_data.models import DAIncidentalMaster, ConveyanceRateMaster
 #         }
 #     }
 
-def calculate_da_incidentals(employee, city_category, duration_days, duration_hours):
+def calculate_da_incidentals(employee, city_category, duration_days, duration_hours, distance_km=None):
+    """
+    Calculate DA and incidentals based on user grade, city category, duration AND distance
+    """
     # 0. Validate parameters
     if not employee or not city_category:
         return {
@@ -61,7 +65,18 @@ def calculate_da_incidentals(employee, city_category, duration_days, duration_ho
             'da_type': None
         }
     
-    # 1. DA eligibility: minimum 8 hours
+    # 1. Distance requirement check (one-way > 50km)
+    if distance_km is not None and distance_km <= 50:
+        return {
+            'eligible': False,
+            'reason': f"One-way distance {distance_km}km does not meet 50km minimum requirement",
+            'da_amount': Decimal('0'),
+            'incidental_amount': Decimal('0'),
+            'total': Decimal('0'),
+            'da_type': None
+        }
+    
+    # 2. DA eligibility: minimum 8 hours
     if duration_hours < 8:
         return {
             'eligible': False,
@@ -72,8 +87,7 @@ def calculate_da_incidentals(employee, city_category, duration_days, duration_ho
             'da_type': None
         }
     
-    # 2. Fetch DA rate for grade + city category
-    #    Effective date is today's date
+    # 3. Fetch DA rate for grade + city category
     try:
         rate = (
             DAIncidentalMaster.objects
@@ -107,10 +121,7 @@ def calculate_da_incidentals(employee, city_category, duration_days, duration_ho
             'da_type': None
         }
     
-    # 3. Determine full vs half day
-    # TSF policy:
-    #   - ≥12 hours → full day
-    #   - ≥8 and <12 → half day
+    # 4. Determine full vs half day
     if duration_hours >= 12:
         da_amount = rate.da_full_day
         incidental_amount = rate.incidental_full_day
@@ -129,6 +140,7 @@ def calculate_da_incidentals(employee, city_category, duration_days, duration_ho
         'da_type': da_type
     }
 
+
 def calculate_da_for_entire_travel(travel_app):
     """
     Calculates DA + incidental amounts for the entire completed travel application.
@@ -145,12 +157,14 @@ def calculate_da_for_entire_travel(travel_app):
             duration_days = trip.get_duration_days()
             duration_hours = duration_days * 24  # Trip model handles special cases
             city_category = trip.get_city_category()
+            distance_km = trip.estimated_distance_km
 
             result = calculate_da_incidentals(
                 employee=travel_app.employee,
                 city_category=city_category,
                 duration_days=duration_days,
-                duration_hours=duration_hours
+                duration_hours=duration_hours,
+                distance_km=distance_km
             )
 
             if result['eligible']:

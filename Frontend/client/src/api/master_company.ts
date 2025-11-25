@@ -11,7 +11,11 @@ export const organizationMasterAPI = {
       const { data } = await apiClient.get('/master/companies/');
       return data;
     },
-    create: async (payload: any) => {
+    // create: async (payload: any) => {
+    //   const { data } = await apiClient.post('/master/companies/', payload);
+    //   return data;
+    // },
+    create: async (payload: FormData) => {
       const { data } = await apiClient.post('/master/companies/', payload);
       return data;
     },
@@ -59,7 +63,11 @@ export const organizationMasterAPI = {
 
 
 
-    update: async (id: number, payload: any) => {
+    // update: async (id: number, payload: any) => {
+    //   const { data } = await apiClient.put(`/master/companies/${id}/`, payload);
+    //   return data;
+    // },
+    update: async (id: number, payload: FormData) => {
       const { data } = await apiClient.put(`/master/companies/${id}/`, payload);
       return data;
     },

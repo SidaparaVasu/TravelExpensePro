@@ -514,9 +514,8 @@ export default function TravelRequestApprovals() {
                             <div className="font-medium text-foreground">
                               {request.trip_summary[0]?.from} → {request.trip_summary[0]?.to}
                             </div>
-                            <div className="text-sm text-muted-foreground">
+                            <div className="text-sm text-muted-foreground line-clamp-1">
                               {request.purpose}
-
                             </div>
                           </div>
                         </TableCell>
@@ -549,7 +548,7 @@ export default function TravelRequestApprovals() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            {request.status === "pending_manager" && (
+                            {(request.status === "pending_manager" || request.status === "pending_ceo" || request.status === "pending_chro") && (
                               <>
                                 <Button
                                   size="sm"

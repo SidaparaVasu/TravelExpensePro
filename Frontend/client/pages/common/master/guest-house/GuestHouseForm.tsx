@@ -266,12 +266,15 @@ const GuestHouseForm = ({ editId = null, onCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Manager</label>
-              <select value={formData.manager} onChange={(e) => updateField('manager', e.target.value)}
+              <input type="text" value={formData.manager} onChange={(e) => updateField('manager', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded" />
+                
+              {/* <select value={formData.manager} onChange={(e) => updateField('manager', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded">
                 <option value="">Select Manager</option>
                 <option value="1">John Doe</option>
                 <option value="2">Jane Smith</option>
-              </select>
+              </select> */}
             </div>
             <div className="flex items-center">
               <input type="checkbox" checked={formData.is_active} onChange={(e) => updateField('is_active', e.target.checked)}

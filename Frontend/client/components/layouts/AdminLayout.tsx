@@ -69,7 +69,7 @@ const getRoleTypes = () => {
 
 const userHasAdminRole = () => {
   const roleTypes = getRoleTypes();
-  return roleTypes.includes("admin") || roleTypes.includes("ceo");
+  return roleTypes.includes("admin") || roleTypes.includes("manager")|| roleTypes.includes("chro")|| roleTypes.includes("ceo");
 };
 
 const HAS_DESK_ROLE = () => {
@@ -78,9 +78,10 @@ const HAS_DESK_ROLE = () => {
 };
 
 const getPrimaryDashboard = () => {
-  const v = localStorage.getItem("primary_dashboard");
-  if (!v) return "/admin/dashboard";
-  return v.startsWith("/") ? v : `/${v}`;
+  const roleTypes = getRoleTypes();
+  if (roleTypes.includes("admin") || roleTypes.includes("manager")|| roleTypes.includes("chro")|| roleTypes.includes("ceo")) {
+    return "/admin/dashboard";
+  }
 };
 
 // ------------------------------------------------------
@@ -104,7 +105,7 @@ const getAdminSidebar = (primaryDashboard) => [
     ],
   },
   {
-    title: "Bookings",
+    title: "Bookings (Travel Desk)",
     icon: Briefcase,
     collapsible: true,
     items: [

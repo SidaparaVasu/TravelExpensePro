@@ -8,7 +8,7 @@ import { locationAPI } from "@/src/api/master_location";
 import { userAPI } from "@/src/api/users";
 
 const LocationSPOCMaster = () => {
-    const [spocs, setSpocs] = useState([]);
+    const [spocs, setSpocs] = useState([]); 
     const [filteredSpocs, setFilteredSpocs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -86,7 +86,7 @@ const LocationSPOCMaster = () => {
             try {
                 console.log("Form Data: ", formData)
                 // Call backend API for users filtered by base_location
-                const data = await userAPI.getAll(`?base_location=${Number(formData.location)}`);
+                const data = await userAPI.getAll({base_location: Number(formData.location),});
 
                 // Handle both possible DRF formats
                 const results = data.data?.results || data.results || data;

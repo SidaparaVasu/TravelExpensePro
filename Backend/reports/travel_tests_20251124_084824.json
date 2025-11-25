@@ -1,0 +1,52 @@
+[
+  {
+    "test_id": "T1.1",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: Object of type date is not JSON serializable",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T08:48:23",
+    "finished_at": "2025-11-24T08:48:23"
+  },
+  {
+    "test_id": "T1.2",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: Object of type date is not JSON serializable",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T08:48:23",
+    "finished_at": "2025-11-24T08:48:23"
+  },
+  {
+    "test_id": "T1.3",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: Object of type date is not JSON serializable",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T08:48:23",
+    "finished_at": "2025-11-24T08:48:24"
+  },
+  {
+    "test_id": "T1.4",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: Object of type date is not JSON serializable",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T08:48:24",
+    "finished_at": "2025-11-24T08:48:24"
+  },
+  {
+    "test_id": "T1.5",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: Object of type date is not JSON serializable",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T08:48:24",
+    "finished_at": "2025-11-24T08:48:24"
+  }
+]

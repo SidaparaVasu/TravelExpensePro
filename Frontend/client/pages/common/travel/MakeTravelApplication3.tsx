@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Save, Send, ChevronRight, ChevronLeft, Calendar, MapPin, Plane, Home, Car, Wallet } from 'lucide-react';
 // import { Layout } from '@/components/Layout';
-import { useAuthStore } from '@/src/store/authStore';
 import { travelAPI } from '@/src/api/travel';
 import { locationAPI } from '@/src/api/master_location';
 import GuestHouseSelector from './components/GuestHouseSelector';
@@ -388,7 +387,9 @@ const PurposeSection = ({ formData, setFormData, setOtherExpenses, cities, glCod
                 />
 
                 <FormInput label="Trip Start Date" required type="date" value={formData.departure_date} onChange={(e) => setFormData({ ...formData, departure_date: e.target.value })} />
+                <FormInput label="Trip Start Time" required type="time" value={formData.start_time} onChange={(e) => setFormData({ ...formData, start_time: e.target.value })} />
                 <FormInput label="Trip End Date" required type="date" value={formData.return_date} onChange={(e) => setFormData({ ...formData, return_date: e.target.value })} />
+                <FormInput label="Trip End Time" required type="time" value={formData.end_time} onChange={(e) => setFormData({ ...formData, end_time: e.target.value })} />
             </div>
         </div>
     );
@@ -661,7 +662,7 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
         {
             label: 'Travel Mode',
             render: (row) => {
-                const mode = travelModes?.results?.find(m => m.id === parseInt(row.booking_type));
+                const mode = travelModes?.find(m => m.id === parseInt(row.booking_type));
                 const subOption = subOptions[row.booking_type?.toString()]?.find(s => s.id === parseInt(row.sub_option));
                 return `${mode?.name || row.booking_type} - ${subOption?.name || row.sub_option}`;
             }
@@ -682,7 +683,7 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
     ];
 
     // Get available travel modes (Flight and Train only)
-    const availableModes = travelModes?.results?.filter((m) => m.name === 'Flight' || m.name === 'Train') || [];
+    const availableModes = travelModes?.filter((m) => m.name === 'Flight' || m.name === 'Train') || [];
 
     // Get sub-options for selected mode
     // const currentSubOptions = form.booking_type ? (subOptions[form.booking_type] || []) : [];
@@ -1032,7 +1033,7 @@ const AccommodationSection = ({
     const [guestHousePreferences, setGuestHousePreferences] = useState([]);
 
     // ===== Find "Accommodation" mode =====
-    const accommodationMode = travelModes?.results?.find(m => m.name === "Accommodation");
+    const accommodationMode = travelModes?.find(m => m.name === "Accommodation");
     const accommodationModeId = accommodationMode?.id;
     form.accommodation_type_id = accommodationModeId;
 
@@ -1383,7 +1384,7 @@ const ConveyanceSection = ({
         }
     };
 
-    const availableModes = travelModes?.results?.filter((m) => m.name === 'Car') || [];
+    const availableModes = travelModes?.filter((m) => m.name === 'Car') || [];
     const currentSubOptions = form.vehicle_type ? (subOptions[form.vehicle_type.toString()] || []) : [];
 
     const handleSubmit = () => {
@@ -1454,7 +1455,7 @@ const ConveyanceSection = ({
         {
             label: 'Vehicle',
             render: (row) => {
-                const mode = travelModes?.results?.find(m => m.id === parseInt(row.vehicle_type));
+                const mode = travelModes?.find(m => m.id === parseInt(row.vehicle_type));
                 const subOption = subOptions[row.vehicle_type?.toString()]?.find(s => s.id === parseInt(row.vehicle_sub_option));
                 return `${mode?.name || '-'} - ${subOption?.name || '-'}`;
             },
@@ -1955,7 +1956,7 @@ export default function CreateTravelApplication() {
         if (!subOptions[key]) {
             try {
                 const options = await travelAPI.getTravelSubOptions(modeId);
-                setSubOptions(prev => ({ ...prev, [key]: options.results }));
+                setSubOptions(prev => ({ ...prev, [key]: options?.results || options }));
             } catch (error) {
                 showToast('Failed to load sub-options', 'error');
             }
@@ -1980,7 +1981,9 @@ export default function CreateTravelApplication() {
         trip_from_location: '',
         trip_to_location: '',
         departure_date: '',
+        start_time: '',
         return_date: '',
+        end_time: '',
     });
 
     // Category lists
@@ -2039,7 +2042,7 @@ export default function CreateTravelApplication() {
     const [isValidating, setIsValidating] = useState(false);
     const [validationErrors, setValidationErrors] = useState(null);
 
-    // Validation functio
+    // Validation function
     const validateApplication = async () => {
         const errors = [];
 
@@ -2089,7 +2092,7 @@ export default function CreateTravelApplication() {
 
                 // Advance booking check
                 const daysAhead = Math.floor((depDate - today) / (1000 * 60 * 60 * 24));
-                const mode = travelModes?.results?.find(m => m.id === parseInt(t.booking_type));
+                const mode = travelModes?.find(m => m.id === parseInt(t.booking_type));
 
                 if (mode?.name === 'Flight' && daysAhead < 7) {
                     errors.push({
@@ -2131,82 +2134,142 @@ export default function CreateTravelApplication() {
         }
     };
 
+    // const handleSubmit = async () => {
+    //     setIsValidating(true);
+
+    //     try {
+    //         // Step 1: Frontend validation
+    //         const frontendErrors = await validateApplication();
+    //         if (frontendErrors.length > 0) {
+    //             console.log(frontendErrors);
+    //             setValidationErrors(frontendErrors);
+    //             showToast('Please fix validation errors before submitting', 'error');
+    //             return;
+    //         }
+
+    //         // Step 2: Ensure draft is saved (create/update)
+    //         const payload = prepareSubmissionPayload();
+    //         console.log('Payload: <br/>\n', payload);
+
+    //         let appId = draftApplicationId;
+
+    //         if (!appId) {
+    //             // No draft exists, create new
+    //             const appResponse = await travelAPI.createApplication(payload);
+    //             appId = appResponse.data?.id;
+    //             setDraftApplicationId(appId);
+    //         } else {
+    //             // Update existing draft
+    //             await travelAPI.updateApplication(appId, payload);
+    //         }
+
+    //         if (!appId) throw new Error('Application ID not available');
+
+    //         // Step 3: Backend validation
+    //         const validation = await travelAPI.validateApplication(appId);
+
+    //         if (!validation.data?.can_submit) {
+    //             const validationResults = validation.data?.validation_results || [];
+    //             setValidationErrors(validationResults);
+
+    //             const errorMessages = [];
+    //             validationResults.forEach(trip => {
+    //                 const tripLabel = `Trip #${trip.trip_id}`;
+    //                 trip.bookings?.forEach(booking => {
+    //                     booking.issues?.forEach(issue => {
+    //                         if (issue.severity === 'error') {
+    //                             errorMessages.push(`${tripLabel} → ${booking.booking_type}: ${issue.message.replace(/[\[\]']/g, '')}`);
+    //                         }
+    //                     });
+    //                 });
+    //             });
+
+    //             if (errorMessages.length > 0) {
+    //                 showToast(`Validation Failed:\n${errorMessages.join('\n')}`, 'error');
+    //             } else {
+    //                 showToast('Application has validation errors. Please review.', 'error');
+    //             }
+    //             return; // DON'T proceed to submit
+    //         }
+
+    //         // Step 4: Submit only if validation passed
+    //         await travelAPI.submitApplication(appId);
+
+    //         showToast('Application submitted successfully!', 'success');
+
+    //         // Clear draft ID and redirect
+    //         setDraftApplicationId(null);
+
+    //         navigate("/travel/travel-application-list");
+
+    //     } catch (error) {
+    //         console.error('Submission error:', error);
+    //         showToast(parseBackendError(error), 'error');
+    //     } finally {
+    //         setIsValidating(false);
+    //     }
+
+    // };
+
     const handleSubmit = async () => {
         setIsValidating(true);
 
         try {
-            // Step 1: Frontend validation
+            // -------------------------------------
+            // 1. Basic frontend validation only
+            // -------------------------------------
             const frontendErrors = await validateApplication();
+
             if (frontendErrors.length > 0) {
-                console.log(frontendErrors);
                 setValidationErrors(frontendErrors);
                 showToast('Please fix validation errors before submitting', 'error');
                 return;
             }
 
-            // Step 2: Ensure draft is saved (create/update)
+            // -------------------------------------
+            // 2. Prepare payload (draft data)
+            // -------------------------------------
             const payload = prepareSubmissionPayload();
-            // console.log('Payload: <br/>\n', payload);
+            console.log("Submitting payload:", payload);
 
             let appId = draftApplicationId;
 
+            // -------------------------------------
+            // 3. Create or Update Draft (backend)
+            // -------------------------------------
             if (!appId) {
-                // No draft exists, create new
-                const appResponse = await travelAPI.createApplication(payload);
-                appId = appResponse.data?.id;
+                const res = await travelAPI.createApplication(payload);
+                appId = res.data?.id;
                 setDraftApplicationId(appId);
             } else {
-                // Update existing draft
                 await travelAPI.updateApplication(appId, payload);
             }
 
-            if (!appId) throw new Error('Application ID not available');
-
-            // Step 3: Backend validation
-            const validation = await travelAPI.validateApplication(appId);
-
-            if (!validation.data?.can_submit) {
-                const validationResults = validation.data?.validation_results || [];
-                setValidationErrors(validationResults);
-
-                const errorMessages = [];
-                validationResults.forEach(trip => {
-                    const tripLabel = `Trip #${trip.trip_id}`;
-                    trip.bookings?.forEach(booking => {
-                        booking.issues?.forEach(issue => {
-                            if (issue.severity === 'error') {
-                                errorMessages.push(`${tripLabel} → ${booking.booking_type}: ${issue.message.replace(/[\[\]']/g, '')}`);
-                            }
-                        });
-                    });
-                });
-
-                if (errorMessages.length > 0) {
-                    showToast(`Validation Failed:\n${errorMessages.join('\n')}`, 'error');
-                } else {
-                    showToast('Application has validation errors. Please review.', 'error');
-                }
-                return; // DON'T proceed to submit
+            if (!appId) {
+                throw new Error("Application ID not available");
             }
 
-            // Step 4: Submit only if validation passed
-            await travelAPI.submitApplication(appId);
+            // -------------------------------------
+            // 4. SUBMIT (full backend validation + approval engine)
+            // -------------------------------------
+            const submitRes = await travelAPI.submitApplication(appId);
 
             showToast('Application submitted successfully!', 'success');
 
-            // Clear draft ID and redirect
+            // -------------------------------------
+            // 5. Clear draft + redirect
+            // -------------------------------------
             setDraftApplicationId(null);
-
             navigate("/travel/travel-application-list");
 
-        } catch (error) {
-            console.error('Submission error:', error);
-            showToast(parseBackendError(error), 'error');
+        } catch (err: any) {
+            console.error("Submit Error:", err);
+            showToast(parseBackendError(err), 'error');
         } finally {
             setIsValidating(false);
         }
-
     };
+
 
     const prepareSubmissionPayload = () => {
         return {
@@ -2219,7 +2282,9 @@ export default function CreateTravelApplication() {
                 from_location: formData?.trip_from_location,
                 to_location: formData?.trip_to_location,
                 departure_date: formData?.departure_date,
+                start_time: formData?.start_time,
                 return_date: formData?.return_date,
+                end_time: formData?.end_time,
                 bookings: [
                     ...ticketing.map(t => ({
                         booking_type: parseInt(t.booking_type), // // Ticketing mode ID

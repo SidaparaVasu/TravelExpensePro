@@ -7,6 +7,11 @@ export const masterAPI = {
     return data;
   },
 
+  getTravelSubOptions: async (modeId?: number) => {
+    const { data } = await apiClient.get('/master/travel-sub-options/');
+    return data.data;
+  },
+
   // Get locations
   getLocations: async () => {
     const { data } = await apiClient.get('/master/locations/');

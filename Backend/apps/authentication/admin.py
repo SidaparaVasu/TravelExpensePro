@@ -56,8 +56,8 @@ class ExternalProfileInline(admin.StackedInline):
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ('username', 'email', 'first_name', 'last_name', 'user_type', 'get_roles', 'is_active')
-    list_filter = ('user_type', 'is_staff', 'is_superuser', 'is_active')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'user_type', 'grade', 'get_reporting_manager', 'get_roles', 'is_active')
+    list_filter = ('user_type', 'organizational_profile__grade', 'is_staff', 'is_superuser', 'is_active')
     search_fields = ('username', 'email', 'first_name', 'last_name')
     ordering = ('username',)
     
@@ -94,6 +94,14 @@ class UserAdmin(BaseUserAdmin):
     def get_roles(self, obj):
         return ", ".join([ur.role.name for ur in obj.userrole_set.filter(is_active=True)])
     get_roles.short_description = 'Roles'
+
+    def get_reporting_manager(self, obj):
+        profile = getattr(obj, "organizational_profile", None)
+        if profile and profile.reporting_manager:
+            return profile.reporting_manager.get_full_name()
+        return "-"
+    get_reporting_manager.short_description = "Reporting Manager"
+
 
 
 @admin.register(OrganizationalProfile)

@@ -22,257 +22,169 @@ function Modal({ isOpen, onClose, title, children }) {
 }
 
 function CompanyDrawer({ isOpen, onClose, data, onSubmit }) {
-    const [formData, setFormData] = useState(data || {});
+    const [formData, setFormData] = useState({});
     const [logoPreview, setLogoPreview] = useState(null);
     const [signaturePreview, setSignaturePreview] = useState(null);
 
     useEffect(() => {
-        setFormData(data || {});
-        if (data?.logo) setLogoPreview(data.logo);
-        if (data?.signature) setSignaturePreview(data.signature);
-    }, [data]);
-
-    const handleFileUpload = (e, fieldName) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                if (fieldName === 'logo') {
-                    setLogoPreview(reader.result);
-                } else if (fieldName === 'signature') {
-                    setSignaturePreview(reader.result);
-                }
-            };
-            reader.readAsDataURL(file);
-            setFormData({ ...formData, [fieldName]: file });
-        }
-    };
-
-    const handleSubmit = () => {
-        if (!formData.name || !formData.address) {
-            toast.error("Please fill required fields");
+        if (!data) {
+            setFormData({});
+            setLogoPreview(null);
+            setSignaturePreview(null);
             return;
         }
 
-        const submitData = new FormData();
+        const cleaned = { ...data };
+        delete cleaned.logo;
+        delete cleaned.signature;
 
+        setFormData(cleaned);
+
+        if (data.logo) setLogoPreview(data.logo);
+        if (data.signature) setSignaturePreview(data.signature);
+    }, [data]);
+
+    const handleFileUpload = (e, fieldName) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setFormData((prev) => ({ ...prev, [fieldName]: file }));
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (fieldName === "logo") setLogoPreview(reader.result);
+            if (fieldName === "signature") setSignaturePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleSubmit = () => {
+        if (!formData.name || !formData.address) return toast.error("Please fill required fields");
+
+        const submitData = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
-            // only append if value exists
-            if (value !== null && value !== undefined) {
-                // skip appending non-file previews (base64)
-                if (value instanceof File || typeof value === "string") {
-                    submitData.append(key, value);
-                }
-            }
+            if (value instanceof File) submitData.append(key, value);
+            else if (typeof value === "string") submitData.append(key, value);
         });
 
         onSubmit(submitData);
     };
 
-
     if (!isOpen) return null;
 
     return (
         <>
-            <div className={`fixed inset-0 transition-opacity bg-black bg-opacity-50 z-40 ${isOpen ? 'opacity-50' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
-            <div className={`fixed right-0 top-0 h-full w-full max-w-5xl bg-white shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-50">
-                    <div className="flex items-center gap-3">
-                        <Building2 className="w-6 h-6 text-blue-600" />
-                        <h2 className="text-xl font-semibold text-slate-800">
-                            {data ? "Edit Company" : "Add Company"}
-                        </h2>
-                    </div>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-white rounded-lg transition-colors">
-                        <X className="w-5 h-5" />
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={onClose} />
+
+            <div className="fixed right-0 top-0 h-full w-full max-w-5xl bg-white shadow-xl z-50 flex flex-col">
+                <div className="flex items-center justify-between p-6 border-b bg-blue-50">
+                    <h2 className="text-xl font-semibold text-gray-800">
+                        {data ? "Edit Company" : "Add Company"}
+                    </h2>
+                    <button onClick={onClose}>
+                        <X className="w-5 h-5 text-gray-600" />
                     </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6">
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
-                                    Company Name <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter Company Name"
-                                    value={formData.name || ""}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
-                                    Company Address <span className="text-red-500">*</span>
-                                </label>
-                                <textarea
-                                    placeholder="Enter Company Address"
-                                    value={formData.address || ""}
-                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
-                                    Pincode <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter Pincode"
-                                    value={formData.pincode || ""}
-                                    onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
-                                    Phone Number
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter Phone Number"
-                                    value={formData.phone_number || ""}
-                                    onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
-                                    Email
-                                </label>
-                                <input
-                                    type="email"
-                                    placeholder="Enter Email Address"
-                                    value={formData.email_address || ""}
-                                    onChange={(e) => setFormData({ ...formData, email_address: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
-                                    Website
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter Website"
-                                    value={formData.website || ""}
-                                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
+                            <InputField label="Company Name *" value={formData.name} onChange={(v) => setFormData({ ...formData, name: v })} />
+                            <TextareaField label="Company Address *" value={formData.address} onChange={(v) => setFormData({ ...formData, address: v })} />
+                            <InputField label="Pincode *" value={formData.pincode} onChange={(v) => setFormData({ ...formData, pincode: v })} />
+                            <InputField label="Phone Number" value={formData.phone_number} onChange={(v) => setFormData({ ...formData, phone_number: v })} />
+                            <InputField label="Email" value={formData.email_address} onChange={(v) => setFormData({ ...formData, email_address: v })} />
+                            <InputField label="Website" value={formData.website} onChange={(v) => setFormData({ ...formData, website: v })} />
+                            <TextareaField label="Header Text" value={formData.header} onChange={(v) => setFormData({ ...formData, header: v })} />
+                            <TextareaField label="Footer Text" value={formData.footer} onChange={(v) => setFormData({ ...formData, footer: v })} />
                         </div>
 
-                        <div className="space-y-4">
-                            {/* <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
-                                    Company Logo
-                                </label>
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
-                                    {logoPreview ? (
-                                        <div className="space-y-3">
-                                            <img src={logoPreview} alt="Logo preview" className="w-32 h-32 object-contain mx-auto" />
-                                            <label className="cursor-pointer">
-                                                <span className="inline-flex items-center gap-2 px-4 py-2 text-slate-400 text-sm rounded-md transition-colors">
-                                                    <Upload className="w-4 h-4" />
-                                                    Upload
-                                                </span>
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={(e) => handleFileUpload(e, 'logo')}
-                                                    className="hidden"
-                                                />
-                                            </label>
-                                        </div>
-                                    ) : (
-                                        <label className="cursor-pointer block">
-                                            <div className="flex flex-col items-center py-8">
-                                                <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                                <span className="inline-flex items-center gap-2 px-4 py-2 text-slate-400 text-sm rounded-md transition-colors">
-                                                    Upload
-                                                </span>
-                                            </div>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={(e) => handleFileUpload(e, 'logo')}
-                                                className="hidden"
-                                            />
-                                        </label>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
-                                    Signature
-                                </label>
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
-                                    {signaturePreview ? (
-                                        <div className="space-y-3">
-                                            <img src={signaturePreview} alt="Signature preview" className="w-32 h-32 object-contain mx-auto" />
-                                            <label className="cursor-pointer">
-                                                <span className="inline-flex items-center gap-2 px-4 py-2 text-slate-400 text-sm rounded-md transition-colors">
-                                                    <Upload className="w-4 h-4" />
-                                                    Upload
-                                                </span>
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={(e) => handleFileUpload(e, 'signature')}
-                                                    className="hidden"
-                                                />
-                                            </label>
-                                        </div>
-                                    ) : (
-                                        <label className="cursor-pointer block">
-                                            <div className="flex flex-col items-center py-8">
-                                                <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                                <span className="inline-flex items-center gap-2 px-4 py-2 text-slate-400 text-sm rounded-md transition-colors">
-                                                    Upload
-                                                </span>
-                                            </div>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={(e) => handleFileUpload(e, 'signature')}
-                                                className="hidden"
-                                            />
-                                        </label>
-                                    )}
-                                </div>
-                            </div> */}
-                        </div> 
+                        <div className="space-y-6">
+                            <FileUpload label="Company Logo" preview={logoPreview} onUpload={(e) => handleFileUpload(e, "logo")} />
+                            <FileUpload label="Signature" preview={signaturePreview} onUpload={(e) => handleFileUpload(e, "signature")} />
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2 text-sm text-slate-600 hover:bg-gray-200 rounded-md"
-                    >
+                <div className="flex items-center justify-end gap-3 p-6 border-t bg-gray-50">
+                    <button onClick={onClose} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-md">
                         Cancel
                     </button>
+
                     <button
                         onClick={handleSubmit}
-                        className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
                     >
-                        <Save className="w-4 h-4" />
-                        Save
+                        <Save className="w-4 h-4" /> Save
                     </button>
                 </div>
             </div>
         </>
     );
 }
+
+/* -------------------------- */
+/* SMALL REUSABLE COMPONENTS  */
+/* -------------------------- */
+
+function InputField({ label, value, onChange }) {
+    return (
+        <div>
+            <label className="block text-sm font-medium mb-1">{label}</label>
+            <input
+                value={value || ""}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+            />
+        </div>
+    );
+}
+
+function TextareaField({ label, value, onChange }) {
+    return (
+        <div>
+            <label className="block text-sm font-medium mb-1">{label}</label>
+            <textarea
+                rows={3}
+                value={value || ""}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+            />
+        </div>
+    );
+}
+
+function FileUpload({ label, preview, onUpload }) {
+    return (
+        <div>
+            <label className="block text-sm font-medium mb-2">{label}</label>
+
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
+                {preview ? (
+                    <div className="space-y-3">
+                        <img src={preview} alt="preview" className="w-32 h-32 object-contain mx-auto" />
+
+                        <label className="cursor-pointer">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 text-gray-500 border rounded-md">
+                                <Upload className="w-4 h-4" /> Change
+                            </div>
+                            <input type="file" accept="image/*" onChange={onUpload} className="hidden" />
+                        </label>
+                    </div>
+                ) : (
+                    <label className="cursor-pointer block">
+                        <div className="flex flex-col items-center py-6">
+                            <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                            <span className="px-4 py-2 text-gray-500 border rounded-md">Upload</span>
+                        </div>
+                        <input type="file" accept="image/*" onChange={onUpload} className="hidden" />
+                    </label>
+                )}
+            </div>
+        </div>
+    );
+}
+
 
 function CompanyCard({ expanded, onToggle, company, departments, designations, onEdit, onDelete, onAddDept, onEditDept, onDeleteDept, onAddDesig, onEditDesig, onDeleteDesig }) {
     const companyDepts = departments.filter(d => d.company === company.id);
@@ -544,82 +456,82 @@ export default function OrganizationMaster() {
 
     return (
         // <Layout>
-            <div className="p-6 bg-gray-50 min-h-screen">
-                <div className="max-w-7xl mx-auto">
-                    <div className="mb-6 flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-semibold text-slate-800">Organization Master</h1>
-                            <p className="text-sm text-slate-500 mt-1">Manage organizational hierarchy: Companies, Departments, and Designations</p>
-                        </div>
-                        <button onClick={() => setCompanyDrawer({ open: true, data: null })} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
-                            <Plus className="w-4 h-4" />Add Company
-                        </button>
+        <div className="p-6 bg-gray-50 min-h-screen">
+            <div className="max-w-7xl mx-auto">
+                <div className="mb-6 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-semibold text-slate-800">Organization Master</h1>
+                        <p className="text-sm text-slate-500 mt-1">Manage organizational hierarchy: Companies, Departments, and Designations</p>
                     </div>
-                    <div className="mb-4">
-                        <div className="relative max-w-md">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input type="search" placeholder="Search companies..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
-                        </div>
-                    </div>
-                    <div className="space-y-4">
-                        {filteredCompanies.length === 0 ? (
-                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                                <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                                <p className="text-slate-600 mb-2">No companies found</p>
-                                <button onClick={() => setCompanyDrawer({ open: true, data: null })} className="text-blue-600 hover:text-blue-700 text-sm">
-                                    Add your company
-                                </button>
-                            </div>
-                        ) : (
-                            filteredCompanies.map(company => (
-                                <CompanyCard
-                                    key={company.id}
-                                    expanded={expandedCompanyId === company.id}
-                                    onToggle={() => {
-                                        setExpandedCompanyId(prev => (prev === company.id ? null : company.id));
-                                    }}
-                                    company={company}
-                                    departments={departments}
-                                    designations={designations}
-                                    onEdit={(c) => setCompanyDrawer({ open: true, data: c })}
-                                    onDelete={handleDeleteCompany}
-                                    onAddDept={(c) => setDeptModal({ open: true, data: null, companyId: c.id })}
-                                    onEditDept={(d) => setDeptModal({ open: true, data: d, companyId: d.company })}
-                                    onDeleteDept={handleDeleteDept}
-                                    onAddDesig={(d) => setDesigModal({ open: true, data: null, deptId: d.department_id })}
-                                    onEditDesig={(d) => setDesigModal({ open: true, data: d, deptId: d.department || d.department_id })}
-                                    onDeleteDesig={handleDeleteDesig} />
-                            ))
-                        )}
-                    </div>
-
-                    <CompanyDrawer
-                        isOpen={companyDrawer.open}
-                        onClose={() => setCompanyDrawer({ open: false, data: null })}
-                        data={companyDrawer.data}
-                        onSubmit={handleSaveCompany}
-                    />
-
-                    <Modal
-                        isOpen={deptModal.open}
-                        onClose={() => setDeptModal({ open: false, data: null, companyId: null })}
-                        title={deptModal.data ? "Edit Department" : "Add Department"}>
-                        <DepartmentForm
-                            data={deptModal.data}
-                            onSubmit={handleSaveDept}
-                            onCancel={() => setDeptModal({ open: false, data: null, companyId: null })} />
-                    </Modal>
-                    <Modal
-                        isOpen={desigModal.open}
-                        onClose={() => setDesigModal({ open: false, data: null, deptId: null })}
-                        title={desigModal.data ? "Edit Designation" : "Add Designation"}>
-                        <DesignationForm
-                            data={desigModal.data}
-                            onSubmit={handleSaveDesig}
-                            onCancel={() => setDesigModal({ open: false, data: null, deptId: null })} />
-                    </Modal>
+                    <button onClick={() => setCompanyDrawer({ open: true, data: null })} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
+                        <Plus className="w-4 h-4" />Add Company
+                    </button>
                 </div>
+                <div className="mb-4">
+                    <div className="relative max-w-md">
+                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input type="search" placeholder="Search companies..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+                    </div>
+                </div>
+                <div className="space-y-4">
+                    {filteredCompanies.length === 0 ? (
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                            <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                            <p className="text-slate-600 mb-2">No companies found</p>
+                            <button onClick={() => setCompanyDrawer({ open: true, data: null })} className="text-blue-600 hover:text-blue-700 text-sm">
+                                Add your company
+                            </button>
+                        </div>
+                    ) : (
+                        filteredCompanies.map(company => (
+                            <CompanyCard
+                                key={company.id}
+                                expanded={expandedCompanyId === company.id}
+                                onToggle={() => {
+                                    setExpandedCompanyId(prev => (prev === company.id ? null : company.id));
+                                }}
+                                company={company}
+                                departments={departments}
+                                designations={designations}
+                                onEdit={(c) => setCompanyDrawer({ open: true, data: c })}
+                                onDelete={handleDeleteCompany}
+                                onAddDept={(c) => setDeptModal({ open: true, data: null, companyId: c.id })}
+                                onEditDept={(d) => setDeptModal({ open: true, data: d, companyId: d.company })}
+                                onDeleteDept={handleDeleteDept}
+                                onAddDesig={(d) => setDesigModal({ open: true, data: null, deptId: d.department_id })}
+                                onEditDesig={(d) => setDesigModal({ open: true, data: d, deptId: d.department || d.department_id })}
+                                onDeleteDesig={handleDeleteDesig} />
+                        ))
+                    )}
+                </div>
+
+                <CompanyDrawer
+                    isOpen={companyDrawer.open}
+                    onClose={() => setCompanyDrawer({ open: false, data: null })}
+                    data={companyDrawer.data}
+                    onSubmit={handleSaveCompany}
+                />
+
+                <Modal
+                    isOpen={deptModal.open}
+                    onClose={() => setDeptModal({ open: false, data: null, companyId: null })}
+                    title={deptModal.data ? "Edit Department" : "Add Department"}>
+                    <DepartmentForm
+                        data={deptModal.data}
+                        onSubmit={handleSaveDept}
+                        onCancel={() => setDeptModal({ open: false, data: null, companyId: null })} />
+                </Modal>
+                <Modal
+                    isOpen={desigModal.open}
+                    onClose={() => setDesigModal({ open: false, data: null, deptId: null })}
+                    title={desigModal.data ? "Edit Designation" : "Add Designation"}>
+                    <DesignationForm
+                        data={desigModal.data}
+                        onSubmit={handleSaveDesig}
+                        onCancel={() => setDesigModal({ open: false, data: null, deptId: null })} />
+                </Modal>
             </div>
+        </div>
         // </Layout>
     );
 }

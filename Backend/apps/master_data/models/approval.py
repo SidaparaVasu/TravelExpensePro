@@ -30,7 +30,7 @@ class ApprovalMatrix(models.Model):
     
     # Special conditions
     flight_above_10k_ceo = models.BooleanField(
-        default=True,
+        default=False,
         help_text="Automatically require CEO approval for flights above ₹10,000"
     )
     
@@ -42,6 +42,30 @@ class ApprovalMatrix(models.Model):
     advance_booking_required_days = models.IntegerField(
         default=0,
         help_text="Minimum advance booking days required"
+    )
+
+    # Distance based conditions (for Car / Own Car)
+    distance_limit_km = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Max distance allowed before CHRO approval is required"
+    )
+    requires_chro_for_distance = models.BooleanField(
+        default=False,
+        help_text="If distance exceeds limit, require CHRO"
+    )
+
+    # Disposal duration conditions
+    disposal_days_limit = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Max number of days for car disposal"
+    )
+    requires_chro_for_disposal = models.BooleanField(
+        default=False,
+        help_text="If car disposal exceeds days limit, require CHRO"
     )
     
     is_active = models.BooleanField(default=True)

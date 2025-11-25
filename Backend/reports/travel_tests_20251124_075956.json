@@ -1,0 +1,52 @@
+[
+  {
+    "test_id": "T1.1",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: Login failed for John: 400 {\"success\":false,\"message\":\"Validation failed\",\"data\":null,\"errors\":{\"non_field_errors\":[\"Invalid credentials or inactive user.\"]}}",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T07:59:48",
+    "finished_at": "2025-11-24T07:59:48"
+  },
+  {
+    "test_id": "T1.2",
+    "phase": 1,
+    "expected": "pending_manager",
+    "actual": "pending_manager",
+    "status": "PASS",
+    "notes": "travel_request_id=TSF-TR-2025-000039",
+    "started_at": "2025-11-24T07:59:48",
+    "finished_at": "2025-11-24T07:59:56"
+  },
+  {
+    "test_id": "T1.3",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: Login failed for John: 400 {\"success\":false,\"message\":\"Validation failed\",\"data\":null,\"errors\":{\"non_field_errors\":[\"Invalid credentials or inactive user.\"]}}",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T07:59:56",
+    "finished_at": "2025-11-24T07:59:56"
+  },
+  {
+    "test_id": "T1.4",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: Login failed for John: 400 {\"success\":false,\"message\":\"Validation failed\",\"data\":null,\"errors\":{\"non_field_errors\":[\"Invalid credentials or inactive user.\"]}}",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T07:59:56",
+    "finished_at": "2025-11-24T07:59:56"
+  },
+  {
+    "test_id": "T1.5",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: Login failed for John: 400 {\"success\":false,\"message\":\"Validation failed\",\"data\":null,\"errors\":{\"non_field_errors\":[\"Invalid credentials or inactive user.\"]}}",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T07:59:56",
+    "finished_at": "2025-11-24T07:59:56"
+  }
+]

@@ -1,11 +1,19 @@
 from rest_framework import serializers
 from .models import *
+from apps.authentication.models import User
+from apps.authentication.models import OrganizationalProfile
 
 # Company serializers
 class CompanyInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyInformation
         fields = '__all__'
+        extra_kwargs = {
+            'logo': {'required': False, 'allow_null': True},
+            'signature': {'required': False, 'allow_null': True},
+            'header': {'required': False, 'allow_blank': True},
+            'footer': {'required': False, 'allow_blank': True},
+        }
 
 class DepartmentSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source='company.name', read_only=True)
@@ -236,20 +244,24 @@ class LocationSPOCSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from apps.authentication.models.user import User
+        
+        request = self.context.get("request")
 
-        request = self.context.get('request')
-        if request and request.method in ('POST', 'PUT', 'PATCH'):
-            # Try to get location from request data
-            location_id = request.data.get('location')
+        # filter when creating/updating
+        if request and request.method in ("POST", "PUT", "PATCH"):
+            location_id = request.data.get("location")
+
             if location_id:
-                # Filter users belonging to that location
-                self.fields['spoc_user'].queryset = User.objects.filter(base_location_id=location_id)
-                self.fields['backup_spoc'].queryset = User.objects.filter(base_location_id=location_id)
+                user_ids = OrganizationalProfile.objects.filter(
+                    base_location_id=location_id
+                ).values_list("user_id", flat=True)
+
+                self.fields["spoc_user"].queryset = User.objects.filter(id__in=user_ids)
+                self.fields["backup_spoc"].queryset = User.objects.filter(id__in=user_ids)
+
             else:
-                # Fallback: return no users until location is selected
-                self.fields['spoc_user'].queryset = User.objects.none()
-                self.fields['backup_spoc'].queryset = User.objects.none()
+                self.fields["spoc_user"].queryset = User.objects.none()
+                self.fields["backup_spoc"].queryset = User.objects.none()
 
 # Approval and policy serializers
 class ApprovalMatrixSerializer(serializers.ModelSerializer):

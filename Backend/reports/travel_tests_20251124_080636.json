@@ -1,0 +1,52 @@
+[
+  {
+    "test_id": "T1.1",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: shifted_date() missing 1 required positional argument: 'test_index'",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T08:06:35",
+    "finished_at": "2025-11-24T08:06:36"
+  },
+  {
+    "test_id": "T1.2",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: shifted_date() missing 1 required positional argument: 'test_index'",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T08:06:36",
+    "finished_at": "2025-11-24T08:06:36"
+  },
+  {
+    "test_id": "T1.3",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: shifted_date() missing 1 required positional argument: 'test_index'",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T08:06:36",
+    "finished_at": "2025-11-24T08:06:36"
+  },
+  {
+    "test_id": "T1.4",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: shifted_date() missing 1 required positional argument: 'test_index'",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T08:06:36",
+    "finished_at": "2025-11-24T08:06:36"
+  },
+  {
+    "test_id": "T1.5",
+    "phase": 1,
+    "expected": "(see spec)",
+    "actual": "Exception: shifted_date() missing 1 required positional argument: 'test_index'",
+    "status": "FAIL",
+    "notes": "Exception during test execution",
+    "started_at": "2025-11-24T08:06:36",
+    "finished_at": "2025-11-24T08:06:36"
+  }
+]

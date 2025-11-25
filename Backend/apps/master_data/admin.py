@@ -60,7 +60,21 @@ class GradeMasterAdmin(admin.ModelAdmin):
 
 admin.site.register(travel.TravelModeMaster)
 admin.site.register(travel.TravelSubOptionMaster)
-admin.site.register(travel.GradeEntitlementMaster)
+
+@admin.register(travel.GradeEntitlementMaster)
+class GradeEntitlementMasterAdmin(admin.ModelAdmin):
+    list_display = ("grade","sub_option","city_category","is_allowed","max_amount",)
+    list_filter = ("grade","sub_option__mode","sub_option","city_category","is_allowed",)
+    search_fields = ("grade__name",)
+    autocomplete_fields = ("grade",)
+    ordering = ("grade__sorting_no","grade__name","sub_option__mode__name","sub_option__name","city_category__name",)
+    readonly_fields = ()
+    list_per_page = 50
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related("grade","sub_option","sub_option__mode","city_category",)
+
 admin.site.register(travel.VehicleTypeMaster)
 admin.site.register(travel.TravelPolicyMaster)
 admin.site.register(travel.EmailTemplateMaster)

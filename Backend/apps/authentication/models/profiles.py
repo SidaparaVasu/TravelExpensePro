@@ -79,6 +79,16 @@ class OrganizationalProfile(models.Model):
     
     def __str__(self):
         return f"{self.employee_id or 'No ID'} - {self.user.get_full_name()}"
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        # --- Grade Synchronization Patch ---
+        # Ensure User.grade always mirrors OrganizationalProfile.grade
+        if self.grade and getattr(self.user, "grade", None) != self.grade:
+            self.user.grade = self.grade
+            self.user.save(update_fields=["grade"])
+
 
 
 class ExternalProfile(models.Model):

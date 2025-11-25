@@ -27,6 +27,7 @@ import DeskAgentIndex from "./pages/deskagent/Index";
 // Travel
 import MakeTravelApplicationOld from "./pages/common/travel/MakeTravelApplication";
 import MakeTravelApplication3 from "./pages/common/travel/MakeTravelApplication3";
+import MakeTravelApplication4 from "./pages/common/travel/MakeTravelApplication4";
 import TravelApplicationList from "./pages/common/travel/TravelApplicationList";
 import ApplicationView from "./pages/common/travel/ApplicationView";
 import TravelRequestApprovals from "./pages/common/travel/TravelRequestApprovals";
@@ -68,6 +69,13 @@ function AuthOnly({ children }: { children: JSX.Element }) {
     ? children
     : <Navigate to={ROUTES.login} replace />;
 }
+
+const isAdminUser = () => {
+  const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+  return roles.some((r: any) =>
+    ["admin", "manager", "chro", "ceo"].includes(r.role_type?.toLowerCase())
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -124,21 +132,34 @@ const App = () => (
             path={ROUTES.profile}
             element={
               <AuthOnly>
-                <EmployeeLayout>
-                  <NewProfile />
-                </EmployeeLayout>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <NewProfile />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <NewProfile />
+                  </EmployeeLayout>
+                )}
               </AuthOnly>
             }
           />
+
 
           {/* ---------------- TRAVEL (EMPLOYEE + ADMIN) ---------------- */}
           <Route
             path={ROUTES.makeTravelApplicationOld}
             element={
               <AuthOnly>
-                <EmployeeLayout>
-                  <MakeTravelApplicationOld />
-                </EmployeeLayout>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <MakeTravelApplicationOld />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <MakeTravelApplicationOld />
+                  </EmployeeLayout>
+                )}
               </AuthOnly>
             }
           />
@@ -147,9 +168,32 @@ const App = () => (
             path={ROUTES.makeTravelApplication}
             element={
               <AuthOnly>
-                <EmployeeLayout>
-                  <MakeTravelApplication3 />
-                </EmployeeLayout>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <MakeTravelApplication3 />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <MakeTravelApplication3 />
+                  </EmployeeLayout>
+                )}
+              </AuthOnly>
+            }
+          />
+
+          <Route
+            path='/travel/new-application'
+            element={
+              <AuthOnly>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <MakeTravelApplication4 />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <MakeTravelApplication4 />
+                  </EmployeeLayout>
+                )}
               </AuthOnly>
             }
           />
@@ -158,10 +202,17 @@ const App = () => (
             path={ROUTES.travelApplicationList}
             element={
               <AuthOnly>
-                <EmployeeLayout>
-                  <TravelApplicationList />
-                </EmployeeLayout>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <TravelApplicationList />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <TravelApplicationList />
+                  </EmployeeLayout>
+                )}
               </AuthOnly>
+
             }
           />
 
@@ -169,9 +220,15 @@ const App = () => (
             path={ROUTES.travelRequestApproval}
             element={
               <AuthOnly>
-                <EmployeeLayout>
-                  <TravelRequestApprovals />
-                </EmployeeLayout>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <TravelRequestApprovals />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <TravelRequestApprovals />
+                  </EmployeeLayout>
+                )}
               </AuthOnly>
             }
           />
@@ -180,9 +237,15 @@ const App = () => (
             path="/travel/itineraries/:id"
             element={
               <AuthOnly>
-                <EmployeeLayout>
-                  <ItinerariesPage />
-                </EmployeeLayout>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <ItinerariesPage />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <ItinerariesPage />
+                  </EmployeeLayout>
+                )}
               </AuthOnly>
             }
           />
@@ -191,9 +254,15 @@ const App = () => (
             path="/travel/bookings"
             element={
               <AuthOnly>
-                <EmployeeLayout>
-                  <BookingsPage />
-                </EmployeeLayout>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <BookingsPage />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <BookingsPage />
+                  </EmployeeLayout>
+                )}
               </AuthOnly>
             }
           />
@@ -201,11 +270,22 @@ const App = () => (
           <Route
             path={ROUTES.travelApplicationView(":id")}
             element={
-              <AuthOnly>
-                <EmployeeLayout>
-                  <ApplicationView />
-                </EmployeeLayout>
-              </AuthOnly>
+              <Route
+                path="/travel/bookings"
+                element={
+                  <AuthOnly>
+                    {isAdminUser() ? (
+                      <AdminLayout>
+                        <ApplicationView />
+                      </AdminLayout>
+                    ) : (
+                      <EmployeeLayout>
+                        <ApplicationView />
+                      </EmployeeLayout>
+                    )}
+                  </AuthOnly>
+                }
+              />
             }
           />
 
@@ -234,9 +314,9 @@ const App = () => (
 
           {/* All other master routes */}
           <Route path={ROUTES.userManagement} element={
-              <ProtectedRoute requiredDashboard="admin">
-                <AdminLayout><UserManagementPage /></AdminLayout>
-              </ProtectedRoute> } />
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><UserManagementPage /></AdminLayout>
+            </ProtectedRoute>} />
 
           <Route path={ROUTES.orgMaster} element={
             <ProtectedRoute requiredDashboard="admin">

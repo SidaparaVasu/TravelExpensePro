@@ -45,6 +45,8 @@ DEBUG = env('DEBUG', default=False)
 
 # ALLOWED_HOSTS = []
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '*'])
+if "testserver" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("testserver")
 
 # Application definition
 
@@ -62,7 +64,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_filters',
     'drf_spectacular',
-
+    "django_json_widget",
+    
     # Celery
     'django_celery_beat',
     'django_celery_results',
@@ -90,6 +93,7 @@ MIDDLEWARE = [
 
 if DEBUG:
     MIDDLEWARE.append('utils.database_middleware.QueryCountMiddleware')
+    MIDDLEWARE.insert(0, "apps.travel.middleware.test_user_middleware.TestUserMiddleware")
 
 # Set the allowed origins
 CORS_ALLOWED_ORIGINS = env.list(
