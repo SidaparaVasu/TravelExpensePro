@@ -120,12 +120,20 @@ class ExpenseClaimSerializer(serializers.ModelSerializer):
     da_breakdown = DAIncidentalBreakdownSerializer(many=True, read_only=True)
     approval_flow = ClaimApprovalFlowSerializer(many=True, read_only=True)
 
+    employee_name = serializers.SerializerMethodField()
     status_code = serializers.SerializerMethodField()
     status_label = serializers.SerializerMethodField()
     approval_history_count = serializers.SerializerMethodField()
     last_approver = serializers.SerializerMethodField()
     last_action_status = serializers.SerializerMethodField()
 
+    def get_employee_name(self, obj):
+        # safe fallback if user or profile doesn't exist
+        if obj.employee:
+            full = obj.employee.get_full_name()
+            return full or obj.employee.username or obj.employee.email
+        return None
+    
     def get_status_code(self, obj):
         return obj.status.code if obj.status else None
 
@@ -149,6 +157,7 @@ class ExpenseClaimSerializer(serializers.ModelSerializer):
             "id",
             "travel_application",
             "employee",
+            "employee_name",
             "status",
             "status_code",
             "status_label",

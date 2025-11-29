@@ -5,7 +5,7 @@ import { UserTable } from './UserTable';
 import { UserDetailDrawer } from './UserDetailDrawer';
 import { UserFormModal } from './UserFormModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
-import { User, UserFilters as UserFiltersType, UserCreatePayload } from '@/src/types/users';
+import { User, UserFilters as UserFiltersType, UserCreatePayload } from '@/src/types/users.types';
 import { userAPI } from '@/src/api/users';
 import { useToast } from '@/hooks/use-toast';
 

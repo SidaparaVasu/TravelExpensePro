@@ -8,7 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { User } from '@/src/types/users';
+import { User } from '@/src/types/users.types';
 
 interface DeleteConfirmDialogProps {
   user: User | null;

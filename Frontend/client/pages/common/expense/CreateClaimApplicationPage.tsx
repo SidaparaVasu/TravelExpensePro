@@ -305,40 +305,47 @@ export default function CreateClaimApplicationPage() {
   };
 
   // SUBMIT CLAIM
-  try {
-    const submitResult = await submitClaimJson();
+  const handleSubmit = async () => {
+    if (!selectedApp) return;
+    setLoading(true);
 
-    // If backend returns success TRUE → no errors, continue
-    if (submitResult?.success === true) {
+    try {
+      const submitResult = await submitClaimJson();
 
-      const claimId = submitResult.data.claim_id;
-      const createdItems = await fetchCreatedItems(claimId);
-      await uploadReceipts(claimId, createdItems);
+      // SUCCESS FLOW
+      if (submitResult?.success === true) {
+        const claimId = submitResult.data.claim_id;
 
+        const createdItems = await fetchCreatedItems(claimId);
+        await uploadReceipts(claimId, createdItems);
+
+        toast({
+          title: "Success",
+          description: submitResult.message || "Claim submitted successfully",
+        });
+
+        navigate(ROUTES.indexClaimPage);
+        return;
+      }
+
+      // BACKEND SENT success = false → VALIDATION ERRORS
       toast({
-        title: "Success",
-        description: submitResult.message || "Claim submitted successfully",
+        variant: "destructive",
+        title: "Submission Error",
+        description: submitResult?.message || "Validation failed."
       });
 
-      navigate(ROUTES.indexClaimPage);
-      return;
+    } catch (error) {
+      // NETWORK/UNEXPECTED ERRORS ONLY
+      toast({
+        variant: "destructive",
+        title: "Request Failed",
+        description: "Unable to submit claim. Please try again."
+      });
+    } finally {
+      setLoading(false);
     }
-
-    // Backend returned success = false → show validation errors
-    toast({
-      variant: "destructive",
-      title: "Submission Error",
-      description: submitResult?.message || "Validation failed.",
-    });
-
-  } catch (error) {
-    // THIS BLOCK SHOULD ONLY SHOW TRUE NETWORK/CRASH ERRORS
-    toast({
-      variant: "destructive",
-      title: "Request Failed",
-      description: "Unable to submit claim. Please try again."
-    });
-  }
+  };
 
   const getExpenseTypeName = (id: string | number) => {
     const type = expenseTypes.find((t: any) => t.id === Number(id));
@@ -346,13 +353,13 @@ export default function CreateClaimApplicationPage() {
   };
 
   const extractErrorMessage = (error: any) => {
-  const api = error?.response?.data;
-  return (
-    api?.message ||
-    api?.detail ||
-    "Something went wrong. Please try again."
-  );
-};
+    const api = error?.response?.data;
+    return (
+      api?.message ||
+      api?.detail ||
+      "Something went wrong. Please try again."
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -364,7 +371,7 @@ export default function CreateClaimApplicationPage() {
               variant="ghost"
               size="icon"
               onClick={() => navigate(-1)}
-              className="text-muted-foreground hover:text-foreground hover:bg-slate-100"
+              className="bg-slate-50 text-black text-muted-foreground hover:text-foreground hover:bg-slate-100"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -380,7 +387,7 @@ export default function CreateClaimApplicationPage() {
 
       <main className="container mx-auto px-6 py-8 max-w-7xl">
         {/* SELECT TRAVEL APPLICATION */}
-        <Card className="p-6 mb-6">
+        <Card className="p-6 mb-6 bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
           <div className="flex items-start gap-3 mb-4">
             <FileText className="h-5 w-5 text-primary mt-0.5" />
             <div className="flex-1">

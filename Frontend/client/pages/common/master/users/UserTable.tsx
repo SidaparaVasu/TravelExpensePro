@@ -8,7 +8,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { User, GENDER_LABELS, USER_TYPE_LABELS } from '@/src/types/users';
+import { User, GENDER_LABELS, USER_TYPE_LABELS } from '@/src/types/users.types';
 import { Badge } from '@/components/ui/badge';
 
 interface UserTableProps {

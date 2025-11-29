@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { UserFilters as UserFiltersType, UserType } from '@/src/types/users';
+import { UserFilters as UserFiltersType, UserType } from '@/src/types/users.types';
 
 interface UserFiltersProps {
   filters: UserFiltersType;

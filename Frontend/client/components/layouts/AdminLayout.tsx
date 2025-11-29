@@ -122,7 +122,7 @@ const getAdminSidebar = (primaryDashboard) => [
     items: [
       { label: "My Claims", path: ROUTES.indexClaimPage, Icon: BadgeIndianRupee },
       { label: "Claim Application", path: ROUTES.claimApplicationPage, Icon: CreditCard },
-      // { label: "Claim Approvals", path: "/expense-approvals", Icon: CircleCheckBig },
+      { label: "Claim Approvals", path: ROUTES.claimApprovalPage, Icon: CircleCheckBig },
     ],
   },
   // {

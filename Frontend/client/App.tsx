@@ -39,7 +39,7 @@ import ExpenseIndex from "./pages/common/expense/Index";
 import MyClaimsPage from "./pages/common/expense/MyClaimsPage";
 import ClaimDetailPage from "./pages/common/expense/ClaimDetailPage";
 import CreateClaimApplicationPage from "./pages/common/expense/CreateClaimApplicationPage";
-// import CreateClaimApplicationPage from "./pages/common/expense/CreateExpenseClaim";
+import ClaimApprovalPage from "./pages/common/expense/ClaimApprovalPage";
 
 // Master Pages (Admin Only)
 import MasterPage from "./pages/common/master/MasterIndex";
@@ -61,6 +61,8 @@ import GradeMasterPage from "./pages/common/master/GradeMaster";
 import ApprovalMatrixMasterPage from "./pages/common/master/ApprovalMatrixMaster";
 import DAIncidentalMasterPage from "./pages/common/master/DAIncidentalsMaster";
 import ConveyanceRateMasterPage from "./pages/common/master/ConveyanceRateMaster";
+import ExpenseTypesMasterPage from "./pages/common/master/ExpenseTypeMaster";
+import ClaimStatusMasterPage from "./pages/common/master/ClaimStatusMaster";
 
 // UI
 import { Toaster } from "@/components/ui/toaster";
@@ -361,6 +363,23 @@ const App = () => (
             }
           />
 
+          <Route
+            path={ROUTES.claimApprovalPage}
+            element={
+              <AuthOnly>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <ClaimApprovalPage />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <ClaimApprovalPage />
+                  </EmployeeLayout>
+                )}
+              </AuthOnly>
+            }
+          />
+
           {/* ---------------- MASTER PAGES (ADMIN ONLY) ---------------- */}
           <Route
             path={ROUTES.master}
@@ -468,6 +487,16 @@ const App = () => (
           <Route path={ROUTES.locationSPOCMaster} element={
             <ProtectedRoute requiredDashboard="admin">
               <AdminLayout><LocationSPOCMasterPage /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.expenseTypeMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><ExpenseTypesMasterPage /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.claimStatusMaster} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><ClaimStatusMasterPage /></AdminLayout>
             </ProtectedRoute>} />
 
         </Routes>

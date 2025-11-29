@@ -29,6 +29,7 @@ export const ROUTES = {
   indexClaimPage: "/expense/my-claims",
   claimApplicationPage: "/expense/submit-claim",
   claimDetailPage: (id: number | string) => `/expense/claims/${id}`,
+  claimApprovalPage: "/expense/claim-approvals",
 
   // ---------------- ADMIN: MASTER PAGES ----------------
   master: "/masters",
@@ -77,6 +78,10 @@ export const ROUTES = {
   // Travel Master
   glCodeMaster: "/masters/gl-code",
   travelModeMaster: "/masters/travel-mode",
+
+  // Expense Master
+  expenseTypeMaster: '/masters/expense-type',
+  claimStatusMaster: '/masters/claim-status',
 
   // ---------------- SETTINGS / REPORTS ----------------
   settings: "/settings",

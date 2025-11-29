@@ -110,11 +110,10 @@ function Pagination({ pagination, onPageChange }) {
               key={page}
               size="sm"
               variant={page === current_page ? "default" : "outline"}
-              className={`h-8 px-3 ${
-                page === current_page
+              className={`h-8 px-3 ${page === current_page
                   ? "bg-blue-600 text-white"
                   : "border-gray-300"
-              }`}
+                }`}
               onClick={() => onPageChange(page)}
             >
               {page}
@@ -231,147 +230,147 @@ export default function TravelApplicationList() {
   };
 
   if (isLoading) {
-    return 
-      // <Layout>
-        <div className="p-4">Loading...</div>
-      // </Layout>;
+    return
+    // <Layout>
+    <div className="p-4">Loading...</div>
+    // </Layout>;
   }
 
   return (
     // <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-semibold">My Travel Applications</h1>
-            <p className="text-lg text-muted-foreground mt-1">
-              Track your travel requests, approvals, and booking progress in one place.
-            </p>
-          </div>
-          <Button onClick={() => navigate('/travel/make-travel-application')}>
-            <Plus className="w-4 h-4 mr-2" />
-            New Application
-          </Button>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-semibold">My Travel Applications</h1>
+          <p className="text-lg text-muted-foreground mt-1">
+            Track your travel requests, approvals, and booking progress in one place.
+          </p>
         </div>
+        <Button onClick={() => navigate('/travel/make-travel-application')}>
+          <Plus className="w-4 h-4 mr-2" />
+          New Application
+        </Button>
+      </div>
 
-        {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-[70px] h-[70px] rounded-lg bg-blue-50 flex items-center justify-center">
-                    <ClipboardList className="h-7 w-7 text-blue-500" />
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-[70px] h-[70px] rounded-lg bg-blue-50 flex items-center justify-center">
+                  <ClipboardList className="h-7 w-7 text-blue-500" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {stats.total_applications}
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {stats.total_applications}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Total Applications
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    Total Applications
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-[70px] h-[70px] rounded-lg bg-gray-100 flex items-center justify-center">
-                    <SquarePen className="h-7 w-7 text-gray-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-[70px] h-[70px] rounded-lg bg-gray-100 flex items-center justify-center">
+                  <SquarePen className="h-7 w-7 text-gray-500" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {stats.draft}
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {stats.draft}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Draft(s)
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    Draft(s)
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-[70px] h-[70px] rounded-lg bg-orange-50 flex items-center justify-center">
-                    <Clock className="h-7 w-7 text-orange-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-[70px] h-[70px] rounded-lg bg-orange-50 flex items-center justify-center">
+                  <Clock className="h-7 w-7 text-orange-500" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {stats.pending}
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {stats.pending}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Remaining submissions
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    Remaining submissions
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-[70px] h-[70px] rounded-lg bg-green-50 flex items-center justify-center">
-                    <CheckCircle className="h-7 w-7 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-[70px] h-[70px] rounded-lg bg-green-50 flex items-center justify-center">
+                  <CheckCircle className="h-7 w-7 text-green-500" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {stats.approved}
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {stats.approved}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Approved applications
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    Approved applications
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-        {/* Filters */}
-        <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
-          <CardContent className="p-6">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search by employee name or request ID..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-[170px]">
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+      {/* Filters */}
+      <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search by employee name or request ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[170px]">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Applications Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>My Applications</CardTitle>
-          </CardHeader>
-          <CardContent>
+      {/* Applications Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>My Applications</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Request ID</TableHead>
-                  <TableHead>Purpose</TableHead>
-                  {/* <TableHead>Trips</TableHead> */}
-                  <TableHead>Dates</TableHead>
+                  <TableHead className='max-w-2xs'>Purpose</TableHead>
+                  <TableHead className='max-w-2xs'>Dates</TableHead>
                   <TableHead>Total Cost</TableHead>
                   <TableHead className="text-center">Status</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
@@ -393,9 +392,9 @@ export default function TravelApplicationList() {
                   applications.map((app) => (
                     <TableRow key={app.id}>
                       <TableCell className="font-medium">{app.travel_request_id}</TableCell>
-                      <TableCell>{app.purpose}...</TableCell>
+                      <TableCell className='max-w-2xs'>{app.purpose}...</TableCell>
                       {/* <TableCell>{app.trip_details.length} trip(s)</TableCell> */}
-                      <TableCell>{formatDateRange(app.trip_details[0].departure_date, app.trip_details[0].return_date)}</TableCell>
+                      <TableCell className='max-w-2xs'>{formatDateRange(app.trip_details[0].departure_date, app.trip_details[0].return_date)}</TableCell>
                       <TableCell>₹{parseFloat(app.estimated_total_cost).toLocaleString()}</TableCell>
                       <TableCell className="text-center">{getStatusBadge(app.status)}</TableCell>
                       <TableCell className="text-right">
@@ -436,13 +435,14 @@ export default function TravelApplicationList() {
                 )}
               </TableBody>
             </Table>
-            <Pagination
-              pagination={pagination}
-              onPageChange={(newPage) => setPage(newPage)}
-            />
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          <Pagination
+            pagination={pagination}
+            onPageChange={(newPage) => setPage(newPage)}
+          />
+        </CardContent>
+      </Card>
+    </div>
     // </Layout>
   );
 }

@@ -139,7 +139,7 @@ export default function ClaimDetailPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-xs text-slate-600">
-                          {item.remarks || '—'}
+                          {item.remarks || 'N/A'}
                         </TableCell>
                       </TableRow>
                     ))}

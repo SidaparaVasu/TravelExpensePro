@@ -2,7 +2,7 @@ import { X, Mail, MapPin, Building, Briefcase, Users, Calendar, Clock } from 'lu
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { User, GENDER_LABELS, USER_TYPE_LABELS } from '@/src/types/users';
+import { User, GENDER_LABELS, USER_TYPE_LABELS } from '@/src/types/users.types';
 import {
   Sheet,
   SheetContent,

@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { User, UserType, Gender, UserCreatePayload } from '@/src/types/users';
+import { User, UserType, Gender, UserCreatePayload } from '@/src/types/users.types';
 import { userAPI } from '@/src/api/users';
 import { organizationMasterAPI } from '@/src/api/master_company';
 import { masterAPI } from '@/src/api/master';

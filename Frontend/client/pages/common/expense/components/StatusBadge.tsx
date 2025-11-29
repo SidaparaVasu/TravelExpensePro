@@ -8,11 +8,12 @@ interface StatusBadgeProps {
 const statusConfig: Record<string, { variant: any; label: string }> = {
   draft: { variant: 'secondary', label: 'Draft' },
   submitted: { variant: 'default', label: 'Submitted' },
-  manager_pending: { variant: 'warning', label: 'Pending Manager' },
-  finance_pending: { variant: 'info', label: 'Pending Finance' },
+  manager_pending: { variant: 'warning', label: 'Pending By Manager' },
+  finance_pending: { variant: 'info', label: 'Pending By Finance' },
   approved: { variant: 'success', label: 'Approved' },
   rejected: { variant: 'destructive', label: 'Rejected' },
   paid: { variant: 'success', label: 'Paid' },
+  closed: { variant: 'outline', label: 'Closed' },
 };
 
 export function StatusBadge({ status, size = 'default' }: StatusBadgeProps) {

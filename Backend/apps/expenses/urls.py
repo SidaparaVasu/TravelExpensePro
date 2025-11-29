@@ -17,6 +17,9 @@ urlpatterns = [
     # Claim Approval (Approve / Reject)
     path("claims/<int:claim_id>/action/", ClaimActionView.as_view(), name="expense-claim-action"),
 
+    # Pending Claim Approval
+    path("claims/pending-approvals/",  ClaimPendingApprovalListView.as_view(), name="expense-claim-pending-approvals"),
+
     # Claimable Travel Application
      path("claimable-travel-applications/", ClaimableTravelApplicationsView.as_view()),
 
@@ -29,6 +32,10 @@ urlpatterns = [
     # path("reports/claims/pdf/", ClaimReportPDFView.as_view(), name="expense-claims-report-pdf"),
 
     # --- Master Data APIs ---
-    path("expense-types/", ExpenseTypeListView.as_view(), name="expense-types"),
-    path("claim-status/", ClaimStatusListView.as_view(), name="claim-status"),
+    path("expense-types/", ExpenseTypeListCreateView.as_view(), name="expense-types"),
+    path("expense-types/<int:pk>/", ExpenseTypeDetailView.as_view(), name="expense-type-detail"),
+
+    path("claim-status/", ClaimStatusListCreateView.as_view(), name="claim-status"),
+    path("claim-status/<int:pk>/", ClaimStatusDetailView.as_view(), name="claim-status-detail"),
+
 ]

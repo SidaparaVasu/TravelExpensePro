@@ -72,12 +72,12 @@ export const userAPI = {
         return data;
     },
 
-    create: async (payload: UserCreatePayload) => {
+    create: async (payload) => {
         const { data } = await apiClient.post('/users/', payload);
         return data;
     },
 
-    update: async (id: number, payload: Partial<User>) => {
+    update: async (id: number, payload) => {
         const { data } = await apiClient.put(`/users/${id}/`, payload);
         return data;
     },

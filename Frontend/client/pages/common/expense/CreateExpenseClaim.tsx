@@ -19,7 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import type { ClaimableApp, ExpenseItem, ExpenseType, DABreakdown } from '@/src/types/expense-2';
+import type { ClaimableApp, ExpenseItem, ExpenseType, DABreakdown } from '@/src/types/expense-2.types';
 
 export default function CreateExpenseClaim() {
   const navigate = useNavigate();

@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/table';
 import { expenseAPI } from '@/src/api/expense';
 import { ROUTES } from '@/routes/routes';
-import type { ClaimListParams } from '@/src/types/expense-2';
+import type { ClaimListParams } from '@/src/types/expense-2.types';
 
 export const formatISODate = (iso: string | null | undefined) => {
   if (!iso) return "—";
@@ -314,67 +314,69 @@ export default function MyClaimsPage() {
           <CardTitle>My Claims</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Travel Request</TableHead>
-                <TableHead>Total Expenses</TableHead>
-                <TableHead>Advance Taken</TableHead>
-                <TableHead>Final Payable</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead>Submitted On</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {claims?.length === 0 ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-gray-500">
-                    No claims found. Create your first expense claim to get started.
-                  </TableCell>
+                  <TableHead>Travel Request</TableHead>
+                  <TableHead>Total Expenses</TableHead>
+                  <TableHead>Advance Taken</TableHead>
+                  <TableHead>Final Payable</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead>Submitted On</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
-              ) : (
-                claims?.map((claim: any) => (
-                  <TableRow key={claim.id}>
-                    <TableCell className="font-medium">TR-{claim.travel_application}</TableCell>
-                    <TableCell>
-                      ₹{(Number(claim.total_expenses) + Number(claim.total_da) + Number(claim.total_incidental)).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      ₹{Number(claim.advance_received).toLocaleString()}
-                    </TableCell>
-                    <TableCell
-                      className={
-                        Number(claim.final_amount_payable) < 0
-                          ? "text-red-600 font-semibold"
-                          : "text-green-600 font-semibold"
-                      }
-                    >
-                      ₹{Number(claim.final_amount_payable).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <StatusBadge status={claim.status_code} />
-                    </TableCell>
-                    <TableCell>
-                      {claim.created_on ? formatISODate(claim.created_on) : "-"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="hover:bg-dark-200 hover:text-dark-foreground"
-                          onClick={() => navigate(ROUTES.claimDetailPage(claim.id))}
-                        >
-                          View
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {claims?.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-gray-500">
+                      No claims found. Create your first expense claim to get started.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  claims?.map((claim: any) => (
+                    <TableRow key={claim.id}>
+                      <TableCell className="font-medium">TR-{claim.travel_application}</TableCell>
+                      <TableCell>
+                        ₹{(Number(claim.total_expenses) + Number(claim.total_da) + Number(claim.total_incidental)).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        ₹{Number(claim.advance_received).toLocaleString()}
+                      </TableCell>
+                      <TableCell
+                        className={
+                          Number(claim.final_amount_payable) < 0
+                            ? "text-red-600 font-semibold"
+                            : "text-green-600 font-semibold"
+                        }
+                      >
+                        ₹{Number(claim.final_amount_payable).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <StatusBadge status={claim.status_code} />
+                      </TableCell>
+                      <TableCell>
+                        {claim.created_on ? formatISODate(claim.created_on) : "-"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="hover:bg-dark-200 hover:text-dark-foreground"
+                            onClick={() => navigate(ROUTES.claimDetailPage(claim.id))}
+                          >
+                            View
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
           <Pagination
             pagination={pagination}
             onPageChange={(newPage) => setPage(newPage)}

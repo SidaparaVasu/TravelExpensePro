@@ -8,25 +8,22 @@ import type {
   ExpenseType,
   ClaimStatus,
   ClaimListParams,
-} from '@/src/types/expense-2';
+} from '@/src/types/expense-2.types';
 
 export const expenseAPI = {
   claimableApps: {
     getAll: async () => {
       const { data } = await apiClient.get('/expense/claimable-travel-applications/');
-      console.log("claimable apps: ", data);
       return data;
     }
   },
   claims: {
     getAll: async (params?: ClaimListParams) => {
       const { data } = await apiClient.get('/expense/claims/', { params });
-      console.log("claims: ", data);
       return data;
     },
     get: async (id: number) => {
       const { data } = await apiClient.get(`/expense/claims/${id}/`);
-      console.log("claim details: ", data.data);
       return data.data;
     },
     create: async (payload: FormData) => {
@@ -51,7 +48,6 @@ export const expenseAPI = {
         '/expense/claims/validate/',
         payload
       );
-      console.log("expenseType.validate(): ", data);
       return data;
     },
     action: async (id: number, payload: ExpenseClaimActionRequest) => {
@@ -70,18 +66,59 @@ export const expenseAPI = {
       );
       return data;
     },
+    getPendingApprovals: async (params?: any) => {
+      const { data } = await apiClient.get('/expense/claims/pending-approvals/', {
+        params,
+      });
+      console.log(data);
+      return data;
+    },
   },
   expenseTypes: {
     getAll: async () => {
       const { data } = await apiClient.get<ExpenseType[]>('/expense/expense-types/');
-      console.log("expenseType.getAll(): ", data);
+      return data;
+    },
+    get: async (id) => {
+      const { data } = await apiClient.get<ClaimStatus[]>(`/expense/expense-types/${id}/`);
+      return data;
+    },
+    create: async (payload) => {
+      const { data } = await apiClient.post<ExpenseType[]>('/expense/expense-types/', payload);
+      return data;
+    },
+    update: async (id, payload) => {
+      const { data } = await apiClient.post<ExpenseType[]>(`/expense/expense-types/${id}/`, payload);
+      return data;
+    },
+    delete: async (id: number, hard: boolean = false) => {
+      const url = hard
+        ? `/expense/expense-types/${id}/?hard=true`
+        : `/expense/expense-types/${id}/`;
+
+      const { data } = await apiClient.delete(url);
       return data;
     },
   },
   claimStatus: {
     getAll: async () => {
       const { data } = await apiClient.get<ClaimStatus[]>('/expense/claim-status/');
-      console.log("claim status: ", data);
+      return data;
+    },
+    get: async (id) => {
+      const { data } = await apiClient.get<ClaimStatus[]>(`/expense/claim-status/${id}/`);
+      return data;
+    },
+    create: async (payload) => {
+      const { data } = await apiClient.post<ExpenseType[]>('/expense/claim-status/', payload);
+      return data;
+    },
+    update: async (id, payload) => {
+      const { data } = await apiClient.post<ExpenseType[]>(`/expense/claim-status/${id}/`, payload);
+      return data;
+    },
+    delete: async (id) => {
+      const { data } = await apiClient.delete<ExpenseType[]>(`/expense/claim-status/${id}/`);
       return data;
     },
   },

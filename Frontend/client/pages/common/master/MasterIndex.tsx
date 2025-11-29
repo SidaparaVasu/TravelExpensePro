@@ -14,6 +14,7 @@ import {
     Users,
     UserLock,
     ChevronRight,
+    IndianRupeeIcon,
 } from 'lucide-react';
 import { ROUTES } from "@/routes/routes";
 
@@ -82,22 +83,31 @@ const MASTER_CATEGORIES = [
             { id: 'conveyance-rate', title: 'Conveyance Rate', route: ROUTES.conveyanceRateMaster },
         ],
     },
+    {
+        id: 'expense',
+        title: 'Expense',
+        icon: IndianRupeeIcon,
+        items: [
+            { id: 'expense-type', title: 'Expense Type', route: ROUTES.expenseTypeMaster },
+            { id: 'claim-status', title: 'Claim Status', route: ROUTES.claimStatusMaster },
+        ],
+    },
     // {
     //     id: 'workflow',
     //     title: 'Workflow',
     //     icon: Repeat,
     //     items: [{ id: 'approval-workflow', title: 'Approval Workflow', route: '/masters/approval-workflow' }],
     // },
-    // {
-    //     id: 'users',
-    //     title: 'Users',
-    //     icon: Users,
-    //     items: [
-    //         {id: 'employee', title: "Employees", route: ROUTES.employeeMasterPage},
-    //         {id: 'user-mng', title: "User Management", route: ROUTES.userManagement},
-    //         {id: 'users', title: "Users (new)", route: ROUTES.users},
-    //     ]
-    // },
+    {
+        id: 'users',
+        title: 'Users',
+        icon: Users,
+        items: [
+            // {id: 'employee', title: "Employees", route: ROUTES.employeeMasterPage},
+            // {id: 'user-mng', title: "User Management", route: ROUTES.userManagement},
+            {id: 'users', title: "Users (new)", route: ROUTES.users},
+        ]
+    },
     // {
     //     id: 'roles',
     //     title: 'Role & Permissions',

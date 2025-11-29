@@ -143,11 +143,25 @@ class ClaimDetailView(APIView):
             claim = ExpenseClaim.objects.select_related("employee", "status", "travel_application").filter(id=claim_id).first()
             if not claim:
                 return error_response(data={"claim": ["Claim not found"]}, message="Claim not found")
+            
+            user = request.user
+            is_employee = (claim.employee == user)
+            is_staff = user.is_staff
+            is_approver = claim.approval_flow.filter(approver=user).exists()
 
-            # permission checks: owner or staff
-            if claim.employee != request.user and not request.user.is_staff:
-                return error_response(data={"permission": ["You cannot view this claim"]}, message="Forbidden")
+            # Auto-approver logic (manager fallback)
+            from apps.authentication.models.profiles import OrganizationalProfile
+            profile = OrganizationalProfile.objects.filter(user=claim.employee).first()
+            is_reporting_manager = (
+                profile and profile.reporting_manager == user
+            )
 
+            if not (is_employee or is_staff or is_approver or is_reporting_manager):
+                return error_response(
+                    data={"permission": ["You cannot view this claim"]},
+                    message="Forbidden"
+                )
+            
             serializer = ClaimDetailSerializer(claim, context={"request": request})
             return success_response(message="Claim detail retrieved", data=serializer.data)
         except Exception as ex:
@@ -240,22 +254,171 @@ class ClaimReceiptUploadView(APIView):
 # -------------------------
 # Master endpoints (frontend)
 # -------------------------
-class ExpenseTypeListView(APIView):
+class ExpenseTypeListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        types = ExpenseTypeMaster.objects.filter(is_active=True).order_by("name")
-        data = ExpenseTypeMasterSerializer(types, many=True).data
-        return success_response(message="Success", data=data)
+        """Return only active expense types (used in dropdowns)."""
+        try:
+            types = ExpenseTypeMaster.objects.all().order_by("name")
+            data = ExpenseTypeMasterSerializer(types, many=True).data
+            return success_response(message="Success", data=data)
+        except Exception as ex:
+            return error_response(message="Unexpected error", data={"detail": str(ex)})
 
+    def post(self, request):
+        """Create a new expense type."""
+        try:
+            serializer = ExpenseTypeMasterSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return success_response(message="Created successfully", data=serializer.data)
+        except Exception as ex:
+            return error_response(message="Failed to create", data=serializer.errors)
 
-class ClaimStatusListView(APIView):
+class ExpenseTypeDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        return ExpenseTypeMaster.objects.filter(pk=pk).first()
+
+    def post(self, request, pk):
+        """Update Expense Type (your frontend uses POST for update)."""
+        et = self.get_object(pk)
+        if not et:
+            return error_response(message="Not found", data=None)
+
+        serializer = ExpenseTypeMasterSerializer(et, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return success_response(message="Updated successfully", data=serializer.data)
+
+        return error_response(message="Update failed", data=serializer.errors)
+
+    def delete(self, request, pk):
+        """
+        Support BOTH:
+         - Soft delete → toggle is_active
+         - Hard delete → if ?hard=true 
+        """
+        et = self.get_object(pk)
+        if not et:
+            return error_response(message="Not found", data=None)
+
+        hard = request.query_params.get("hard")
+
+        if hard == "true":
+            et.delete()
+            return success_response(message="Hard delete successful", data=None)
+
+        # Soft delete
+        et.is_active = False
+        et.save()
+        return success_response(message="Soft delete successful", data=None)
+
+class ClaimStatusListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        sts = ClaimStatusMaster.objects.all().order_by("sequence")
-        data = ClaimStatusMasterSerializer(sts, many=True).data
-        return success_response(message="Success", data=data)
+        """Return claim statuses in correct business sequence."""
+        try:
+            statuses = ClaimStatusMaster.objects.all().order_by("sequence")
+            data = ClaimStatusMasterSerializer(statuses, many=True).data
+            return success_response(message="Success", data=data)
+        except Exception as ex:
+            return error_response(message="Unexpected error", data={"detail": str(ex)})
+
+    def post(self, request):
+        """Create a new claim status."""
+        try:
+            serializer = ClaimStatusMasterSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return success_response(message="Created successfully", data=serializer.data)
+        except Exception as ex:
+            return error_response(message="Failed to create", data=serializer.errors)
+
+class ClaimStatusDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        return ClaimStatusMaster.objects.filter(pk=pk).first()
+
+    def post(self, request, pk):
+        """Update claim status (frontend uses POST)"""
+        cs = self.get_object(pk)
+        if not cs:
+            return error_response(message="Not found", data=None)
+
+        serializer = ClaimStatusMasterSerializer(cs, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return success_response(message="Updated successfully", data=serializer.data)
+
+        return error_response(message="Update failed", data=serializer.errors)
+
+    def delete(self, request, pk):
+        """Hard delete only."""
+        cs = self.get_object(pk)
+        if not cs:
+            return error_response(message="Not found", data=None)
+
+        cs.delete()
+        return success_response(message="Deleted", data=None)
+
+
+# -------------------------
+# Pending Claim Approvals for Responsible Approver
+# -------------------------
+class ClaimPendingApprovalListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        # Fetch all claims where this user is an approver
+        claims = ExpenseClaim.objects.filter(
+            approval_flow__approver=user
+        ).select_related(
+            "travel_application",
+            "employee",
+            "status"
+        ).distinct()
+
+        # Optional filters
+        status_q = request.query_params.get("status")   # e.g. manager_pending, approved, rejected
+        search = request.query_params.get("search")
+        date_from = request.query_params.get("from_date")
+        date_to = request.query_params.get("to_date")
+
+        if status_q:
+            claims = claims.filter(status__code=status_q)
+
+        if search:
+            claims = claims.filter(
+                Q(id__icontains=search) |
+                Q(travel_application__travel_request_id__icontains=search) |
+                Q(employee__first_name__icontains=search) |
+                Q(employee__last_name__icontains=search)
+            )
+
+        if date_from:
+            claims = claims.filter(created_on__date__gte=date_from)
+
+        if date_to:
+            claims = claims.filter(created_on__date__lte=date_to)
+
+        claims = claims.order_by("-created_on")
+
+        paginator = StandardResultsSetPagination()
+        page = paginator.paginate_queryset(claims, request)
+        serializer = ClaimListSerializer(page, many=True)
+
+        return paginated_response(
+            message="Approval claims fetched successfully",
+            serializer_data=serializer.data,
+            paginator=paginator
+        )
 
 # -------------------------
 # ClaimActionView — Approve / Reject
