@@ -38,7 +38,9 @@ export const expenseAPI = {
 
     submit: async (formData: FormData) => {
       const { data } = await apiClient.post('/expense/claims/', formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "application/json"
+        }
       });
       return data;
     },

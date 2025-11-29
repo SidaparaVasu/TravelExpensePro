@@ -188,50 +188,59 @@ export default function CreateClaimApplicationPage() {
     return list;
   };
 
-  const buildFormDataPayload = () => {
+  const buildJsonPayload = () => {
+    return {
+      travel_application_id: selectedApp.id,
+      items: [
+        ...bookingRows.map(b => ({
+          expense_type: Number(b.expense_type),
+          expense_date: b.expense_date,
+          amount: Number(b.amount),
+          has_receipt: Boolean(b.has_receipt),
+          remarks: b.remarks || ""
+        })),
+        ...otherExpenses.map(o => ({
+          expense_type: Number(o.expense_type),
+          expense_date: o.expense_date,
+          amount: Number(o.amount),
+          has_receipt: true,
+          remarks: o.remarks || ""
+        }))
+      ],
+      acknowledged_warnings: Array.isArray(validationResult?.data?.warnings) ? validationResult.data.warnings : [],
+      exception_reasons: []
+    };
+  };
+
+  const submitClaimJson = async () => {
+    const payload = buildJsonPayload();
+    console.log("payload: ", payload);
+    return await expenseAPI.claims.submit(payload); // JSON POST
+  };
+
+  const fetchCreatedItems = async (claimId: number) => {
+    const res = await expenseAPI.claims.get(claimId);
+    return res?.data?.items || [];
+  };
+
+  const uploadReceipts = async (claimId: number, createdItems: any[]) => {
     const formData = new FormData();
-    console.log('from buildFormDataPayload');
-    console.log(selectedApp?.id.toString());
-    formData.append("travel_application_id", selectedApp?.id.toString() || "");
 
-    bookingRows.forEach((b, i) => {
-      formData.append(`items[${i}][expense_type]`, b.expense_type);
-      formData.append(`items[${i}][expense_date]`, b.expense_date);
-      formData.append(`items[${i}][amount]`, b.amount);
-      formData.append(`items[${i}][has_receipt]`, b.has_receipt ? "true" : "false");
-      formData.append(`items[${i}][remarks]`, b.remarks || "");
+    const allItems = [...bookingRows, ...otherExpenses];
 
-      if (b.receipt_file) {
-        formData.append(`items[${i}][receipt_file]`, b.receipt_file);
+    allItems.forEach((row, index) => {
+      if (row.receipt_file) {
+        const itemId = createdItems[index].id; // match by order
+        formData.append("files", row.receipt_file);
+        formData.append("items", itemId);
       }
-
-      console.log(b.expense_type);
-      console.log(b.receipt_file);
     });
 
-    const offset = bookingRows.length;
-    otherExpenses.forEach((o, j) => {
-      const idx = offset + j;
-      formData.append(`items[${idx}][expense_type]`, o.expense_type);
-      formData.append(`items[${idx}][expense_date]`, o.expense_date);
-      formData.append(`items[${idx}][amount]`, o.amount);
-      formData.append(`items[${idx}][has_receipt]`, "true"); // additional always needs receipts
-      formData.append(`items[${idx}][remarks]`, o.remarks || "");
+    if ([...formData.keys()].length === 0) {
+      return { success: true, message: "No receipts to upload" };
+    }
 
-      if (o.receipt_file) {
-        formData.append(`items[${idx}][receipt_file]`, o.receipt_file);
-      }
-      console.log(o.expense_type);
-      console.log(o.receipt_file);
-    });
-
-    formData.append(
-      "acknowledged_warnings",
-      JSON.stringify(validationResult?.data?.warnings || [])
-    );
-    formData.append("exception_reasons", JSON.stringify([]));
-
-    return formData;
+    return await expenseAPI.claims.uploadReceipts(claimId, formData);
   };
 
   // VALIDATE CLAIM
@@ -296,35 +305,40 @@ export default function CreateClaimApplicationPage() {
   };
 
   // SUBMIT CLAIM
-  const handleSubmit = async () => {
-    if (!selectedApp) return;
+  try {
+    const submitResult = await submitClaimJson();
 
-    setLoading(true);
+    // If backend returns success TRUE → no errors, continue
+    if (submitResult?.success === true) {
 
-    try {
-      const formData = buildFormDataPayload();
-      console.log(formData);
-      const result = await expenseAPI.claims.submit(formData);
+      const claimId = submitResult.data.claim_id;
+      const createdItems = await fetchCreatedItems(claimId);
+      await uploadReceipts(claimId, createdItems);
 
-      if (result?.success) {
-        setValidationModalOpen(false);
-        navigate(ROUTES.indexClaimPage);
-      } else {
-        setErrors(result?.data || { general: "Submission failed" });
-      }
-    } catch (error) {
-      const message = extractErrorMessage(error);
       toast({
-        variant: "destructive",
-        title: "Submission Error",
-        description: message,
+        title: "Success",
+        description: submitResult.message || "Claim submitted successfully",
       });
-    } finally {
-      setLoading(false);
+
+      navigate(ROUTES.indexClaimPage);
+      return;
     }
-  };
 
+    // Backend returned success = false → show validation errors
+    toast({
+      variant: "destructive",
+      title: "Submission Error",
+      description: submitResult?.message || "Validation failed.",
+    });
 
+  } catch (error) {
+    // THIS BLOCK SHOULD ONLY SHOW TRUE NETWORK/CRASH ERRORS
+    toast({
+      variant: "destructive",
+      title: "Request Failed",
+      description: "Unable to submit claim. Please try again."
+    });
+  }
 
   const getExpenseTypeName = (id: string | number) => {
     const type = expenseTypes.find((t: any) => t.id === Number(id));
@@ -332,33 +346,13 @@ export default function CreateClaimApplicationPage() {
   };
 
   const extractErrorMessage = (error: any) => {
-    const apiData = error?.response?.data;
-
-    // Default fallback
-    let msg = "Please check the form. Some required fields are missing.";
-
-    // Prefer backend "data" errors
-    if (apiData?.data) {
-      const items = apiData.data.items;
-
-      if (Array.isArray(items)) {
-        // Example: [{ "expense_type": ["This field is required."] }]
-        const firstError = items[0];
-        const fieldName = Object.keys(firstError)[0];
-        const fieldError = firstError[fieldName][0];
-
-        msg = `${fieldName.replace(/_/g, " ")}: ${fieldError}`;
-      }
-    }
-
-    // If backend provided "message"
-    if (apiData?.message && apiData?.message !== "Validation failed") {
-      msg = apiData.message;
-    }
-
-    return msg;
-  };
-
+  const api = error?.response?.data;
+  return (
+    api?.message ||
+    api?.detail ||
+    "Something went wrong. Please try again."
+  );
+};
 
   return (
     <div className="min-h-screen bg-background">
