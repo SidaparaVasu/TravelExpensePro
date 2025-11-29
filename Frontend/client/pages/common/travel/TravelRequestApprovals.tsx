@@ -135,7 +135,7 @@ export default function TravelRequestApprovals() {
     try {
       const appr: PaginatedResponse<TravelApplication> = await approvalAPI.getApprovals(statusFilter);
       setApplications(appr.data);
-      // console.log(appr.results);
+      console.log(appr.data);
     } catch (err) {
       console.error("Failed to load pending approvals!", err);
     } finally {

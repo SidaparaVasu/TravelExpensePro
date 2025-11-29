@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
+import {ROUTES} from "@/routes/routes";
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -22,7 +23,9 @@ export default function Login() {
       toast({ title: 'Login Successful', description: 'Redirecting to Dashboard' });
       // navigate(redirectTo);
       navigate(redirectTo.startsWith('/') ? redirectTo : `/${redirectTo}`);
+      // navigate(getPrimaryDashboard());
     } catch (error: any) {
+      console.log(error);
       const response = JSON.parse(error.request?.response || '{}');
       const message = response.errors?.non_field_errors?.[0] || 'Invalid credentials';
       toast({

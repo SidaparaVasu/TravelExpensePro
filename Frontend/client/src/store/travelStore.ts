@@ -52,7 +52,7 @@ export const useTravelStore = create<TravelState>((set, get) => ({
       const applications = fetched_applications.data.applications
       const stats = fetched_applications.data.statistics;
       const pagination = fetched_applications.meta.pagination;
-      
+      console.log(applications);
       set({ applications, isLoading: false });
       set({ stats });
       set({ pagination });

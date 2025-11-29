@@ -77,7 +77,6 @@ class GradeEntitlementMasterAdmin(admin.ModelAdmin):
 
 admin.site.register(travel.VehicleTypeMaster)
 admin.site.register(travel.TravelPolicyMaster)
-admin.site.register(travel.EmailTemplateMaster)
 
 admin.site.register(workflow.ApprovalWorkflowMaster)
 admin.site.register(workflow.PermissionTypeMaster)

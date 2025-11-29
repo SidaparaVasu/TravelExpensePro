@@ -16,7 +16,6 @@ Notes:
 """
 
 import logging
-from types import SimpleNamespace
 from decimal import Decimal
 from django.utils import timezone
 from django.db import models
@@ -558,9 +557,6 @@ class ApprovalEngineV2:
                 # We set can_skip_manager=True which means manager can be skipped in favor of CEO/CHRO
                 can_skip_manager = True
 
-        # ============================================================
-        # STEP 2 — Determine CEO requirement
-        # ============================================================
         # ============================================================
         # STEP 2 — Determine CEO requirement
         # ============================================================

@@ -48,7 +48,7 @@ export function DashboardOverview() {
       const dashboardData = await approvalAPI.getDashboard();
       setStats(dashboardData.data.statistics);
       setAcitivity(dashboardData.data.recent_activity)
-      // console.log(dashboardData.data);
+      console.log(dashboardData.data);
     } catch (err) {
       console.error("Failed to load approval statistics!", err);
     } finally {

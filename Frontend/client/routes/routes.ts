@@ -25,15 +25,17 @@ export const ROUTES = {
     `/travel/itineraries/${id}`,
 
   // ---------------- EXPENSE MANAGEMENT ----------------
-  expenseReports: "/expense-reports",
-  reimbursements: "/reimbursements",
-  approvals: "/approvals",
+  indexExpense: "/expense",
+  indexClaimPage: "/expense/my-claims",
+  claimApplicationPage: "/expense/submit-claim",
+  claimDetailPage: (id: number | string) => `/expense/claims/${id}`,
 
   // ---------------- ADMIN: MASTER PAGES ----------------
   master: "/masters",
 
   // User Management Master
   userManagement: "/masters/user-management",
+  users: "/masters/users",
 
   // Employee Master
   employeeMasterPage: "/masters/employees",

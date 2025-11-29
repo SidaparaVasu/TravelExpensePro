@@ -64,7 +64,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_filters',
     'drf_spectacular',
-    "django_json_widget",
     
     # Celery
     'django_celery_beat',
@@ -93,8 +92,7 @@ MIDDLEWARE = [
 
 if DEBUG:
     MIDDLEWARE.append('utils.database_middleware.QueryCountMiddleware')
-    MIDDLEWARE.insert(0, "apps.travel.middleware.test_user_middleware.TestUserMiddleware")
-
+    
 # Set the allowed origins
 CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS",

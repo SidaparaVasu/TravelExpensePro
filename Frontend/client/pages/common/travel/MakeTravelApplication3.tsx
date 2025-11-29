@@ -341,6 +341,7 @@ const PurposeSection = ({ formData, setFormData, setOtherExpenses, cities, glCod
 
                 <FormInput
                     label="Advance Amount"
+                    required
                     type="number"
                     value={formData.advance_amount}
                     onChange={(e) => {
@@ -1788,14 +1789,16 @@ const TravelAdvanceSection = ({ sums, otherExpenses, setOtherExpenses, totalAdva
 
                     <div className="flex justify-between items-center py-2 border-b border-blue-200">
                         <span className="text-slate-700">Other Expenses</span>
-                        <input
+                        <span className="font-semibold text-slate-900">₹{otherExpenses.toLocaleString('en-IN')}</span>
+                        {/* <input
                             type="number"
                             className="w-32 px-3 py-1.5 border border-slate-300 rounded-lg text-right font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
                             value={otherExpenses}
                             min="0"
                             placeholder="₹0"
+                            disabled
                             onChange={(e) => setOtherExpenses(Number(e.target.value) || '')}
-                        />
+                        /> */}
                     </div>
 
                     <div className="flex justify-between items-center pt-4 mt-2">

@@ -12,31 +12,29 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { isAuthenticated } = useAuthStore();
 
-  // Not authenticated → go to login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  // No dashboard requirement → allow access
   if (!requiredDashboard) return <>{children}</>;
 
-  // Get roles from localStorage
-  const roles = JSON.parse(localStorage.getItem('roles') || '[]');
-  
-  // Check if user has a role with matching role_type
-  const hasAccess = roles.some((r: any) => {
-    const roleType = r.role_type?.toLowerCase();
-    const required = requiredDashboard.toLowerCase();
-    
-    // Match exact role_type or common aliases
-    if (roleType === required) return true;
-    if (roleType === 'travel_desk' && required === 'travel_desk') return true;
-    if (roleType === 'admin' && required === 'admin') return true;
-    
-    return false;
-  });
+  const roles = JSON.parse(localStorage.getItem("roles") || "[]")
+    .map((r: any) => r.role_type?.toLowerCase());
 
-  // No access → go to unauthorized page
+  const adminRoles = ["admin", "manager", "ceo", "chro"];
+
+  const required = requiredDashboard.toLowerCase();
+
+  let hasAccess = false;
+
+  if (required === "admin") {
+    hasAccess = roles.some((r) => adminRoles.includes(r));
+  } else if (required === "travel_desk") {
+    hasAccess = roles.includes("travel_desk");
+  } else if (required === "employee") {
+    hasAccess = roles.includes("employee");
+  }
+
   if (!hasAccess) {
     return <Navigate to="/unauthorized" replace />;
   }

@@ -134,7 +134,7 @@ export default function GradeEntitlementMaster() {
             ]);
             setData(entRes.data || []);
             setGrades(gradeRes.data.results || []);
-            setTravelSubOptions(subRes.results || []);
+            setTravelSubOptions(subRes.results || subRes.data || subRes || []);
             setCityCategories(cityRes.data.data.results || []);
         } catch (error) {
             console.error("Failed to fetch data", error);

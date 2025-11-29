@@ -92,49 +92,78 @@ class ExternalProfileSerializer(serializers.ModelSerializer):
 # UPDATED USER SERIALIZERS
 # ============================================================================
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    """
-    Detailed user profile with organizational information
-    Now includes profile data based on user_type
-    """
-    roles = serializers.SerializerMethodField()
-    permissions = serializers.SerializerMethodField()
-    profile = serializers.SerializerMethodField()
-    
+class UserSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source="company.name", read_only=True)
+    department_name = serializers.CharField(source="department.dept_name", read_only=True)
+    designation_name = serializers.CharField(source="designation.designation_name", read_only=True)
+    employee_type_name = serializers.CharField(source="employee_type.type", read_only=True)
+    grade_name = serializers.CharField(source="grade.name", read_only=True)
+    base_location_name = serializers.CharField(source="base_location.location_name", read_only=True)
+    reporting_manager_name = serializers.SerializerMethodField()
+
+    def get_reporting_manager_name(self, obj):
+        if obj.reporting_manager:
+            return f"{obj.reporting_manager.first_name} {obj.reporting_manager.last_name}"
+        return None
+
     class Meta:
         model = User
-        fields = (
-            'id', 'username', 'first_name', 'last_name', 'email', 'gender',
-            'user_type', 'roles', 'permissions', 'profile'
-        )
-    
+        fields = "__all__"
+
+
+class UserProfileResponseSerializer(serializers.Serializer):
+    """
+    Clean response serializer for /auth/profile/
+    Separates:
+        - user (basic info)
+        - roles
+        - permissions
+        - organizational/external profile
+    """
+
+    user = serializers.SerializerMethodField()
+    profile = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
+    permissions = serializers.SerializerMethodField()
+
+    def get_user(self, obj):
+        return {
+            "id": obj.id,
+            "username": obj.username,
+            "first_name": obj.first_name,
+            "last_name": obj.last_name,
+            "email": obj.email,
+            "gender": obj.gender,
+            "user_type": obj.user_type,
+        }
+
     def get_roles(self, obj):
         return [
             {
-                'id': ur.role.id,
-                'name': ur.role.name,
-                'role_type': ur.role.role_type,
-                'is_primary': ur.is_primary,
-                'description': ur.role.description
+                "id": ur.role.id,
+                "name": ur.role.name,
+                "role_type": ur.role.role_type,
+                "is_primary": ur.is_primary,
+                "description": ur.role.description
             }
-            for ur in obj.userrole_set.filter(is_active=True).select_related('role')
+            for ur in obj.userrole_set.filter(is_active=True).select_related("role")
         ]
-    
+
     def get_permissions(self, obj):
         return obj.get_user_permissions_list()
-    
+
     def get_profile(self, obj):
-        """Return appropriate profile based on user_type"""
-        if obj.user_type == 'organizational':
-            profile = getattr(obj, 'organizational_profile', None)
+        if obj.user_type == "organizational":
+            profile = getattr(obj, "organizational_profile", None)
             if profile:
                 return OrganizationalProfileSerializer(profile).data
-        elif obj.user_type == 'external':
-            profile = getattr(obj, 'external_profile', None)
+
+        if obj.user_type == "external":
+            profile = getattr(obj, "external_profile", None)
             if profile:
                 return ExternalProfileSerializer(profile).data
-        return None
 
+        return None
 
 class UserListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for list views"""
@@ -145,7 +174,7 @@ class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'first_name', 'last_name', 'email', 'gender',
+            'id', 'username', 'first_name', 'last_name', 'email', 'gender', 'employee_id',
             'user_type', 'user_type_display', 'profile_summary', 'primary_role', 'is_active'
         ]
     
@@ -433,9 +462,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 # Keep RegisterUserSerializer, LoginSerializer, SwitchRoleSerializer,
 # RoleSerializer, PermissionSerializer, etc. as they were
 
-'''
-OLD SERIALIZERS
-'''
+
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     """
@@ -492,141 +519,144 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Must include 'username' and 'password'.")
 
 
+'''
+OLD SERIALIZERS
+'''
 # User serializers
-class UserSerializer(serializers.ModelSerializer):
-    base_location = serializers.PrimaryKeyRelatedField(
-        queryset=LocationMaster.objects.all(),
-        required=False,
-        allow_null=True
-    )
-    base_location_name = serializers.CharField(
-        source='base_location.location_name', read_only=True
-    )
+# class UserSerializer(serializers.ModelSerializer):
+    # base_location = serializers.PrimaryKeyRelatedField(
+    #     queryset=LocationMaster.objects.all(),
+    #     required=False,
+    #     allow_null=True
+    # )
+    # base_location_name = serializers.CharField(
+    #     source='base_location.location_name', read_only=True
+    # )
 
-    class Meta:
-        model = User
-        fields = [
-            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
-            'reporting_manager', 'department', 'designation', 'employee_type',
-            'company', 'grade', 'base_location', 'base_location_name',
-            'user_permissions', 'is_active'
-        ]
+    # class Meta:
+    #     model = User
+    #     fields = [
+    #         'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
+    #         'reporting_manager', 'department', 'designation', 'employee_type',
+    #         'company', 'grade', 'base_location', 'base_location_name',
+    #         'user_permissions', 'is_active'
+    #     ]
 
 
-class UserListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for list views"""
-    department_name = serializers.SerializerMethodField()
-    designation_name = serializers.SerializerMethodField()
-    company_name = serializers.CharField(source='company.name', read_only=True)
-    base_location_name = serializers.CharField(source='base_location.location_name', read_only=True)
-    reporting_manager_name = serializers.SerializerMethodField()
+# class UserListSerializer(serializers.ModelSerializer):
+#     """Lightweight serializer for list views"""
+#     department_name = serializers.SerializerMethodField()
+#     designation_name = serializers.SerializerMethodField()
+#     company_name = serializers.CharField(source='company.name', read_only=True)
+#     base_location_name = serializers.CharField(source='base_location.location_name', read_only=True)
+#     reporting_manager_name = serializers.SerializerMethodField()
     
-    class Meta:
-        model = User
-        fields = [
-            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
-            'department', 'department_name', 'designation', 'designation_name',
-            'company', 'company_name', 'base_location', 'base_location_name',
-            'reporting_manager', 'reporting_manager_name', 'is_active'
-        ]
+#     class Meta:
+#         model = User
+#         fields = [
+#             'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
+#             'department', 'department_name', 'designation', 'designation_name',
+#             'company', 'company_name', 'base_location', 'base_location_name',
+#             'reporting_manager', 'reporting_manager_name', 'is_active'
+#         ]
 
-    def get_department_name(self, obj):
-        return obj.department.dept_name if obj.department else None
+#     def get_department_name(self, obj):
+#         return obj.department.dept_name if obj.department else None
 
-    def get_designation_name(self, obj):
-        return obj.designation.designation_name if obj.designation else None
+#     def get_designation_name(self, obj):
+#         return obj.designation.designation_name if obj.designation else None
 
-    def get_reporting_manager_name(self, obj):
-        if obj.reporting_manager:
-            return f"{obj.reporting_manager.first_name} {obj.reporting_manager.last_name}"
-        return None
-    
-
-class UserCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating users with password"""
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    confirm_password = serializers.CharField(write_only=True, required=True)
-    
-    class Meta:
-        model = User
-        fields = [
-            'id', 'employee_id', 'username', 'password', 'confirm_password',
-            'first_name', 'last_name', 'email', 'gender', 'reporting_manager',
-            'department', 'designation', 'employee_type', 'company', 
-            'grade', 'base_location', 'is_active'
-        ]
-    
-    def validate(self, attrs):
-        if attrs['password'] != attrs['confirm_password']:
-            raise serializers.ValidationError({"confirm_password": "Password fields didn't match."})
-        return attrs
-    
-    def create(self, validated_data):
-        validated_data.pop('confirm_password')
-        password = validated_data.pop('password')
-        user = User.objects.create(**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
+#     def get_reporting_manager_name(self, obj):
+#         if obj.reporting_manager:
+#             return f"{obj.reporting_manager.first_name} {obj.reporting_manager.last_name}"
+#         return None
     
 
-class UserUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating users (without password)"""
+# class UserCreateSerializer(serializers.ModelSerializer):
+#     """Serializer for creating users with password"""
+#     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+#     confirm_password = serializers.CharField(write_only=True, required=True)
     
-    class Meta:
-        model = User
-        fields = [
-            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
-            'reporting_manager', 'department', 'designation', 'employee_type',
-            'company', 'grade', 'base_location', 'is_active'
-        ]
+#     class Meta:
+#         model = User
+#         fields = [
+#             'id', 'employee_id', 'username', 'password', 'confirm_password',
+#             'first_name', 'last_name', 'email', 'gender', 'reporting_manager',
+#             'department', 'designation', 'employee_type', 'company', 
+#             'grade', 'base_location', 'is_active'
+#         ]
     
-    def validate_username(self, value):
-        # Ensure username is unique excluding current instance
-        if self.instance:
-            if User.objects.exclude(pk=self.instance.pk).filter(username=value).exists():
-                raise serializers.ValidationError("Username already exists.")
-        return value
+#     def validate(self, attrs):
+#         if attrs['password'] != attrs['confirm_password']:
+#             raise serializers.ValidationError({"confirm_password": "Password fields didn't match."})
+#         return attrs
+    
+#     def create(self, validated_data):
+#         validated_data.pop('confirm_password')
+#         password = validated_data.pop('password')
+#         user = User.objects.create(**validated_data)
+#         user.set_password(password)
+#         user.save()
+#         return user
     
 
-class UserDetailSerializer(serializers.ModelSerializer):
-    """Detailed serializer with all related data"""
-    department_name = serializers.SerializerMethodField()
-    designation_name = serializers.SerializerMethodField()
-    employee_type_name = serializers.SerializerMethodField()
-    company_name = serializers.CharField(source='company.name', read_only=True)
-    grade_name = serializers.CharField(source='grade.name', read_only=True)
-    base_location_name = serializers.CharField(source='base_location.location_name', read_only=True)
-    reporting_manager_details = serializers.SerializerMethodField()
+# class UserUpdateSerializer(serializers.ModelSerializer):
+#     """Serializer for updating users (without password)"""
     
-    class Meta:
-        model = User
-        fields = [
-            'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
-            'department', 'department_name', 'designation', 'designation_name',
-            'employee_type', 'employee_type_name', 'company', 'company_name',
-            'grade', 'grade_name', 'base_location', 'base_location_name',
-            'reporting_manager', 'reporting_manager_details', 'is_active',
-            'date_joined', 'last_login'
-        ]
+#     class Meta:
+#         model = User
+#         fields = [
+#             'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
+#             'reporting_manager', 'department', 'designation', 'employee_type',
+#             'company', 'grade', 'base_location', 'is_active'
+#         ]
+    
+#     def validate_username(self, value):
+#         # Ensure username is unique excluding current instance
+#         if self.instance:
+#             if User.objects.exclude(pk=self.instance.pk).filter(username=value).exists():
+#                 raise serializers.ValidationError("Username already exists.")
+#         return value
+    
 
-    def get_department_name(self, obj):
-        return obj.department.dept_name if obj.department else None
+# class UserDetailSerializer(serializers.ModelSerializer):
+#     """Detailed serializer with all related data"""
+#     department_name = serializers.SerializerMethodField()
+#     designation_name = serializers.SerializerMethodField()
+#     employee_type_name = serializers.SerializerMethodField()
+#     company_name = serializers.CharField(source='company.name', read_only=True)
+#     grade_name = serializers.CharField(source='grade.name', read_only=True)
+#     base_location_name = serializers.CharField(source='base_location.location_name', read_only=True)
+#     reporting_manager_details = serializers.SerializerMethodField()
+    
+#     class Meta:
+#         model = User
+#         fields = [
+#             'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
+#             'department', 'department_name', 'designation', 'designation_name',
+#             'employee_type', 'employee_type_name', 'company', 'company_name',
+#             'grade', 'grade_name', 'base_location', 'base_location_name',
+#             'reporting_manager', 'reporting_manager_details', 'is_active',
+#             'date_joined', 'last_login'
+#         ]
 
-    def get_designation_name(self, obj):
-        return obj.designation.designation_name if obj.designation else None
+#     def get_department_name(self, obj):
+#         return obj.department.dept_name if obj.department else None
 
-    def get_employee_type_name(self, obj):
-        return obj.employee_type.type if obj.employee_type else None
+#     def get_designation_name(self, obj):
+#         return obj.designation.designation_name if obj.designation else None
 
-    def get_reporting_manager_details(self, obj):
-        if obj.reporting_manager:
-            return {
-                'id': obj.reporting_manager.id,
-                'name': f"{obj.reporting_manager.first_name} {obj.reporting_manager.last_name}",
-                'employee_id': obj.reporting_manager.employee_id
-            }
-        return None
+#     def get_employee_type_name(self, obj):
+#         return obj.employee_type.type if obj.employee_type else None
+
+#     def get_reporting_manager_details(self, obj):
+#         if obj.reporting_manager:
+#             return {
+#                 'id': obj.reporting_manager.id,
+#                 'name': f"{obj.reporting_manager.first_name} {obj.reporting_manager.last_name}",
+#                 'employee_id': obj.reporting_manager.employee_id
+#             }
+#         return None
 
 
 # class UserProfileSerializer(serializers.ModelSerializer):
@@ -672,7 +702,7 @@ class RoleSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Role
-        fields = ['id', 'name', 'role_type', 'dashboard_access', 'is_active', 'description']
+        fields = ['id', 'name', 'role_type', 'is_active', 'description']
 
 class PermissionSerializer(serializers.ModelSerializer):
     """
@@ -704,7 +734,7 @@ class RoleDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = [
-            'id', 'name', 'role_type', 'dashboard_access', 'is_active', 
+            'id', 'name', 'role_type', 'is_active', 
             'description', 'permissions', 'user_count', 'created_at', 'updated_at'
         ]
     
@@ -737,7 +767,7 @@ class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = [
-            'id', 'name', 'role_type', 'dashboard_access', 'is_active', 
+            'id', 'name', 'role_type', 'is_active', 
             'description', 'permissions'
         ]
     

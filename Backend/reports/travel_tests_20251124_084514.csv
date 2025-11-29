@@ -1,6 +1,0 @@
-Test ID,Phase,Expected Result,Actual Result,Status,Notes,Started At,Finished At
-T1.1,1,(see spec),Exception: Object of type date is not JSON serializable,FAIL,Exception during test execution,2025-11-24T08:45:13,2025-11-24T08:45:13
-T1.2,1,(see spec),Exception: Object of type date is not JSON serializable,FAIL,Exception during test execution,2025-11-24T08:45:13,2025-11-24T08:45:13
-T1.3,1,(see spec),Exception: Object of type date is not JSON serializable,FAIL,Exception during test execution,2025-11-24T08:45:13,2025-11-24T08:45:13
-T1.4,1,(see spec),Exception: Object of type date is not JSON serializable,FAIL,Exception during test execution,2025-11-24T08:45:13,2025-11-24T08:45:14
-T1.5,1,(see spec),Exception: Object of type date is not JSON serializable,FAIL,Exception during test execution,2025-11-24T08:45:14,2025-11-24T08:45:14

@@ -25,6 +25,12 @@ import {
  * - This file assumes your project already provides Button, Card, Badge, etc.
  * - Add `framer-motion` to your dependencies if not present.
  */
+function formatDateToDDMMYYYY(dateStr) {
+  if (!dateStr) return "";
+
+  const [year, month, day] = dateStr.split("-");
+  return `${day}-${month}-${year}`;
+}
 
 const ApplicationView: React.FC = () => {
   const { id } = useParams();
@@ -48,6 +54,7 @@ const ApplicationView: React.FC = () => {
       setLoading(true);
       if (!id) return;
       const app = await travelAPI.getApplication(Number(id));
+      console.log(app);
       setApplication(app.data);
     } catch (err: any) {
       console.error(err);
@@ -81,12 +88,12 @@ const ApplicationView: React.FC = () => {
   if (loading) {
     return (
       // <Layout>
-        <div className="flex items-center justify-center h-72">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-slate-600">Loading application...</p>
-          </div>
+      <div className="flex items-center justify-center h-72">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading application...</p>
         </div>
+      </div>
       // </Layout> 
     );
   }
@@ -94,13 +101,13 @@ const ApplicationView: React.FC = () => {
   if (error) {
     return (
       // <Layout>
-        <div className="max-w-4xl mx-auto p-6">
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="pt-6">
-              <p className="text-red-600">{error}</p>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="max-w-4xl mx-auto p-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <p className="text-red-600">{error}</p>
+          </CardContent>
+        </Card>
+      </div>
       // </Layout>
     );
   }
@@ -109,24 +116,24 @@ const ApplicationView: React.FC = () => {
 
   return (
     // <Layout>
-      <div className="max-w-6xl mx-auto p-6 space-y-6">
-        <HeaderCard
-          application={application}
-          onSubmit={() => handleSubmitApplication(application.id)}
-          onDelete={() => handleDeleteApplication(application.id)}
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <HeaderCard
+        application={application}
+        onSubmit={() => handleSubmitApplication(application.id)}
+        onDelete={() => handleDeleteApplication(application.id)}
+      />
+
+      <InfoCard application={application} />
+
+      {application.trip_details?.map((trip: any) => (
+        <TripCard
+          key={trip.id}
+          trip={trip}
+          parentPurpose={application.purpose}
+          guestHousesMap={createGuestHouseMap(application)} // attempt to map preferences to names (best-effort)
         />
-
-        <InfoCard application={application} />
-
-        {application.trip_details?.map((trip: any) => (
-          <TripCard
-            key={trip.id}
-            trip={trip}
-            parentPurpose={application.purpose}
-            guestHousesMap={createGuestHouseMap(application)} // attempt to map preferences to names (best-effort)
-          />
-        ))}
-      </div>
+      ))}
+    </div>
     // </Layout>
   );
 };
@@ -149,10 +156,10 @@ function createGuestHouseMap(application: any) {
 const HeaderCard = ({ application, onSubmit, onDelete }: any) => {
   const statusColorClass = (status: string) => {
     switch (status) {
-      case 'approved': return "bg-green-100 text-green-700";
-      case 'pending_manager': return "bg-yellow-100 text-yellow-700";
-      case 'draft': return "bg-slate-100 text-slate-700";
-      default: return "bg-blue-100 text-blue-700";
+      case 'approved': return "bg-green-100 text-green-700 hover:bg-green-200";
+      case 'pending_manager': return "bg-yellow-100 text-yellow-700 hover:bg-yellow-200";
+      case 'draft': return "bg-slate-100 text-slate-700 hover:bg-slate-200";
+      default: return "bg-blue-100 text-blue-700 hover:bg-blue-200";
     }
   };
 
@@ -160,24 +167,38 @@ const HeaderCard = ({ application, onSubmit, onDelete }: any) => {
     <Card className="shadow-sm border-slate-200">
       <CardHeader className="flex flex-row justify-between items-start pb-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-2">
-            <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
-            <div className="min-w-0">
-              <CardTitle className="text-xl font-semibold text-slate-800 truncate">
-                {application.travel_request_id}
-              </CardTitle>
-              <p className="text-xs text-slate-500">
-                Created on{" "}
-                {new Date(application.created_at).toLocaleDateString('en-IN', {
-                  day: 'numeric', month: 'short', year: 'numeric'
-                })}{" "}
-                by <span className="font-medium text-slate-800">{application.employee_name}</span>
-              </p>
-            </div>
+          <div className="flex justify-between">
+            <div className="flex items-center gap-3 mb-2">
+              <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
+              <div className="min-w-0">
+                <div className="flex gap-2">
+                  <CardTitle className="text-xl font-semibold text-slate-800 truncate">
+                    {application.travel_request_id}
+                  </CardTitle>
 
-            <Badge className={`uppercase text-xs px-2 py-0.5 ml-3 ${statusColorClass(application.status)}`}>
-              {application.status.replace("_", " ")}
-            </Badge>
+                  <Badge className={`uppercase text-xs px-2 py-0.5 ml-3 ${statusColorClass(application.status)}`}>
+                    {application.status.replace("_", " ")}
+                  </Badge>
+                </div>
+
+                <p className="text-xs text-slate-500">
+                  Created on{" "}
+                  {new Date(application.created_at).toLocaleDateString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric'
+                  })}{" "}
+                  by <span className="font-medium text-slate-800">{application.employee_name}</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end items-center">
+              {!application.is_settled ? (
+                <p className="text-sm">Settlement due date: <span className="font-medium text-slate-800">{formatDateToDDMMYYYY(application.settlement_due_date)}</span></p>
+              ) : (
+                <Badge className={`uppercase text-xs px-2 py-0.5 ml-3 ${statusColorClass('settled')}`}>
+                  {application.status.replace("_", " ")}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 
@@ -318,7 +339,7 @@ const TripCard = ({ trip, parentPurpose, guestHousesMap }: any) => {
                 <div className="space-y-6">
                   {/* Booking sections rendered in order */}
                   {ticketing.length > 0 && (
-                    <BookingSection title="Flight & Train Bookings" icon={Plane} bookings={ticketing} type="ticketing" fromLocationName={trip.from_location_name} toLocationName={trip.to_location_name}/>
+                    <BookingSection title="Flight & Train Bookings" icon={Plane} bookings={ticketing} type="ticketing" fromLocationName={trip.from_location_name} toLocationName={trip.to_location_name} />
                   )}
                   {accommodation.length > 0 && (
                     <BookingSection title="Accommodation" icon={Home} bookings={accommodation} type="accommodation" guestHousesMap={guestHousesMap} />

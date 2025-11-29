@@ -14,15 +14,25 @@ interface AuthState {
   initializeAuth: () => void;
 }
 
-function roleCheck(role) {
-  if (role == 'admin' || role == 'manager' || role == 'ceo' || role == 'chro') {
-    return 'admin';
-  } else if (role == 'travel_desk'){
-    return 'travel_desk';
-  } else {
-    return role
-  }
+/** ------------------ ROLE LOGIC ------------------ **/
+
+const ADMIN_ROLES = ["admin", "manager", "ceo", "chro"];
+
+function getPrimaryDashboard(roles: Array<{ role_type: string }>): string {
+  const roleTypes = roles.map(r => r.role_type);
+
+  const isAdminType = roleTypes.some(r => ADMIN_ROLES.includes(r));
+  const isTravelDesk = roleTypes.includes("travel_desk");
+  const isEmployee = roleTypes.includes("employee");
+
+  if (isAdminType) return "/admin/dashboard";
+  if (isTravelDesk) return "/travel_desk/dashboard";
+  if (isEmployee) return "/employee/dashboard";
+
+  return "/employee/dashboard";
 }
+
+/** -------------------------------------------------- **/
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -31,24 +41,19 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
 
-      // Initialize auth on app start
       initializeAuth: () => {
-        const token = localStorage.getItem('access_token');
-        const userStr = localStorage.getItem('user');
-        const rolesStr = localStorage.getItem('roles');
+        const token = localStorage.getItem("access_token");
+        const userStr = localStorage.getItem("user");
 
         if (token && userStr) {
           try {
             const user = JSON.parse(userStr);
-            const roles = rolesStr ? JSON.parse(rolesStr) : null;
-
             set({
-              user: { ...user, roles },
-              isAuthenticated: true,
+              user,
+              isAuthenticated: true
             });
           } catch (error) {
-            console.error('Failed to initialize auth:', error);
-            // Clear invalid data
+            console.error("Failed to initialize auth:", error);
             localStorage.clear();
             set({ user: null, isAuthenticated: false });
           }
@@ -57,27 +62,34 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (username, password) => {
         set({ isLoading: true });
+
         try {
           const response = await authAPI.login({ username, password });
+
           const { user, profile, roles, permissions } = response.data;
 
-          // Determine redirect
-          const primaryRole = roles.find(r => r.is_primary);
-          const redirectTo = primaryRole
-            ? `/${roleCheck(primaryRole.role_type)}/dashboard`
-            : '/employee/dashboard';
+          // Compute redirect using unified rule
+          const redirectTo = getPrimaryDashboard(roles);
 
-          // Update store
+          // Save all relevant info
+          const fullUser: UserProfile = {
+            ...user,
+            profile,
+            roles,
+            permissions
+          };
+
           set({
-            user: {
-              ...user,
-              profile,
-              roles,
-              permissions
-            } as any,
+            user: fullUser,
             isAuthenticated: true,
-            isLoading: false,
+            isLoading: false
           });
+
+          // Persist
+          // localStorage.setItem("user", JSON.stringify(fullUser));
+          // localStorage.setItem("roles", JSON.stringify(roles));
+          // localStorage.setItem("permissions", JSON.stringify(permissions));
+          localStorage.setItem("primary_dashboard", redirectTo);
 
           return redirectTo;
         } catch (error) {
@@ -90,7 +102,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           await authAPI.logout();
         } catch (error) {
-          console.error('Logout error:', error);
+          console.error("Logout error:", error);
         } finally {
           localStorage.clear();
           set({ user: null, isAuthenticated: false });
@@ -100,31 +112,42 @@ export const useAuthStore = create<AuthState>()(
       loadProfile: async () => {
         try {
           const profileData = await authAPI.getProfile();
-          console.log('Profile loaded:', profileData);
+          if (!profileData) return;
 
-          // Update localStorage
-          if (profileData) {
-            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-            const updatedUser = { ...currentUser, ...profileData };
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-          }
+          const { user, profile, roles, permissions } = profileData;
 
-          set({ user: profileData });
+          const updatedUser = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            full_name: `${user.first_name} ${user.last_name}`,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            gender: user.gender,
+            user_type: user.user_type,
+            profile,
+            roles,
+            permissions
+          };
+
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          set({ user: updatedUser });
+
         } catch (error) {
-          console.error('Failed to load profile:', error);
+          console.error("Failed to load profile:", error);
         }
       },
+
 
       switchRole: async (roleName: string) => {
         try {
           const redirect_to = await authAPI.switchRole(roleName);
 
-          // Refresh profile to update user roles
           const profile = await authAPI.getProfile();
 
-          if (profile.data) {
-            localStorage.setItem('user', JSON.stringify(profile.data));
-            set({ user: profile.data });
+          if (profile) {
+            localStorage.setItem("user", JSON.stringify(profile));
+            set({ user: profile });
           }
 
           return redirect_to;
@@ -132,14 +155,14 @@ export const useAuthStore = create<AuthState>()(
           console.error("Failed to switch role", err);
           throw err;
         }
-      },
+      }
     }),
     {
-      name: 'auth-storage', // unique name for localStorage key
+      name: "auth-storage",
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated
-      }),
+      })
     }
   )
 );

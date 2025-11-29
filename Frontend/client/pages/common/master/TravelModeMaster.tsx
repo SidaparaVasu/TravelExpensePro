@@ -142,8 +142,8 @@ export default function TravelModeMaster() {
                 travelAPI.getTravelModes(),
                 travelAPI.getTravelSubOptions(),
             ]);
-            setTravelModes(modesData.results);
-            setSubOptions(subOptionsData.results);
+            setTravelModes(modesData.results || modesData.data || modesData || []);
+            setSubOptions(subOptionsData || subOptionsData.data || subOptionsData || []);
             if (modesData.length > 0 && !expandedModeId) {
                 setExpandedModeId(modesData[0].id);
             }

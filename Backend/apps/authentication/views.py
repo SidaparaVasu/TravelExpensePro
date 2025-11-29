@@ -316,25 +316,22 @@ class UserDetailView(RetrieveUpdateDestroyAPIView):
 
 
 class UserProfileView(RetrieveAPIView):
-    """
-    Get current user's profile with organizational information
-    """
-    serializer_class = UserProfileSerializer
+    serializer_class = UserProfileResponseSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user
-    
+
     def retrieve(self, request, *args, **kwargs):
-        """Override to return standardized response"""
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        
+
         return Response({
-            'success': True,
-            'message': 'Profile retrieved successfully',
-            'data': serializer.data
+            "success": True,
+            "message": "Profile retrieved successfully",
+            "data": serializer.data
         })
+
 '''
 class UserListCreateView(ListCreateAPIView):
     """

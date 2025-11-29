@@ -341,8 +341,3 @@ class TravelPolicySerializer(serializers.ModelSerializer):
     
     def get_currently_effective(self, obj):
         return obj.is_currently_effective()
-
-class EmailTemplateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EmailTemplateMaster
-        fields = '__all__'

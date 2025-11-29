@@ -30,6 +30,7 @@ import {
   Users,
   LogOut,
   ChartColumnIncreasing,
+  BadgeIndianRupee,
 } from "lucide-react";
 
 // -----------------------------------------------------------
@@ -75,15 +76,16 @@ const getEmployeeSidebar = (primaryDashboard) => [
     icon: ReceiptIndianRupee,
     collapsible: true,
     items: [
-      { label: "Reports", path: "/expense-reports", Icon: FileText },
-      { label: "Reimbursements", path: "/reimbursements", Icon: CreditCard },
+      { label: "My Claims", path: ROUTES.indexClaimPage, Icon: BadgeIndianRupee },
+      { label: "Claim Application", path: ROUTES.claimApplicationPage, Icon: CreditCard },
+      // { label: "Claim Approvals", path: "/expense-approvals", Icon: CircleCheckBig },
     ],
   },
-  {
-    title: "Reports",
-    icon: ChartColumnIncreasing,
-    path: "/reports",
-  },
+  // {
+  //   title: "Reports",
+  //   icon: ChartColumnIncreasing,
+  //   path: "/reports",
+  // },
 ];
 
 // -----------------------------------------------------------

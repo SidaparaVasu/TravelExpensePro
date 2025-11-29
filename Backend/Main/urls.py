@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/', include('apps.authentication.urls')),
     path('api/master/', include('apps.master_data.urls')),
     path('api/travel/', include('apps.travel.urls')),
+    path('api/expense/', include('apps.expenses.urls')),
     
     # Legacy API support (gradually migrate these)
     # path('api/legacy/', include('apps.api.urls')),

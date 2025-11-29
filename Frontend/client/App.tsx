@@ -34,9 +34,17 @@ import TravelRequestApprovals from "./pages/common/travel/TravelRequestApprovals
 import BookingsPage from "./pages/common/travel/BookingsPage";
 import ItinerariesPage from "./pages/common/travel/ItineraryPage";
 
+// Expense
+import ExpenseIndex from "./pages/common/expense/Index";
+import MyClaimsPage from "./pages/common/expense/MyClaimsPage";
+import ClaimDetailPage from "./pages/common/expense/ClaimDetailPage";
+import CreateClaimApplicationPage from "./pages/common/expense/CreateClaimApplicationPage";
+// import CreateClaimApplicationPage from "./pages/common/expense/CreateExpenseClaim";
+
 // Master Pages (Admin Only)
 import MasterPage from "./pages/common/master/MasterIndex";
 import UserManagementPage from "./pages/common/master/user-management/Index";
+import UsersPage from "./pages/common/master/users/Index";
 import EmployeeMasterPage from "./pages/common/master/employee-master/Index";
 import GuestHouseMaster from "./pages/common/master/guest-house/Index";
 import ARCHotelMaster from "./pages/common/master/arc-hotel/Index";
@@ -270,22 +278,86 @@ const App = () => (
           <Route
             path={ROUTES.travelApplicationView(":id")}
             element={
-              <Route
-                path="/travel/bookings"
-                element={
-                  <AuthOnly>
-                    {isAdminUser() ? (
-                      <AdminLayout>
-                        <ApplicationView />
-                      </AdminLayout>
-                    ) : (
-                      <EmployeeLayout>
-                        <ApplicationView />
-                      </EmployeeLayout>
-                    )}
-                  </AuthOnly>
-                }
-              />
+              <AuthOnly>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <ApplicationView />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <ApplicationView />
+                  </EmployeeLayout>
+                )}
+              </AuthOnly>
+            }
+          />
+
+          {/* ---------------- EXPENSE (EMPLOYEE + ADMIN) ---------------- */}
+          <Route
+            path={ROUTES.indexExpense}
+            element={
+              <AuthOnly>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <ExpenseIndex />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <ExpenseIndex />
+                  </EmployeeLayout>
+                )}
+              </AuthOnly>
+            }
+          />
+
+          <Route
+            path={ROUTES.indexClaimPage}
+            element={
+              <AuthOnly>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <MyClaimsPage />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <MyClaimsPage />
+                  </EmployeeLayout>
+                )}
+              </AuthOnly>
+            }
+          />
+
+          <Route
+            path={ROUTES.claimDetailPage(":id")}
+            element={
+              <AuthOnly>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <ClaimDetailPage />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <ClaimDetailPage />
+                  </EmployeeLayout>
+                )}
+              </AuthOnly>
+            }
+          />
+
+          <Route
+            path={ROUTES.claimApplicationPage}
+            element={
+              <AuthOnly>
+                {isAdminUser() ? (
+                  <AdminLayout>
+                    <CreateClaimApplicationPage />
+                  </AdminLayout>
+                ) : (
+                  <EmployeeLayout>
+                    <CreateClaimApplicationPage />
+                  </EmployeeLayout>
+                )}
+              </AuthOnly>
             }
           />
 
@@ -316,6 +388,11 @@ const App = () => (
           <Route path={ROUTES.userManagement} element={
             <ProtectedRoute requiredDashboard="admin">
               <AdminLayout><UserManagementPage /></AdminLayout>
+            </ProtectedRoute>} />
+
+          <Route path={ROUTES.users} element={
+            <ProtectedRoute requiredDashboard="admin">
+              <AdminLayout><UsersPage /></AdminLayout>
             </ProtectedRoute>} />
 
           <Route path={ROUTES.orgMaster} element={

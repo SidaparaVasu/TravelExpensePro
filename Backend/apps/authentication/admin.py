@@ -155,6 +155,3 @@ class RolePermissionAdmin(admin.ModelAdmin):
     list_display = ('role', 'permission', 'granted_at')
     list_filter = ('role',)
     search_fields = ('role__name', 'permission__name')
-
-
-admin.site.register(NotificationPreference)

@@ -2,6 +2,8 @@ from rest_framework import serializers
 from django.db import transaction
 from ..models import TravelApplication, TripDetails, Booking, TravelAdvanceRequest
 from ..business_logic.validators import *
+
+
 class BookingSerializer(serializers.ModelSerializer):
     booking_type_name = serializers.CharField(source='booking_type.name', read_only=True)
     sub_option_name = serializers.CharField(source='sub_option.name', read_only=True)

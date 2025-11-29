@@ -40,10 +40,8 @@ class ManagerApprovalsView(ListAPIView):
         ).distinct()
 
         if status_filter == 'pending':
-            print("YOOOOOOO: ", status_filter)
             queryset = queryset.filter(approval_flows__status='pending')
         elif status_filter == 'approved':
-            print("YOOOOOOO: ", status_filter)
             queryset = queryset.filter(approval_flows__status='approved')
         elif status_filter == 'rejected':
             queryset = queryset.filter(approval_flows__status='rejected')

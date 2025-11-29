@@ -88,26 +88,27 @@ const MASTER_CATEGORIES = [
     //     icon: Repeat,
     //     items: [{ id: 'approval-workflow', title: 'Approval Workflow', route: '/masters/approval-workflow' }],
     // },
-    {
-        id: 'users',
-        title: 'Users',
-        icon: Users,
-        items: [
-            {id: 'employee', title: "Employees", route: ROUTES.employeeMasterPage},
-            {id: 'user-mng', title: "User Management", route: ROUTES.userManagement},
-        ]
-    },
-    {
-        id: 'roles',
-        title: 'Role & Permissions',
-        icon: UserLock,
-        items: [
-            { id: 'role', title: 'Role', route: '/masters/role' },
-            { id: 'permission', title: 'Permission', route: '/masters/permission' },
-            { id: 'user-role', title: 'User Role', route: '/masters/user-role' },
-            { id: 'role-permission', title: 'Role Permission', route: '/masters/role-permission' },
-        ],
-    },
+    // {
+    //     id: 'users',
+    //     title: 'Users',
+    //     icon: Users,
+    //     items: [
+    //         {id: 'employee', title: "Employees", route: ROUTES.employeeMasterPage},
+    //         {id: 'user-mng', title: "User Management", route: ROUTES.userManagement},
+    //         {id: 'users', title: "Users (new)", route: ROUTES.users},
+    //     ]
+    // },
+    // {
+    //     id: 'roles',
+    //     title: 'Role & Permissions',
+    //     icon: UserLock,
+    //     items: [
+    //         { id: 'role', title: 'Role', route: '/masters/role' },
+    //         { id: 'permission', title: 'Permission', route: '/masters/permission' },
+    //         { id: 'user-role', title: 'User Role', route: '/masters/user-role' },
+    //         { id: 'role-permission', title: 'Role Permission', route: '/masters/role-permission' },
+    //     ],
+    // },
 ];
 
 const CategoryCard = ({ category, onNavigate }) => {

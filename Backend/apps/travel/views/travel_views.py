@@ -8,18 +8,17 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from django.utils import timezone
-from ..models import TravelApplication, TripDetails, Booking
+from ..models import TravelApplication, Booking
+from apps.travel.models import TravelApprovalFlow
 from ..serializers.travel_serializers import *
-from apps.authentication.permissions import IsEmployee, IsAdminUser, HasCustomPermission, IsOwnerOrApprover
+from apps.authentication.permissions import IsEmployee, IsOwnerOrApprover
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
 from utils.response_formatter import success_response, error_response, validation_error_response, paginated_response
-from apps.authentication.decorators import require_permission, require_role 
 from django.core.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from .filters import TravelApplicationFilter
-from utils.rate_limiters import api_ratelimit
 from utils.pagination import StandardResultsSetPagination
 
 import logging
@@ -295,13 +294,25 @@ class TravelApplicationSubmitView(APIView):
         # -----------------------------------------
         # SELF-APPROVAL SCENARIO (NO APPROVERS)
         # -----------------------------------------
-        if self_approved or not approver_entries:
+        if self_approved or not approver_entries:            
+            # Create auto-approval flow entry for record
+            TravelApprovalFlow.objects.create(
+                travel_application=travel_app,
+                approver=request.user,
+                approval_level="self_approval",
+                sequence=1,
+                status="approved",
+                can_view=True,
+                can_approve=True,
+                is_required=True,
+                notes="Auto-approved (no approver required)",
+                approved_at=timezone.now()
+            )
             # Directly move to travel desk
             travel_app.status = "pending_travel_desk"
             travel_app.submitted_at = timezone.now()
             travel_app.current_approver = None
             travel_app.set_settlement_due_date()
-            # travel_app.save()
             travel_app.save(update_fields=["status"]) 
 
             return success_response(
@@ -361,8 +372,6 @@ class TravelApplicationSubmitView(APIView):
             )
 
         # 7) Create TravelApprovalFlow rows
-        from apps.travel.models import TravelApprovalFlow
-
         approval_chain = []
         for entry in approver_entries:
             flow = TravelApprovalFlow.objects.create(

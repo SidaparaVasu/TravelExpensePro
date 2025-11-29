@@ -7,7 +7,7 @@ from utils.response_formatter import success_response
 from apps.authentication.decorators import require_role
 from apps.travel.models import TripDetails
 
-class TravelAnalyticsView(APIView):
+class TravelAnalyticsView(APIView): 
     """Travel analytics and trends"""
     permission_classes = [IsAuthenticated]
     

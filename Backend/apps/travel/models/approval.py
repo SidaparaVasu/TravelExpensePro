@@ -6,6 +6,7 @@ class TravelApprovalFlow(models.Model):
     Dynamic approval chain for each travel application
     """
     APPROVAL_LEVELS = [
+        ('self_approval', 'Self Approval'),
         ('manager', 'Reporting Manager'),
         ('chro', 'CHRO'),
         ('ceo', 'CEO'),

@@ -14,6 +14,8 @@ export default function Profile() {
     loadProfile();
   }, [loadProfile]);
 
+  console.log('Profile data: ', user);
+
   const handleLogout = async () => {
     await logout();
     navigate('/login');

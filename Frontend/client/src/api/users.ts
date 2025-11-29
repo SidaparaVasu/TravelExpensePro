@@ -63,6 +63,7 @@ export const userAPI = {
         is_active?: boolean;
     }) => {
         const { data } = await apiClient.get('/users/', { params });
+        console.log("OYYYYYYYYYY: ", data);
         return data;
     },
 

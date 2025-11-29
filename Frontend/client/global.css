@@ -14,7 +14,7 @@
   */
   :root {
     --background: 216 100% 97.7%; /* #F5F9FF */
-    /* --background: #E9EAED; */
+    --background: 0 0% 100%;
     --foreground: 223 34% 21%; /* #1C1F37 */
 
     --card: 0 0% 100%;
@@ -35,11 +35,18 @@
     --muted-foreground: 220 13% 64%; /* #6B7280 */
 
     --accent: 217 91% 60%; /* #3B82F7 */
-    --accent: 217 51% 40%;
+      /* --accent: 217 51% 40%;
+      --accent: 240% 4% 95%; */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 1 62% 60%; /* #FD5E65 */
     --destructive-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 210 40% 98%;  
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
@@ -84,6 +91,12 @@
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 210 40% 98%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;

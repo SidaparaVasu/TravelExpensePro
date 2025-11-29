@@ -35,6 +35,7 @@ import {
   Briefcase,
   Hotel,
   Car,
+  BadgeIndianRupee,
 } from "lucide-react";
 
 // ------------------------------------------------------
@@ -104,31 +105,31 @@ const getAdminSidebar = (primaryDashboard) => [
       { label: "Approvals", path: ROUTES.travelRequestApproval, Icon: CircleCheckBig },
     ],
   },
-  {
-    title: "Bookings (Travel Desk)",
-    icon: Briefcase,
-    collapsible: true,
-    items: [
-      { label: "Flight Bookings", path: "/desk-agent/travel-bookings", Icon: Plane },
-      { label: "Hotel Bookings", path: "/desk-agent/hotel-bookings", Icon: Hotel },
-      { label: "Vehicle Bookings", path: "/desk-agent/car-rentals", Icon: Car },
-    ],
-  },
+  // {
+  //   title: "Bookings (Travel Desk)",
+  //   icon: Briefcase,
+  //   collapsible: true,
+  //   items: [
+  //     { label: "Flight Bookings", path: "/desk-agent/travel-bookings", Icon: Plane },
+  //     { label: "Hotel Bookings", path: "/desk-agent/hotel-bookings", Icon: Hotel },
+  //     { label: "Vehicle Bookings", path: "/desk-agent/car-rentals", Icon: Car },
+  //   ],
+  // },
   {
     title: "Expense",
     icon: ReceiptIndianRupee,
     collapsible: true,
     items: [
-      { label: "Reports", path: "/expense-reports", Icon: FileText },
-      { label: "Reimbursements", path: "/reimbursements", Icon: CreditCard },
-      { label: "Approvals", path: "/expense-approvals", Icon: CircleCheckBig },
+      { label: "My Claims", path: ROUTES.indexClaimPage, Icon: BadgeIndianRupee },
+      { label: "Claim Application", path: ROUTES.claimApplicationPage, Icon: CreditCard },
+      // { label: "Claim Approvals", path: "/expense-approvals", Icon: CircleCheckBig },
     ],
   },
-  {
-    title: "Reports",
-    icon: ChartColumnIncreasing,
-    path: "/reports",
-  },
+  // {
+  //   title: "Reports",
+  //   icon: ChartColumnIncreasing,
+  //   path: "/reports",
+  // },
   {
     title: "Settings",
     icon: Settings,

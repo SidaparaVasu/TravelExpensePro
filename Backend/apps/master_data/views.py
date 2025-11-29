@@ -496,15 +496,3 @@ class TravelPolicyDetailView(RetrieveUpdateDestroyAPIView):
     queryset = TravelPolicyMaster.objects.select_related('travel_mode', 'employee_grade').all()
     serializer_class = TravelPolicySerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
-
-class EmailTemplateListCreateView(ListCreateAPIView):
-    queryset = EmailTemplateMaster.objects.filter(is_active=True)
-    serializer_class = EmailTemplateSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['template_type']
-
-class EmailTemplateDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = EmailTemplateMaster.objects.all()
-    serializer_class = EmailTemplateSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]

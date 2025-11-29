@@ -67,8 +67,6 @@ urlpatterns = [
     path('vehicle-types/<int:pk>/', VehicleTypeDetailView.as_view(), name='vehicletype-detail'),
     path('travel-policies/', TravelPolicyListCreateView.as_view(), name='travelpolicy-list'),
     path('travel-policies/<int:pk>/', TravelPolicyDetailView.as_view(), name='travelpolicy-detail'),
-    path('email-templates/', EmailTemplateListCreateView.as_view(), name='emailtemplate-list'),
-    path('email-templates/<int:pk>/', EmailTemplateDetailView.as_view(), name='emailtemplate-detail'),
 ]
 
 urlpatterns += router.urls

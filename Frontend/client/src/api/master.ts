@@ -8,7 +8,7 @@ export const masterAPI = {
   },
 
   getTravelSubOptions: async (modeId?: number) => {
-    const { data } = await apiClient.get('/master/travel-sub-options/');
+    const { data } = await apiClient.get('/master/travel-sub-options/');  
     return data.data;
   },
 

@@ -1,67 +1,216 @@
-# from django.db import models
-# from decimal import Decimal
+from django.db import models
+from django.conf import settings
+from apps.travel.models.application import TravelApplication
 
-# class TravelClaim(models.Model):
-#     """
-#     TA/DA claims linked to approved travel applications
-#     """
-#     CLAIM_STATUS = [
-#         ('draft', 'Draft'),
-#         ('submitted', 'Submitted'),
-#         ('approved', 'Approved'),
-#         ('rejected', 'Rejected'),
-#         ('paid', 'Paid'),
-#     ]
-    
-#     travel_application = models.OneToOneField(
-#         'travel.TravelApplication',
-#         on_delete=models.CASCADE,
-#         related_name='travel_claim'
-#     )
-#     employee = models.ForeignKey(
-#         'authentication.User',
-#         on_delete=models.CASCADE
-#     )
-    
-#     # Calculated amounts
-#     total_da_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-#     total_incidental_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-#     total_conveyance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-#     total_claim_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    
-#     status = models.CharField(max_length=20, choices=CLAIM_STATUS, default='draft')
-    
-#     submitted_at = models.DateTimeField(null=True, blank=True)
-#     approved_at = models.DateTimeField(null=True, blank=True)
-#     approved_by = models.ForeignKey(
-#         'authentication.User',
-#         on_delete=models.SET_NULL,
-#         null=True,
-#         related_name='approved_claims'
-#     )
-    
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-    
-#     def calculate_total(self):
-#         """Calculate total claim amount"""
-#         self.total_claim_amount = (
-#             self.total_da_amount + 
-#             self.total_incidental_amount + 
-#             self.total_conveyance_amount
-#         )
-#         return self.total_claim_amount
+"""
+STATUS MASTER
+"""
+class ExpenseTypeMaster(models.Model):
+    '''
+    Docstring for ExpenseTypeMaster
 
-# class ConveyanceClaim(models.Model):
-#     """Individual conveyance expense items"""
-    
-#     travel_claim = models.ForeignKey(TravelClaim, on_delete=models.CASCADE, related_name='conveyance_claims')
-#     claim_date = models.DateField()
-#     from_location = models.CharField(max_length=200)
-#     to_location = models.CharField(max_length=200)
-#     conveyance_type = models.CharField(max_length=30)
-#     distance_km = models.DecimalField(max_digits=8, decimal_places=2)
-#     amount = models.DecimalField(max_digits=8, decimal_places=2)
-#     receipt = models.FileField(upload_to='conveyance_receipts/', null=True, blank=True)
-    
-#     created_at = models.DateTimeField(auto_now_add=True)
+    example status choices:
+        CLAIM_STATUS = [
+        ('draft', 'Draft'),
+        ('submitted', 'Submitted'),
+        ('manager_pending', 'Manager Pending'),
+        ('finance_pending', 'Finance Pending'),
+        ('chro_pending', 'CHRO Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('paid', 'Paid'),
+        ('closed', 'Closed'),
+    ]
+    '''
+    code = models.CharField(max_length=50, unique=True)   # e.g., taxi, hotel, meal
+    name = models.CharField(max_length=100)               # e.g., Taxi, Hotel, Meals
+    requires_receipt = models.BooleanField(default=True)
+    is_distance_based = models.BooleanField(default=False)  # auto/own_car
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+class ClaimStatusMaster(models.Model):
+    '''
+    Docstring for ClaimStatusMaster
+
+    example status choices:
+        EXPENSE_TYPES = [
+        ('taxi', 'Taxi'),
+        ('auto', 'Auto / Local Travel'),
+        ('bus', 'Bus'),
+        ('train', 'Train'),
+        ('flight', 'Flight'),
+        ('hotel', 'Hotel'),
+        ('meal', 'Meals'),
+        ('fuel', 'Fuel'),
+        ('toll', 'Toll'),
+        ('parking', 'Parking'),
+        ('misc', 'Miscellaneous'),
+    ]
+    '''
+    code = models.CharField(max_length=50, unique=True)     # e.g., draft, submitted, approved
+    label = models.CharField(max_length=100)                # e.g., Draft, Submitted, Approved
+    sequence = models.PositiveIntegerField(default=1)       # for ordering
+    is_terminal = models.BooleanField(default=False)        # approved/rejected/closed
+
+    def __str__(self):
+        return self.label
+""" """
+
+class ExpenseClaim(models.Model):
+    """
+    Main expense claim object for a completed TravelApplication.
+    One TravelApplication -> One ExpenseClaim
+    """
+
+    travel_application = models.OneToOneField(
+        TravelApplication,
+        on_delete=models.CASCADE,
+        related_name='expense_claim'
+    )
+
+    employee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='expense_claims'
+    )
+
+    submitted_on = models.DateTimeField(null=True, blank=True)
+    status = models.ForeignKey(
+        ClaimStatusMaster,
+        on_delete=models.PROTECT,
+        related_name="claims",
+        null=True,
+        blank=True
+    )
+
+    # Auto calculated totals
+    total_da = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_incidental = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_expenses = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    # Advance received from travel module
+    advance_received = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    # Net final calculation
+    final_amount_payable = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Positive = Payable to employee; Negative = Recoverable from employee"
+    )
+
+    is_late_submission = models.BooleanField(default=False)
+    late_submission_reason = models.TextField(blank=True)
+
+    # Exception flags handled by backend
+    exceptions = models.JSONField(default=dict, blank=True)
+
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"ExpenseClaim #{self.id} for TR: {self.travel_application_id}"
+
+
+class DAIncidentalBreakdown(models.Model):
+    claim = models.ForeignKey(
+        ExpenseClaim,
+        on_delete=models.CASCADE,
+        related_name='da_breakdown'
+    )
+
+    date = models.DateField()
+
+    eligible_da = models.DecimalField(max_digits=7, decimal_places=2, default=0)
+    eligible_incidental = models.DecimalField(max_digits=7, decimal_places=2, default=0)
+
+    hours = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        help_text="Hours worked/travelled used for DA calculation"
+    )
+
+    remarks = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.date} - DA: {self.eligible_da}, IC: {self.eligible_incidental}"
+
+
+class ExpenseItem(models.Model):
+    """
+    Individual expense item rows within an ExpenseClaim.
+    """
+
+    claim = models.ForeignKey(
+        ExpenseClaim,
+        on_delete=models.CASCADE,
+        related_name='items'
+    )
+
+    expense_type = models.ForeignKey(
+        ExpenseTypeMaster,
+        on_delete=models.PROTECT,
+        related_name="expense_items"
+    )
+    expense_date = models.DateField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    # For receipt uploads
+    receipt_file = models.FileField(upload_to="claims/receipts/", null=True, blank=True)
+    has_receipt = models.BooleanField(default=True)
+
+    # Self certification fields
+    is_self_certified = models.BooleanField(default=False)
+    self_certified_reason = models.TextField(blank=True)
+
+    # Additional fields depending on type
+    distance_km = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    vendor_name = models.CharField(max_length=255, blank=True)
+    bill_number = models.CharField(max_length=100, blank=True)
+
+    city_category = models.CharField(max_length=10, blank=True)
+
+    remarks = models.TextField(blank=True)
+
+    created_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.expense_type} - {self.amount}"
+
+
+class ClaimDocument(models.Model):
+    claim = models.ForeignKey(
+        ExpenseClaim,
+        on_delete=models.CASCADE,
+        related_name='documents'
+    )
+
+    doc_type = models.CharField(max_length=50)   # e.g., "summary_pdf", "combined_receipts"
+    file = models.FileField(upload_to='claims/docs/')
+    uploaded_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.doc_type} for Claim #{self.claim_id}"
+
+
+class ClaimApprovalFlow(models.Model):
+    claim = models.ForeignKey(
+        ExpenseClaim,
+        on_delete=models.CASCADE,
+        related_name='approval_flow'
+    )
+
+    approver = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+
+    level = models.PositiveIntegerField()  # 1=Manager, 2=Finance, 3=CHRO
+    status = models.CharField(max_length=50, default='pending') 
+    remarks = models.TextField(blank=True)
+    acted_on = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Claim#{self.claim_id} - Level {self.level} - {self.status}"
+
+
