@@ -7,10 +7,10 @@ services:
     container_name: prod_mysql
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: ${DB_NAME:-tsf_db}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
-      MYSQL_USER: ${DB_USER:-appuser}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-app123}
+      MYSQL_DATABASE: ${DB_NAME:-orange_tata_travel}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-orange@505}
+      MYSQL_USER: ${DB_USER:-orange}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-orange@505}
     ports:
       - "3307:3306"
     volumes:
@@ -19,7 +19,7 @@ services:
     networks:
       - app_network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root_password}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-orange@505}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,7 +48,7 @@ services:
       dockerfile: Dockerfile.prod
     container_name: prod_backend
     restart: unless-stopped
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python manage.py runserver 120.72.91.74:8000
     volumes:
       - ./backend:/app
       - static_volume:/app/staticfiles
@@ -88,8 +88,8 @@ services:
       - DEBUG=True
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_USER=appuser
-      - DB_PASSWORD=app123
+      - DB_USER=orange
+      - DB_PASSWORD=orange@505
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - DJANGO_SETTINGS_MODULE=Main.settings
@@ -116,8 +116,8 @@ services:
       - DEBUG=True
       - DB_HOST=mysql
       - DB_PORT=3306
-      - DB_USER=appuser
-      - DB_PASSWORD=app123
+      - DB_USER=orange
+      - DB_PASSWORD=orange@505
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - DJANGO_SETTINGS_MODULE=Main.settings
@@ -135,7 +135,7 @@ services:
       dockerfile: Dockerfile.prod
     container_name: prod_frontend
     restart: unless-stopped
-    command: npm run dev -- --host 0.0.0.0
+    command: npm run dev -- --host 120.72.91.74
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -144,7 +144,7 @@ services:
     env_file:
       - ./frontend/.env
     environment:
-      - VITE_API_BASE_URL=http://localhost:8000/api
+      - VITE_API_BASE_URL=http://120.72.91.74:8000/api
     depends_on:
       - backend
     networks:
