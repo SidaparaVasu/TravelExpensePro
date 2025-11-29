@@ -48,7 +48,7 @@ services:
       dockerfile: Dockerfile.prod
     container_name: prod_backend
     restart: unless-stopped
-    command: python manage.py runserver 120.72.91.74:8000
+    command: python manage.py runserver 120.72.91.76:8000
     volumes:
       - ./backend:/app
       - static_volume:/app/staticfiles
@@ -135,7 +135,7 @@ services:
       dockerfile: Dockerfile.prod
     container_name: prod_frontend
     restart: unless-stopped
-    command: npm run dev -- --host 120.72.91.74
+    command: npm run dev -- --host 120.72.91.76
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -144,7 +144,7 @@ services:
     env_file:
       - ./frontend/.env
     environment:
-      - VITE_API_BASE_URL=http://120.72.91.74:8000/api
+      - VITE_API_BASE_URL=http://120.72.91.76:8000/api
     depends_on:
       - backend
     networks:
