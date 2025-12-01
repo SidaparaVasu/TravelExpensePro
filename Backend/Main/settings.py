@@ -25,7 +25,13 @@ env = environ.Env(DEBUG=(bool, False))
 # environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env.dev'))
 
 # Dynamically select which .env file to load
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
 env_file = os.path.join(BASE_DIR, ".env.dev")
+
+if ENVIRONMENT == "production":
+    env_file = os.path.join(BASE_DIR, ".env.prod")
+    
 if os.environ.get("RENDER"):  # Render sets several env vars like RENDER or RENDER_SERVICE_ID
     env_file = os.path.join(BASE_DIR, ".env.prod")
 
@@ -102,7 +108,6 @@ CORS_ALLOWED_ORIGINS = env.list(
         "http://localhost:5173",  # Vite
         "http://127.0.0.1:5173",
         'http://localhost',
-        "http://192.168.1.171:5173", # Local IP
     ]
 )
 # CORS_ALLOWED_ORIGINS = [
@@ -111,7 +116,6 @@ CORS_ALLOWED_ORIGINS = env.list(
 #     "http://localhost:3000",
 #     "http://localhost:5173",  # Vite
 #     'http://localhost',
-#     "http://192.168.1.171:5173", # Local IP
 # ]
 # CORS_ALLOW_ALL_ORIGINS = True   # allows any frontend
 CORS_ALLOW_CREDENTIALS = True
@@ -304,46 +308,88 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default='')
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default='')
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@tatasteelfoundation.org")
 
-# Logging Configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
+# -----------------------------------
+# LOGGING CONFIGURATION (DEV + PROD)
+# -----------------------------------
+
+if ENVIRONMENT == "production":
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "verbose": {
+                "format": "{levelname} {asctime} {module} {message}",
+                "style": "{",
+            },
         },
-    },
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
-            'formatter': 'verbose',
+        "handlers": {
+            # Only log to console in production (Docker)
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "verbose",
+            },
         },
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+        "root": {
+            "handlers": ["console"],
+            "level": "INFO",
         },
-    },
-    'root': {
-        'handlers': ['console', 'file'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': False,
+        "loggers": {
+            "django": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "celery": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False,
+            },
         },
-        'celery': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': False,
+    }
+
+else:
+    # -----------------------------------
+    # DEVELOPMENT LOGGING (file + console)
+    # -----------------------------------
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "verbose": {
+                "format": "{levelname} {asctime} {module} {message}",
+                "style": "{",
+            },
         },
-    },
-}
+        "handlers": {
+            "file": {
+                "level": "INFO",
+                "class": "logging.FileHandler",
+                "filename": os.path.join(BASE_DIR, "logs", "django.log"),
+                "formatter": "verbose",
+            },
+            "console": {
+                "level": "INFO",
+                "class": "logging.StreamHandler",
+                "formatter": "verbose",
+            },
+        },
+        "root": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+        },
+        "loggers": {
+            "django": {
+                "handlers": ["console", "file"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "celery": {
+                "handlers": ["console", "file"],
+                "level": "INFO",
+                "propagate": False,
+            },
+        },
+    }
 
 # API Key of 'countrystatecity.in'  
 LOCATION_API_KEY = env("_LOCATION_API_KEY")
