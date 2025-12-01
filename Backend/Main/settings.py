@@ -24,8 +24,14 @@ env = environ.Env(DEBUG=(bool, False))
 
 # environ.Env.read_env(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env.dev'))
 
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
 # Dynamically select which .env file to load
 env_file = os.path.join(BASE_DIR, ".env.dev")
+
+if ENVIRONMENT == "production":
+    env_file = os.path.join(BASE_DIR, ".env.prod")
+
 if os.environ.get("RENDER"):  # Render sets several env vars like RENDER or RENDER_SERVICE_ID
     env_file = os.path.join(BASE_DIR, ".env.prod")
 
