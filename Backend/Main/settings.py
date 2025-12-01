@@ -311,45 +311,88 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default='')
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@tatasteelfoundation.org")
 
 # Logging Configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
+# -----------------------------------
+# LOGGING CONFIGURATION (DEV + PROD)
+# -----------------------------------
+
+if ENVIRONMENT == "production":
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "verbose": {
+                "format": "{levelname} {asctime} {module} {message}",
+                "style": "{",
+            },
         },
-    },
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
-            'formatter': 'verbose',
+        "handlers": {
+            # Only log to console in production (Docker)
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "verbose",
+            },
         },
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+        "root": {
+            "handlers": ["console"],
+            "level": "INFO",
         },
-    },
-    'root': {
-        'handlers': ['console', 'file'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': False,
+        "loggers": {
+            "django": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "celery": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False,
+            },
         },
-        'celery': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': False,
+    }
+
+else:
+    # -----------------------------------
+    # DEVELOPMENT LOGGING (file + console)
+    # -----------------------------------
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "verbose": {
+                "format": "{levelname} {asctime} {module} {message}",
+                "style": "{",
+            },
         },
-    },
-}
+        "handlers": {
+            "file": {
+                "level": "INFO",
+                "class": "logging.FileHandler",
+                "filename": os.path.join(BASE_DIR, "logs", "django.log"),
+                "formatter": "verbose",
+            },
+            "console": {
+                "level": "INFO",
+                "class": "logging.StreamHandler",
+                "formatter": "verbose",
+            },
+        },
+        "root": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+        },
+        "loggers": {
+            "django": {
+                "handlers": ["console", "file"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "celery": {
+                "handlers": ["console", "file"],
+                "level": "INFO",
+                "propagate": False,
+            },
+        },
+    }
 
 # API Key of 'countrystatecity.in'  
 LOCATION_API_KEY = env("_LOCATION_API_KEY")
