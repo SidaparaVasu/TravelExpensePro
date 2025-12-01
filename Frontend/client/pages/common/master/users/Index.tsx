@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const { toast } = useToast();
-  
+
   // State for users data
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,7 +40,6 @@ const Index = () => {
     setIsLoading(true);
     try {
       const response = await userAPI.getAll(filters);
-      console.log(response);
       if (response.success) {
         setUsers(response.data.results);
         setTotalCount(response.data.count);
@@ -76,10 +75,25 @@ const Index = () => {
     setIsFormModalOpen(true);
   };
 
-  const handleViewUser = (user: User) => {
-    setSelectedUser(user);
-    setIsDetailDrawerOpen(true);
+  const handleViewUser = async (user: User) => {
+    try {
+      const response = await userAPI.get(user.id);
+
+      if (response.success) {
+        // response.data contains full details from UserDetailSerializer
+        console.log(response.data);
+        setSelectedUser(response.data);
+        setIsDetailDrawerOpen(true);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load user details",
+        variant: "destructive",
+      });
+    }
   };
+
 
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
@@ -91,6 +105,24 @@ const Index = () => {
     setUserToDelete(user);
     setIsDeleteDialogOpen(true);
   };
+
+  const handleBulkExport = async () => {
+    try {
+      const response = await userAPI.export();
+      if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'User data exported successfully',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to export users data',
+        variant: 'destructive',
+      });
+    }
+  }
 
   const handleFormSubmit = async (data: UserCreatePayload) => {
     setIsSubmitting(true);
@@ -177,7 +209,13 @@ const Index = () => {
             filters={filters}
             onFiltersChange={handleFiltersChange}
             onAddUser={handleAddUser}
+            onExport={handleBulkExport}
+            // departments={departments}
+            // designations={designations}
+            // companies={companies}
+            // locations={locations}
           />
+
 
           {/* Table */}
           <UserTable

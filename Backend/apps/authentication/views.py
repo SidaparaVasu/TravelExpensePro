@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import action
 from rest_framework import viewsets
 from .models import *
@@ -15,7 +16,8 @@ from .utils import RoleManager
 from utils.rate_limiters import api_ratelimit
 from utils.response_formatter import success_response, error_response
 from django.contrib.auth import get_user_model
-
+import csv
+from django.http import HttpResponse
 
 User = get_user_model()
 
@@ -145,60 +147,6 @@ class LoginView(APIView):
         }
         
         return Response(response_data, status=status.HTTP_200_OK)
-    
-# class LoginView(APIView):
-#     """
-#     Enhanced login with role information for dashboard routing
-#     """
-#     permission_classes = []
-
-#     # @api_ratelimit(rate='5/m')
-#     def post(self, request):
-#         serializer = LoginSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-        
-#         user = serializer.validated_data['user']
-#         refresh = RefreshToken.for_user(user)
-        
-#         # Get user's roles and permissions
-#         primary_role = user.get_primary_role()
-#         all_roles = user.get_all_roles()
-        
-#         response_data = {
-#             'success': True,
-#             'message': 'Login successful',
-#             'data': {
-#                 'tokens': {
-#                     'access': str(refresh.access_token),
-#                     'refresh': str(refresh)
-#                 },
-#                 'user': {
-#                     'id': user.id,
-#                     'username': user.username,
-#                     'employee_id': user.employee_id,
-#                     'full_name': user.get_full_name(),
-#                     'email': user.email
-#                 },
-#                 'roles': {
-#                     'primary': {
-#                         'name': primary_role.name if primary_role else 'Employee',
-#                         'dashboard': primary_role.dashboard_access if primary_role else 'employee'
-#                     },
-#                     'available': [
-#                         {
-#                             'id': role.id,
-#                             'name': role.name,
-#                             'dashboard': role.dashboard_access
-#                         } for role in all_roles
-#                     ]
-#                 },
-#                 'permissions': user.get_user_permissions_list(),
-#                 # 'redirect_to': f"/{primary_role.dashboard_access if primary_role else 'employee'}/dashboard"
-#                 'redirect_to': primary_role.redirect_path if primary_role else '/employee/dashboard'
-#             }
-#         }
-        
-#         return Response(response_data, status=status.HTTP_200_OK)
 
 class LogoutView(APIView):
     """
@@ -257,32 +205,70 @@ class UserCreateView(ListCreateAPIView):
 
 # User views
 class UserListCreateView(ListCreateAPIView):
-    """
-    List all users or create a new user (Admin only)
-    Supports search by: username, first_name, last_name, email
-    Supports filtering by: user_type, is_active
-    """
-    permission_classes = [IsAuthenticated, IsAdminUser]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['user_type', 'is_active']
-    search_fields = ['username', 'first_name', 'last_name', 'email']
-    ordering_fields = ['username', 'first_name', 'last_name', 'date_joined']
-    ordering = ['-date_joined']
-    
-    def get_queryset(self):
-        queryset = User.objects.filter(is_superuser=False)
-        
-        # Prefetch profiles for better performance
-        queryset = queryset.prefetch_related('organizational_profile', 'external_profile')
-        queryset = queryset.prefetch_related('userrole_set__role')
-        
-        return queryset
-    
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return UserCreateSerializer
-        return UserListSerializer
+    serializer_class = UserListSerializer
+    queryset = User.objects.select_related(
+        "organizational_profile",
+        "external_profile",
+        "company",
+        "department",
+        "designation",
+        "employee_type",
+        "grade",
+        "base_location",
+    ).prefetch_related("userrole_set__role")
 
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter,
+        OrderingFilter,
+    ]
+
+    # Filtering
+    filterset_fields = {
+        "user_type": ["exact"],
+        "is_active": ["exact"],
+        "department": ["exact"],
+        "designation": ["exact"],
+        "company": ["exact"],
+        "grade": ["exact"],
+        "base_location": ["exact"],
+    }
+
+    # Search across ALL major fields
+    search_fields = [
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "organizational_profile__employee_id",
+        "organizational_profile__company__name",
+        "organizational_profile__department__name",
+        "designation__name",
+        "external_profile__organization_name",
+    ]
+
+    # Ordering
+    ordering_fields = [
+        "id", "first_name", "last_name",
+        "date_joined", "company", "department",
+    ]
+
+
+class UserExportCSV(APIView):
+    def get(self, request):
+        users = User.objects.all()
+        serializer = UserListSerializer(users, many=True)
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = "attachment; filename=users_export.csv"
+
+        writer = csv.writer(response)
+        writer.writerow(serializer.data[0].keys())  # headers
+
+        for row in serializer.data:
+            writer.writerow(row.values())
+
+        return response
 
 class UserDetailView(RetrieveUpdateDestroyAPIView):
     """
@@ -332,67 +318,6 @@ class UserProfileView(RetrieveAPIView):
             "data": serializer.data
         })
 
-'''
-class UserListCreateView(ListCreateAPIView):
-    """
-    List all users or create a new user (Admin only)
-    Supports search by: username, first_name, last_name, email, employee_id
-    Supports filtering by: department, designation, company, base_location, is_active
-    """
-    queryset = User.objects.select_related(
-        'department', 'designation', 'company', 'base_location', 'reporting_manager'
-    ).filter(is_superuser=False)
-    permission_classes = [IsAuthenticated, IsAdminUser]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['department', 'designation', 'company', 'base_location', 'is_active']
-    search_fields = ['username', 'first_name', 'last_name', 'email', 'employee_id']
-    ordering_fields = ['employee_id', 'username', 'first_name', 'last_name', 'date_joined']
-    ordering = ['-date_joined']
-    
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return UserCreateSerializer
-        return UserListSerializer
-    
-
-class UserDetailView(RetrieveUpdateDestroyAPIView):
-    """
-    Retrieve, update, or delete a user (Admin only)
-    """
-    queryset = User.objects.select_related(
-        'department', 'designation', 'employee_type', 'company', 
-        'grade', 'base_location', 'reporting_manager'
-    ).all()
-    permission_classes = [IsAuthenticated, IsAdminUser]
-    
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return UserDetailSerializer
-        elif self.request.method in ['PUT', 'PATCH']:
-            return UserUpdateSerializer
-        return UserDetailSerializer
-    
-    def destroy(self, request, *args, **kwargs):
-        """Soft delete by setting is_active to False"""
-        instance = self.get_object()
-        instance.is_active = False
-        instance.save()
-        return Response(
-            {'message': 'User deactivated successfully'},
-            status=status.HTTP_200_OK
-        )
-
-
-class UserProfileView(RetrieveAPIView):
-    """
-    Get current user's profile with organizational information
-    """
-    serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self):
-        return self.request.user
-'''
 
 class SwitchRoleView(APIView):
     """
@@ -431,36 +356,7 @@ class SwitchRoleView(APIView):
                 'data': None,
                 'errors': {'detail': str(e)}
             }, status=status.HTTP_403_FORBIDDEN)
-
-# class SwitchRoleView(APIView):
-#     """
-#     Allow users to switch between their assigned roles
-#     """
-#     permission_classes = [IsAuthenticated]
-    
-#     def post(self, request):
-#         serializer = SwitchRoleSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
         
-#         role_name = serializer.validated_data['role_name']
-        
-#         try:
-#             RoleManager.switch_primary_role(request.user, role_name)
-            
-#             new_role = Role.objects.get(name=role_name)
-#             return Response({
-#                 'message': 'Role switched successfully',
-#                 'redirect_to': f"/{new_role.dashboard_access}/dashboard",
-#                 'role': {
-#                     'name': new_role.name,
-#                     'dashboard': new_role.dashboard_access
-#                 }
-#             })
-#         except ValueError as e:
-#             return Response(
-#                 {'error': str(e)}, 
-#                 status=status.HTTP_403_FORBIDDEN
-#             )
 
 # Enhanced Role Management Views
 class RoleListCreateView(ListCreateAPIView):
@@ -577,7 +473,7 @@ class NotificationPreferencesView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        from apps.authentication.models.preferences import NotificationPreference
+        from apps.notifications.models import NotificationPreference
         
         prefs, created = NotificationPreference.objects.get_or_create(user=request.user)
         
@@ -599,7 +495,7 @@ class NotificationPreferencesView(APIView):
         )
     
     def put(self, request):
-        from apps.authentication.models.preferences import NotificationPreference
+        from apps.notifications.models import NotificationPreference
         
         prefs, created = NotificationPreference.objects.get_or_create(user=request.user)
         

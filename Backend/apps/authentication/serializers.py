@@ -166,79 +166,271 @@ class UserProfileResponseSerializer(serializers.Serializer):
         return None
 
 class UserListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for list views"""
-    user_type_display = serializers.CharField(source='get_user_type_display', read_only=True)
+    user_type_display = serializers.CharField(source="get_user_type_display")
+    profile_type = serializers.SerializerMethodField()
+
+    # ORGANIZATIONAL DETAILS
+    company_name = serializers.SerializerMethodField()
+    department_name = serializers.SerializerMethodField()
+    designation_name = serializers.SerializerMethodField()
+    employee_type_name = serializers.SerializerMethodField()
+    grade_name = serializers.SerializerMethodField()
+    base_location_name = serializers.SerializerMethodField()
+    reporting_manager_name = serializers.SerializerMethodField()
+
+    # EXTERNAL PROFILE DETAILS
+    organization_name = serializers.SerializerMethodField()
+    profile_category = serializers.SerializerMethodField()
+    contact_person = serializers.SerializerMethodField()
+    phone = serializers.SerializerMethodField()
+    vendor_email = serializers.SerializerMethodField()
+
+    # COMMON
     profile_summary = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
+    permissions = serializers.SerializerMethodField()
     primary_role = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'first_name', 'last_name', 'email', 'gender', 'employee_id',
-            'user_type', 'user_type_display', 'profile_summary', 'primary_role', 'is_active'
+            "id", "username", "first_name", "last_name", "email", "gender",
+            "user_type", "user_type_display", "is_active",
+            "date_joined", "last_login",
+
+            # ORGANIZATIONAL
+            "company_name", "department_name", "designation_name",
+            "employee_type_name", "grade_name", "base_location_name",
+            "reporting_manager_name",
+
+            # EXTERNAL
+            "organization_name", "profile_category", "contact_person",
+            "phone", "vendor_email",
+
+            # COMMON
+            "profile_type",
+            "profile_summary",
+            "roles",
+            "primary_role",
+            "permissions",
         ]
-    
+
+    # -------------------------------------------
+    # 🔵 PROFILE DETECTION
+    # -------------------------------------------
+    def get_profile_type(self, obj):
+        return obj.user_type
+
+    # -------------------------------------------
+    # 🔵 ORGANIZATIONAL PROFILE ACCESSOR
+    # -------------------------------------------
+    def _org(self, obj):
+        return getattr(obj, "organizational_profile", None)
+
+    # -------------------------------------------
+    # 🔵 EXTERNAL PROFILE ACCESSOR
+    # -------------------------------------------
+    def _ext(self, obj):
+        return getattr(obj, "external_profile", None)
+
+    # -------------------------------------------
+    # ORGANIZATIONAL MAPPINGS
+    # -------------------------------------------
+    def get_company_name(self, obj):
+        p = self._org(obj)
+        return p.company.name if p and p.company else None
+
+    def get_department_name(self, obj):
+        p = self._org(obj)
+        return p.department.dept_name if p and p.department else None
+
+    def get_designation_name(self, obj):
+        p = self._org(obj)
+        return p.designation.designation_name if p and p.designation else None
+
+    def get_employee_type_name(self, obj):
+        p = self._org(obj)
+        return p.employee_type.type if p and p.employee_type else None
+
+    def get_grade_name(self, obj):
+        p = self._org(obj)
+        return p.grade.name if p and p.grade else None
+
+    def get_base_location_name(self, obj):
+        p = self._org(obj)
+        return p.base_location.location_name if p and p.base_location else None
+
+    def get_reporting_manager_name(self, obj):
+        p = self._org(obj)
+        if p and p.reporting_manager:
+            return p.reporting_manager.get_full_name()
+        return None
+
+    # -------------------------------------------
+    # EXTERNAL PROFILE MAPPINGS
+    # -------------------------------------------
+    def get_organization_name(self, obj):
+        p = self._ext(obj)
+        return p.organization_name if p else None
+
+    def get_profile_category(self, obj):
+        p = self._ext(obj)
+        return p.get_profile_type_display() if p else None
+
+    def get_contact_person(self, obj):
+        p = self._ext(obj)
+        return p.contact_person if p else None
+
+    def get_phone(self, obj):
+        p = self._ext(obj)
+        return p.phone if p else None
+
+    def get_vendor_email(self, obj):
+        p = self._ext(obj)
+        return p.email if p else None
+
+    # -------------------------------------------
+    # SUMMARY OBJECT
+    # -------------------------------------------
     def get_profile_summary(self, obj):
-        """Return minimal profile info for list view"""
-        if obj.user_type == 'organizational':
-            profile = getattr(obj, 'organizational_profile', None)
-            if profile:
-                return {
-                    'type': 'organizational',
-                    'employee_id': profile.employee_id,
-                    'company': profile.company.name if profile.company else None,
-                    'department': profile.department.dept_name if profile.department else None,
-                    'designation': profile.designation.designation_name if profile.designation else None,
-                }
-        elif obj.user_type == 'external':
-            profile = getattr(obj, 'external_profile', None)
-            if profile:
-                return {
-                    'type': 'external',
-                    'organization_name': profile.organization_name,
-                    'profile_type': profile.get_profile_type_display(),
-                }
-        return None
-    
-    def get_primary_role(self, obj):
-        primary_role = obj.get_primary_role()
-        if primary_role:
+        if obj.user_type == "organizational":
+            p = self._org(obj)
+            if not p:
+                return None
             return {
-                'id': primary_role.id,
-                'name': primary_role.name,
-                'role_type': primary_role.role_type
+                "type": "organizational",
+                "employee_id": p.employee_id,
+                "company": p.company.name if p.company else None,
+                "department": p.department.dept_name if p.department else None,
+                "designation": p.designation.designation_name if p.designation else None,
             }
-        return None
+        else:
+            p = self._ext(obj)
+            if not p:
+                return None
+            return {
+                "type": "external",
+                "organization": p.organization_name,
+                "profile": p.get_profile_type_display(),
+                "contact": p.contact_person,
+            }
+
+    # -------------------------------------------
+    # ROLES & PERMISSIONS
+    # -------------------------------------------
+    def get_primary_role(self, obj):
+        role = obj.get_primary_role()
+        if not role:
+            return None
+        return {
+            "id": role.id,
+            "name": role.name,
+            "role_type": role.role_type,
+        }
+
+    def get_roles(self, obj):
+        roles = obj.get_all_roles()
+        return [
+            {"id": r.id, "name": r.name, "role_type": r.role_type}
+            for r in roles
+        ]
+
+    def get_permissions(self, obj):
+        return obj.get_user_permissions_list()
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
-    """Detailed serializer with all related data"""
     user_type_display = serializers.CharField(source='get_user_type_display', read_only=True)
-    profile = serializers.SerializerMethodField()
+
+    # additional fields expected by frontend:
+    profile_summary = serializers.SerializerMethodField()
+    company_name = serializers.SerializerMethodField()
+    department_name = serializers.SerializerMethodField()
+    designation_name = serializers.SerializerMethodField()
+    employee_type_name = serializers.SerializerMethodField()
+    grade_name = serializers.SerializerMethodField()
+    base_location_name = serializers.SerializerMethodField()
+    reporting_manager_name = serializers.SerializerMethodField()
+
     roles = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = User
         fields = [
             'id', 'username', 'first_name', 'last_name', 'email', 'gender',
             'user_type', 'user_type_display', 'is_active',
             'date_joined', 'last_login',
-            'profile', 'roles', 'permissions'
+
+            # summary + detailed profile fields
+            'profile_summary',
+            'company_name',
+            'department_name',
+            'designation_name',
+            'employee_type_name',
+            'grade_name',
+            'base_location_name',
+            'reporting_manager_name',
+
+            'roles',
+            'permissions',
         ]
-    
-    def get_profile(self, obj):
-        """Return full profile based on user_type"""
-        if obj.user_type == 'organizational':
-            profile = getattr(obj, 'organizational_profile', None)
-            if profile:
-                return OrganizationalProfileSerializer(profile).data
-        elif obj.user_type == 'external':
-            profile = getattr(obj, 'external_profile', None)
-            if profile:
-                return ExternalProfileSerializer(profile).data
+
+    # -------------------------
+    # Match LIST API structure
+    # -------------------------
+    def get_profile_summary(self, obj):
+        profile = getattr(obj, 'organizational_profile', None)
+        if not profile:
+            return None
+        
+        return {
+            "type": "organizational",
+            "employee_id": profile.employee_id,
+            "company": profile.company.name if profile.company else None,
+            "department": profile.department.dept_name if profile.department else None,
+            "designation": profile.designation.designation_name if profile.designation else None,
+        }
+
+    # -------------------------
+    # Individual fields
+    # -------------------------
+    def _org_profile(self, obj):
+        return getattr(obj, 'organizational_profile', None)
+
+    def get_company_name(self, obj):
+        p = self._org_profile(obj)
+        return p.company.name if p and p.company else None
+
+    def get_department_name(self, obj):
+        p = self._org_profile(obj)
+        return p.department.dept_name if p and p.department else None
+
+    def get_designation_name(self, obj):
+        p = self._org_profile(obj)
+        return p.designation.designation_name if p and p.designation else None
+
+    def get_employee_type_name(self, obj):
+        p = self._org_profile(obj)
+        return p.employee_type.type if p and p.employee_type else None
+
+    def get_grade_name(self, obj):
+        p = self._org_profile(obj)
+        return p.grade.name if p and p.grade else None
+
+    def get_base_location_name(self, obj):
+        p = self._org_profile(obj)
+        return p.base_location.location_name if p and p.base_location else None
+
+    def get_reporting_manager_name(self, obj):
+        p = self._org_profile(obj)
+        if p and p.reporting_manager:
+            return p.reporting_manager.get_full_name()
         return None
-    
+
+    # -------------------------
+    # Roles & permissions
+    # -------------------------
     def get_roles(self, obj):
         return [
             {
@@ -246,11 +438,11 @@ class UserDetailSerializer(serializers.ModelSerializer):
                 'name': ur.role.name,
                 'role_type': ur.role.role_type,
                 'is_primary': ur.is_primary,
-                'description': ur.role.description
+                'description': ur.role.description,
             }
             for ur in obj.userrole_set.filter(is_active=True).select_related('role')
         ]
-    
+
     def get_permissions(self, obj):
         return obj.get_user_permissions_list()
 
@@ -519,177 +711,6 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Must include 'username' and 'password'.")
 
 
-'''
-OLD SERIALIZERS
-'''
-# User serializers
-# class UserSerializer(serializers.ModelSerializer):
-    # base_location = serializers.PrimaryKeyRelatedField(
-    #     queryset=LocationMaster.objects.all(),
-    #     required=False,
-    #     allow_null=True
-    # )
-    # base_location_name = serializers.CharField(
-    #     source='base_location.location_name', read_only=True
-    # )
-
-    # class Meta:
-    #     model = User
-    #     fields = [
-    #         'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
-    #         'reporting_manager', 'department', 'designation', 'employee_type',
-    #         'company', 'grade', 'base_location', 'base_location_name',
-    #         'user_permissions', 'is_active'
-    #     ]
-
-
-# class UserListSerializer(serializers.ModelSerializer):
-#     """Lightweight serializer for list views"""
-#     department_name = serializers.SerializerMethodField()
-#     designation_name = serializers.SerializerMethodField()
-#     company_name = serializers.CharField(source='company.name', read_only=True)
-#     base_location_name = serializers.CharField(source='base_location.location_name', read_only=True)
-#     reporting_manager_name = serializers.SerializerMethodField()
-    
-#     class Meta:
-#         model = User
-#         fields = [
-#             'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
-#             'department', 'department_name', 'designation', 'designation_name',
-#             'company', 'company_name', 'base_location', 'base_location_name',
-#             'reporting_manager', 'reporting_manager_name', 'is_active'
-#         ]
-
-#     def get_department_name(self, obj):
-#         return obj.department.dept_name if obj.department else None
-
-#     def get_designation_name(self, obj):
-#         return obj.designation.designation_name if obj.designation else None
-
-#     def get_reporting_manager_name(self, obj):
-#         if obj.reporting_manager:
-#             return f"{obj.reporting_manager.first_name} {obj.reporting_manager.last_name}"
-#         return None
-    
-
-# class UserCreateSerializer(serializers.ModelSerializer):
-#     """Serializer for creating users with password"""
-#     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-#     confirm_password = serializers.CharField(write_only=True, required=True)
-    
-#     class Meta:
-#         model = User
-#         fields = [
-#             'id', 'employee_id', 'username', 'password', 'confirm_password',
-#             'first_name', 'last_name', 'email', 'gender', 'reporting_manager',
-#             'department', 'designation', 'employee_type', 'company', 
-#             'grade', 'base_location', 'is_active'
-#         ]
-    
-#     def validate(self, attrs):
-#         if attrs['password'] != attrs['confirm_password']:
-#             raise serializers.ValidationError({"confirm_password": "Password fields didn't match."})
-#         return attrs
-    
-#     def create(self, validated_data):
-#         validated_data.pop('confirm_password')
-#         password = validated_data.pop('password')
-#         user = User.objects.create(**validated_data)
-#         user.set_password(password)
-#         user.save()
-#         return user
-    
-
-# class UserUpdateSerializer(serializers.ModelSerializer):
-#     """Serializer for updating users (without password)"""
-    
-#     class Meta:
-#         model = User
-#         fields = [
-#             'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
-#             'reporting_manager', 'department', 'designation', 'employee_type',
-#             'company', 'grade', 'base_location', 'is_active'
-#         ]
-    
-#     def validate_username(self, value):
-#         # Ensure username is unique excluding current instance
-#         if self.instance:
-#             if User.objects.exclude(pk=self.instance.pk).filter(username=value).exists():
-#                 raise serializers.ValidationError("Username already exists.")
-#         return value
-    
-
-# class UserDetailSerializer(serializers.ModelSerializer):
-#     """Detailed serializer with all related data"""
-#     department_name = serializers.SerializerMethodField()
-#     designation_name = serializers.SerializerMethodField()
-#     employee_type_name = serializers.SerializerMethodField()
-#     company_name = serializers.CharField(source='company.name', read_only=True)
-#     grade_name = serializers.CharField(source='grade.name', read_only=True)
-#     base_location_name = serializers.CharField(source='base_location.location_name', read_only=True)
-#     reporting_manager_details = serializers.SerializerMethodField()
-    
-#     class Meta:
-#         model = User
-#         fields = [
-#             'id', 'employee_id', 'username', 'first_name', 'last_name', 'email', 'gender',
-#             'department', 'department_name', 'designation', 'designation_name',
-#             'employee_type', 'employee_type_name', 'company', 'company_name',
-#             'grade', 'grade_name', 'base_location', 'base_location_name',
-#             'reporting_manager', 'reporting_manager_details', 'is_active',
-#             'date_joined', 'last_login'
-#         ]
-
-#     def get_department_name(self, obj):
-#         return obj.department.dept_name if obj.department else None
-
-#     def get_designation_name(self, obj):
-#         return obj.designation.designation_name if obj.designation else None
-
-#     def get_employee_type_name(self, obj):
-#         return obj.employee_type.type if obj.employee_type else None
-
-#     def get_reporting_manager_details(self, obj):
-#         if obj.reporting_manager:
-#             return {
-#                 'id': obj.reporting_manager.id,
-#                 'name': f"{obj.reporting_manager.first_name} {obj.reporting_manager.last_name}",
-#                 'employee_id': obj.reporting_manager.employee_id
-#             }
-#         return None
-
-
-# class UserProfileSerializer(serializers.ModelSerializer):
-#     """
-#     Detailed user profile with organizational information
-#     """
-#     roles = serializers.SerializerMethodField()
-#     grade = serializers.CharField(source="grade.name", read_only=True)
-#     employee_type = serializers.CharField(source="employee_type.type", read_only=True)
-#     company = serializers.CharField(source="company.name", read_only=True)
-#     department = serializers.CharField(source="department.dept_name", read_only=True)
-#     designation = serializers.CharField(source="designation.designation_name", read_only=True)
-#     base_location = serializers.CharField(source="base_location.location_name", read_only=True)
-#     reporting_manager = serializers.CharField(source="reporting_manager.username", read_only=True)
-
-#     class Meta:
-#         model = User
-#         fields = (
-#             'id', 'username', 'first_name', 'last_name', 'email', 'gender', 'employee_id',
-#             'roles', 'department', 'designation', 'grade', 'employee_type', 
-#             'company', 'base_location', 'reporting_manager'
-#         )
-
-#     def get_roles(self, obj):
-#         return [
-#             {
-#                 'name': ur.role.name,
-#                 'dashboard': ur.role.dashboard_access,
-#                 'is_primary': ur.is_primary
-#             }
-#             for ur in obj.userrole_set.select_related('role').all()
-#         ]
-
 class SwitchRoleSerializer(serializers.Serializer):
     """
     Role switching validation
@@ -712,8 +733,6 @@ class PermissionSerializer(serializers.ModelSerializer):
         model = Permission
         fields = ['id', 'name', 'codename', 'category', 'description']
 
-
-# Add these to your existing serializers.py
 
 class UserRoleAssignmentSerializer(serializers.Serializer):
     """

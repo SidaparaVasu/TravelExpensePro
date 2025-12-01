@@ -13,6 +13,9 @@ urlpatterns = [
     # path('users/', UserCreateView.as_view(), name='user_list_create'),
     path('users/', UserListCreateView.as_view(), name='user-list-create'),
     path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
+
+    # Bulk Export
+    path("users/export/", UserExportCSV.as_view(), name='user-bulk-export'),
     
     # Role Management (Admin)
     path('roles/', RoleListCreateView.as_view(), name='role_list_create'),

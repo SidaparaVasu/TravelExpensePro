@@ -61,9 +61,10 @@ export const userAPI = {
         company?: number;
         base_location?: number;
         is_active?: boolean;
+        user_type?: string;
     }) => {
         const { data } = await apiClient.get('/users/', { params });
-        console.log("OYYYYYYYYYY: ", data);
+        console.log(data);
         return data;
     },
 
@@ -86,4 +87,9 @@ export const userAPI = {
         const { data } = await apiClient.delete(`/users/${id}/`);
         return data;
     },
-};
+
+    export: async () => {
+        const { data } = await apiClient.get(`/users/export/`);
+        return data;
+    },
+ };

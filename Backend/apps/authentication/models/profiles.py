@@ -76,6 +76,11 @@ class OrganizationalProfile(models.Model):
         db_table = 'organizational_profiles'
         verbose_name = 'Organizational Profile'
         verbose_name_plural = 'Organizational Profiles'
+        indexes = [
+            models.Index(fields=["employee_id"]),
+            models.Index(fields=["company"]),
+            models.Index(fields=["department"]),
+        ]
     
     def __str__(self):
         return f"{self.employee_id or 'No ID'} - {self.user.get_full_name()}"
