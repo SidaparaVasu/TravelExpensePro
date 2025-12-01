@@ -27,11 +27,13 @@ env = environ.Env(DEBUG=(bool, False))
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 # Dynamically select which .env file to load
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+
 env_file = os.path.join(BASE_DIR, ".env.dev")
 
 if ENVIRONMENT == "production":
     env_file = os.path.join(BASE_DIR, ".env.prod")
-
+    
 if os.environ.get("RENDER"):  # Render sets several env vars like RENDER or RENDER_SERVICE_ID
     env_file = os.path.join(BASE_DIR, ".env.prod")
 
@@ -108,7 +110,6 @@ CORS_ALLOWED_ORIGINS = env.list(
         "http://localhost:5173",  # Vite
         "http://127.0.0.1:5173",
         'http://localhost',
-        "http://192.168.1.171:5173", # Local IP
     ]
 )
 # CORS_ALLOWED_ORIGINS = [
@@ -117,7 +118,6 @@ CORS_ALLOWED_ORIGINS = env.list(
 #     "http://localhost:3000",
 #     "http://localhost:5173",  # Vite
 #     'http://localhost',
-#     "http://192.168.1.171:5173", # Local IP
 # ]
 # CORS_ALLOW_ALL_ORIGINS = True   # allows any frontend
 CORS_ALLOW_CREDENTIALS = True
@@ -310,7 +310,6 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default='')
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default='')
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@tatasteelfoundation.org")
 
-# Logging Configuration
 # -----------------------------------
 # LOGGING CONFIGURATION (DEV + PROD)
 # -----------------------------------
