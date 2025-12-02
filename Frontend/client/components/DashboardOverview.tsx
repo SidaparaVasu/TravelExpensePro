@@ -98,7 +98,7 @@ export function DashboardOverview() {
         />
         <StatCard
           title="Pending Expenses"
-          value="$15,150"
+          value="₹15,150"
           icon={<StatCardFileText className="h-9 w-9" />}
           bgColor="bg-red-50"
         />

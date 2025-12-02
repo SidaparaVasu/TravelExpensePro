@@ -94,7 +94,7 @@ function CompanyDrawer({ isOpen, onClose, data, onSubmit }) {
                             <InputField label="Pincode *" value={formData.pincode} onChange={(v) => setFormData({ ...formData, pincode: v })} />
                             <InputField label="Phone Number" value={formData.phone_number} onChange={(v) => setFormData({ ...formData, phone_number: v })} />
                             <InputField label="Email" value={formData.email_address} onChange={(v) => setFormData({ ...formData, email_address: v })} />
-                            <InputField label="Website" value={formData.website} onChange={(v) => setFormData({ ...formData, website: v })} />
+                            <InputField label="Website" placeholder="example: https://tatasteelfoundation.org" value={formData.website} onChange={(v) => setFormData({ ...formData, website: v })} />
                             <TextareaField label="Header Text" value={formData.header} onChange={(v) => setFormData({ ...formData, header: v })} />
                             <TextareaField label="Footer Text" value={formData.footer} onChange={(v) => setFormData({ ...formData, footer: v })} />
                         </div>

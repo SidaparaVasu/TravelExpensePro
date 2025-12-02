@@ -10,7 +10,7 @@ class Command(BaseCommand):
             ("submitted", "Submitted", 2, False),
             ("manager_pending", "Manager Pending", 3, False),
             ("finance_pending", "Finance Pending", 4, False),
-            ("chro_pending", "CHRO Pending", 5, False),
+            # ("chro_pending", "CHRO Pending", 5, False),
             ("approved", "Approved", 6, True),
             ("rejected", "Rejected", 7, True),
             ("paid", "Paid", 8, True),
