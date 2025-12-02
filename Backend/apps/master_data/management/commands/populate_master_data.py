@@ -198,6 +198,9 @@ class Command(BaseCommand):
         if "approval_matrix" in modules:
             self._populate_approval_matrix(dry_run=dry_run)
 
+        if "travel_policy" in modules:
+            self._populate_travel_policy(dry_run=dry_run, reset=reset)
+
         self.stdout.write(self.style.SUCCESS("Finished selected modules."))
 
     # ---------------------------
@@ -676,3 +679,117 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS("Approval matrix populated."))
 
+    # ---------------------------
+    # Populate Travel Policy Master
+    # ---------------------------
+    def _populate_travel_policy(self, dry_run=False, reset=True):
+        self.stdout.write(self.style.NOTICE("Populating TravelPolicyMaster..."))
+
+        from apps.master_data.models.travel import TravelPolicyMaster, TravelModeMaster, TravelSubOptionMaster
+        from apps.master_data.models.grades import GradeMaster
+        from django.utils import timezone
+
+        today = timezone.now().date()
+
+        # Load modes and grades
+        modes = {m.name: m for m in TravelModeMaster.objects.all()}
+        grades = {g.name: g for g in GradeMaster.objects.all()}
+
+        RULES = [
+
+            # --------------------------
+            # ADVANCE BOOKING RULES
+            # --------------------------
+            {
+                "policy_type": "advance_booking",
+                "title": "Minimum 7-day advance booking for flights",
+                "description": "Employees must book flight tickets at least 7 days in advance.",
+                "mode": "Flight",
+                "grade": None,
+                "params": {"days": 7},
+            },
+            {
+                "policy_type": "advance_booking",
+                "title": "Minimum 3-day advance booking for trains",
+                "description": "Train tickets must be booked at least 3 days in advance.",
+                "mode": "Train",
+                "grade": None,
+                "params": {"days": 3},
+            },
+
+            # --------------------------
+            # DISTANCE LIMIT RULE
+            # --------------------------
+            {
+                "policy_type": "distance_limit",
+                "title": "Own car usage allowed up to 150 km/day",
+                "description": "Beyond 150 km/day, CHRO approval is required.",
+                "mode": "Own Car",
+                "grade": None,
+                "params": {"max_distance": 150},
+            },
+
+            # --------------------------
+            # DURATION LIMIT RULE
+            # --------------------------
+            {
+                "policy_type": "duration_limit",
+                "title": "Car at disposal allowed up to 5 days",
+                "description": "Using a car at disposal for more than 5 days requires CHRO approval.",
+                "mode": "Car at Disposal",
+                "grade": None,
+                "params": {"max_days": 5},
+            },
+
+            # --------------------------
+            # GRADE-BASED MODE RESTRICTIONS
+            # --------------------------
+            {
+                "policy_type": "mode_restriction",
+                "title": "Train class eligibility for B-2A",
+                "description": "B-2A employees are eligible only for 1st AC train travel.",
+                "mode": "Train",
+                "grade": "B-2A",
+                "params": {"allowed_suboptions": ["1st AC"]},
+            },
+            {
+                "policy_type": "mode_restriction",
+                "title": "Train class eligibility for B-2B / B-3 / B-4A / B-4B",
+                "description": "Employees of these grades are eligible for 2nd AC.",
+                "mode": "Train",
+                "grade": None,  # Applies to multiple grades — generic rule
+                "params": {"allowed_suboptions": ["2nd AC"]},
+            },
+        ]
+
+        if dry_run:
+            for r in RULES:
+                self.stdout.write(
+                    f"[DRY] {r['policy_type']} -> {r['title']} (mode={r['mode']} grade={r['grade']}) params={r['params']}"
+                )
+            return
+
+        if reset:
+            TravelPolicyMaster.objects.all().delete()
+            self.stdout.write(self.style.WARNING("Existing TravelPolicyMaster rows cleared."))
+
+        created = 0
+
+        for rule in RULES:
+            mode_obj = modes.get(rule["mode"])
+            grade_obj = grades.get(rule["grade"]) if rule["grade"] else None
+
+            obj = TravelPolicyMaster.objects.create(
+                policy_type=rule["policy_type"],
+                title=rule["title"],
+                description=rule["description"],
+                travel_mode=mode_obj,
+                employee_grade=grade_obj,
+                rule_parameters=rule["params"],
+                is_active=True,
+                effective_from=today,
+                effective_to=None,
+            )
+            created += 1
+
+        self.stdout.write(self.style.SUCCESS(f"TravelPolicyMaster populated ({created} rules)."))
