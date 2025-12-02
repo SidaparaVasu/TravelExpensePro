@@ -6,7 +6,7 @@ class GLCodeMaster(models.Model):
     General Ledger codes for travel expenses
     """
     vertical_name = models.CharField(max_length=100)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     sorting_no = models.PositiveIntegerField(unique=True)
     gl_code = models.CharField(max_length=20, unique=True)
     is_active = models.BooleanField(default=True)
