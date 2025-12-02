@@ -1,573 +1,678 @@
-# apps/master_data/management/commands/populate_masters.py
 from django.core.management.base import BaseCommand
-from django.db import transaction, IntegrityError
 from django.utils import timezone
 from decimal import Decimal
-import logging
 
-logger = logging.getLogger(__name__)
-
-# ---- Models used (adapt import paths if your project structure differs) ----
-from apps.master_data.models.travel import *
-from apps.master_data.models.grades import *
-from apps.master_data.models.approval import *
+from apps.master_data.models.travel import (
+    TravelModeMaster,
+    TravelSubOptionMaster,
+    GradeEntitlementMaster
+)
+from apps.master_data.models.grades import GradeMaster
+from apps.master_data.models.approval import ApprovalMatrix, DAIncidentalMaster, ConveyanceRateMaster
+from apps.master_data.models.geography import CityCategoriesMaster
 
 # Authentication models
 try:
-    from authentication.models import *
+    from authentication.models import User, Role, UserRole
 except Exception:
-    # fallback imports if your project uses different names/locations
-    try:
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        Role = None
-        UserRole = None
-    except Exception:
-        User = None
-        Role = None
-        UserRole = None
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    Role = None
+    UserRole = None
 
 
 class Command(BaseCommand):
-    help = "Populate selected master tables (travel modes, grade entitlements, DA, conveyance, approval matrix)."
+    help = "Populate master tables (travel modes, grade entitlements, DA, conveyance, approval matrix)."
+
+    # ---------------------------
+    # POLICY CONSTANTS (from client's document)
+    # ---------------------------
+    # Accommodation entitlement per day (Category A / B)
+    POLICY_ACCOMMODATION = {
+        "B-2A": {"A": 7000, "B": 5000},
+        "B-2B": {"A": 7000, "B": 5000},
+        "B-3": {"A": 6500, "B": 4000},
+        "B-4A": {"A": 6500, "B": 4000},
+        "B-4B": {"A": 6500, "B": 4000},
+    }
+
+    # Stay-with-friends/relatives allowances (Category A / B)
+    POLICY_STAY_WITH_FRIENDS = {
+        "B-2A": {"A": 1800, "B": 1000},
+        "B-2B": {"A": 1200, "B": 800},
+        "B-3": {"A": 1000, "B": 600},
+        "B-4A": {"A": 1000, "B": 600},
+        "B-4B": {"A": 1000, "B": 600},
+    }
+
+    # DA/Incidentals table is handled in DAIncidentalMaster population (separate method)
+    # Conveyance rates (policy)
+    POLICY_CONVEYANCE = [
+        {"conveyance_type": "taxi_with_receipt", "rate_per_km": Decimal("0"), "requires_receipt": True},
+        {"conveyance_type": "taxi_without_receipt", "rate_per_km": Decimal("15"), "requires_receipt": False},
+        {"conveyance_type": "own_vehicle", "rate_per_km": Decimal("15"), "requires_receipt": False},
+        {"conveyance_type": "auto_rickshaw", "rate_per_km": Decimal("0"), "requires_receipt": False},
+        {"conveyance_type": "public_transport", "rate_per_km": Decimal("0"), "requires_receipt": True},
+    ]
+
+    # Travel modes and their sub-options (from client doc)
+    TRAVEL_MODES_AND_SUBS = {
+        "Flight": ["Economy Class"],
+        "Train": ["1st AC", "2nd AC"],
+        "Pick-up and Drop": ["Pick-up/Drop Only"],
+        "Radio Taxi": ["Radio Taxi"],
+        "Car at Disposal": ["Company Arranged Car", "Car at Disposal"],
+        "Own Car": ["Own Car"],
+        "Accommodation": ["Guest House", "Company-tied Hotel", "Self-arranged Stay"],
+    }
+
+    # Allowed mapping from policy: which sub-options are allowed per grade (visibility)
+    # We'll generate entitlements for these; ApprovalMatrix will control approvals
+    POLICY_ALLOWED_SUBS_BY_GRADE = {
+        "B-2A": {
+            "Flight": ["Economy Class"],
+            "Train": ["1st AC"],
+            "Pick-up and Drop": ["Pick-up/Drop Only"],
+            "Radio Taxi": ["Radio Taxi"],
+            "Car at Disposal": ["Company Arranged Car", "Car at Disposal"],
+            "Own Car": ["Own Car"],
+            "Accommodation": ["Guest House", "Company-tied Hotel", "Self-arranged Stay"],
+        },
+        "B-2B": {
+            "Flight": ["Economy Class"],
+            "Train": ["2nd AC"],
+            "Pick-up and Drop": ["Pick-up/Drop Only"],
+            "Radio Taxi": ["Radio Taxi"],
+            "Car at Disposal": ["Company Arranged Car", "Car at Disposal"],
+            "Own Car": ["Own Car"],
+            "Accommodation": ["Guest House", "Company-tied Hotel", "Self-arranged Stay"],
+        },
+        "B-3": {
+            "Flight": ["Economy Class"],
+            "Train": ["2nd AC"],
+            "Pick-up and Drop": ["Pick-up/Drop Only"],
+            "Radio Taxi": ["Radio Taxi"],
+            "Car at Disposal": ["Company Arranged Car", "Car at Disposal"],
+            "Own Car": ["Own Car"],
+            "Accommodation": ["Guest House", "Company-tied Hotel", "Self-arranged Stay"],
+        },
+        "B-4A": {
+            "Flight": ["Economy Class"],
+            "Train": ["2nd AC"],
+            "Pick-up and Drop": ["Pick-up/Drop Only"],
+            "Radio Taxi": ["Radio Taxi"],
+            "Car at Disposal": ["Company Arranged Car", "Car at Disposal"],
+            "Own Car": ["Own Car"],
+            "Accommodation": ["Guest House", "Company-tied Hotel", "Self-arranged Stay"],
+        },
+        "B-4B": {
+            "Flight": ["Economy Class"],
+            "Train": ["2nd AC"],
+            "Pick-up and Drop": ["Pick-up/Drop Only"],
+            "Radio Taxi": ["Radio Taxi"],
+            "Car at Disposal": ["Company Arranged Car", "Car at Disposal"],
+            "Own Car": ["Own Car"],
+            "Accommodation": ["Guest House", "Company-tied Hotel", "Self-arranged Stay"],
+        },
+    }
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--only",
             nargs="+",
             type=str,
-            help="Specify which masters to populate. Options: travel_modes, grades, grade_entitlement, da, conveyance, approval_matrix, all",
+            help="Modules to run. Options: travel_modes, grades, grade_entitlement, da, conveyance, approval_matrix, all",
+        )
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Do not write to DB, only show what would be created.",
+        )
+        parser.add_argument(
+            "--strict",
+            action="store_true",
+            help="Strict mode: do not auto-create missing travel modes or sub-options. Skip and warn instead.",
+        )
+        parser.add_argument(
+            "--no-reset",
+            action="store_true",
+            help="Do not delete existing GradeEntitlement rows before creating. Default is to reset.",
+        )
+        parser.add_argument(
+            "--batch-size",
+            type=int,
+            default=500,
+            help="Batch size for bulk_create (default: 500).",
+        )
+        parser.add_argument(
+            "--create-missing-suboptions",
+            type=str,
+            default="true",
+            choices=["true", "false"],
+            help="Whether to auto-create missing travel suboptions (default: true).",
         )
 
     def handle(self, *args, **options):
-        selected = options.get("only") or []
-        if "all" in selected:
-            selected = ["travel_modes", "grades", "grade_entitlement", "da", "conveyance", "approval_matrix"]
+        modules = options.get("only") or []
+        dry_run = options.get("dry_run", False)
+        strict = options.get("strict", False)
+        reset = not options.get("no_reset", False)
+        batch_size = options.get("batch_size", 500)
+        create_missing_suboptions = options.get("create_missing_suboptions", "true").lower() == "true"
 
-        if not selected:
-            self.stdout.write(self.style.WARNING("No modules selected. Use --only <module1> <module2> or --only all"))
+        # If create_missing_suboptions conflicts with strict, strict takes precedence
+        if strict and create_missing_suboptions:
+            create_missing_suboptions = False
+
+        if "all" in modules:
+            modules = ["travel_modes", "grades", "grade_entitlement", "da", "conveyance", "approval_matrix"]
+
+        if not modules:
+            self.stdout.write(self.style.WARNING("No modules selected. Use --only to pick modules (e.g. --only grade_entitlement)."))
             return
 
-        self.stdout.write(self.style.SUCCESS(f"Selected modules: {selected}"))
+        self.stdout.write(self.style.SUCCESS(f"Running modules: {modules}"))
+        self.stdout.write(self.style.NOTICE(f"Flags -> dry_run={dry_run}, strict={strict}, reset={reset}, batch_size={batch_size}, create_missing_suboptions={create_missing_suboptions}"))
 
-        # Execution map
-        if "travel_modes" in selected:
-            self.populate_travel_modes_and_suboptions()
+        if "travel_modes" in modules:
+            self._populate_travel_modes(dry_run=dry_run, create_missing_suboptions=create_missing_suboptions)
 
-        if "grades" in selected:
-            self.populate_grade_master()
+        if "grades" in modules:
+            self._populate_grades(dry_run=dry_run)
 
-        if "grade_entitlement" in selected:
-            self.populate_grade_entitlements()
+        if "grade_entitlement" in modules:
+            self._populate_grade_entitlements(
+                dry_run=dry_run,
+                strict=strict,
+                reset=reset,
+                batch_size=batch_size,
+                create_missing_suboptions=create_missing_suboptions,
+            )
 
-        if "da" in selected:
-            self.populate_da_incidentals()
+        if "da" in modules:
+            self._populate_da(dry_run=dry_run)
 
-        if "conveyance" in selected:
-            self.populate_conveyance_rates()
+        if "conveyance" in modules:
+            self._populate_conveyance(dry_run=dry_run)
 
-        if "approval_matrix" in selected:
-            self.populate_approval_matrix()
+        if "approval_matrix" in modules:
+            self._populate_approval_matrix(dry_run=dry_run)
 
-        # placeholders
-        placeholders = ["guesthouse", "arc_hotels", "company", "department", "location"]
-        for module in placeholders:
-            if module in selected:
-                self.stdout.write(self.style.WARNING(f"[PLACEHOLDER] Population for {module} is not implemented yet."))
-
-        self.stdout.write(self.style.SUCCESS("Done."))
+        self.stdout.write(self.style.SUCCESS("Finished selected modules."))
 
     # ---------------------------
-    # Utility helpers
+    # Helper lookups
     # ---------------------------
-    def get_user_by_role(self, role_type):
-        """
-        Try to fetch a user assigned the given role_type.
-        1. If UserRole model exists, query via it.
-        2. Else, try Role model and find a user with matching username or reporting.
-        Returns first matching User instance or None.
-        """
-        # 1. If UserRole exists, query it
-        if UserRole is not None:
+    def _get_user_by_role(self, role_type):
+        """Try UserRole -> Role -> heuristics to find a user with given role_type"""
+        # Try UserRole relation if available
+        if "UserRole" in globals() and UserRole is not None:
             try:
-                ur_qs = UserRole.objects.filter(role__role_type=role_type)
-                if ur_qs.exists():
-                    user = ur_qs.first().user
-                    return user
+                ur = UserRole.objects.filter(role__role_type=role_type).first()
+                if ur:
+                    return ur.user
             except Exception:
-                # ignore and continue to heuristics
                 pass
-
-        # 2. If Role model exists, find users linked to that role via some relation (best-effort)
+        # Try Role model mapping if available
         if Role is not None:
             try:
                 role_obj = Role.objects.filter(role_type=role_type).first()
-                if role_obj is not None:
-                    # attempt to find user(s) with role relation backref if available
-                    # Common patterns: role.users, users with role field, user.role
+                if role_obj:
+                    # attempt user relation
+                    # many projects have user.role or role.user_set; best-effort
                     users = User.objects.filter(role__pk=role_obj.pk) if hasattr(User, "role") else None
                     if users and users.exists():
                         return users.first()
             except Exception:
                 pass
-
-        # 3. Heuristics by username (common known usernames from your dump)
+        # Heuristics (common usernames)
         try:
             if role_type == "chro":
-                user = User.objects.filter(username__iexact="ramakant").first()
-                if user:
-                    return user
+                u = User.objects.filter(username__iexact="ramakant").first()
+                if u:
+                    return u
             if role_type == "ceo":
-                user = User.objects.filter(username__iexact="CEO").first()
-                if user:
-                    return user
+                u = User.objects.filter(username__iexact="CEO").first()
+                if u:
+                    return u
             if role_type == "manager":
-                # Prefer a user with explicit manager role; else who is reporting_manager for others
-                user = User.objects.filter(username__iexact="Ramesh").first()
-                if user:
-                    return user
+                u = User.objects.filter(username__iexact="Ramesh").first()
+                if u:
+                    return u
         except Exception:
             pass
-
-        # No user found
         return None
 
-    def get_city_category(self, name):
-        """
-        Try to fetch CityCategoriesMaster by name 'A'/'B'/'C'. Return None if missing.
-        """
+    def _get_city_category(self, name):
         try:
-            from apps.master_data.models.geography import CityCategoriesMaster
             return CityCategoriesMaster.objects.filter(name__iexact=name).first()
         except Exception:
             return None
 
     # ---------------------------
-    # 1) Travel modes + suboptions
+    # Populate travel modes & sub-options
     # ---------------------------
-    @transaction.atomic
-    def populate_travel_modes_and_suboptions(self):
-        """
-        Populate TravelModeMaster and TravelSubOptionMaster using the client's policy (document).
-        Idempotent: uses get_or_create
-        """
-        self.stdout.write(self.style.NOTICE("Populating Travel Modes and Sub-Options..."))
-        # travel modes (based on policy)
-        travel_modes = [
-            {"name": "Flight", "description": "Air travel"},
-            {"name": "Train", "description": "Rail travel"},
-            {"name": "Pick-up and Drop", "description": "Pickup and drop between residence/hotel and station/airport"},
-            {"name": "Radio Taxi", "description": "App-based taxi services"},
-            {"name": "Car at Disposal", "description": "Company arranged car at disposal"},
-            {"name": "Own Car", "description": "Employee's own car travel"},
-            {"name": "Accommodation", "description": "Guest house / company tied hotels / self stay"},
-        ]
-
+    def _populate_travel_modes(self, dry_run=False, create_missing_suboptions=True):
+        self.stdout.write(self.style.NOTICE("Populating TravelModeMaster & TravelSubOptionMaster..."))
         created_modes = []
-        for idx, m in enumerate(travel_modes, start=1):
-            tm_obj, created = TravelModeMaster.objects.update_or_create(
-                name=m["name"],
-                defaults={"description": m["description"], "is_active": True},
-            )
-            created_modes.append(tm_obj)
-            self.stdout.write(self.style.SUCCESS(f"{'Created' if created else 'Updated'} TravelMode: {tm_obj.name}"))
-
-        # sub-options by mode
-        suboptions_map = {
-            "Flight": ["Economy Class"],
-            "Train": ["1st AC", "2nd AC"],
-            "Car at Disposal": ["Company Arranged Car", "Car at Disposal"],
-            "Pick-up and Drop": ["Pick-up/Drop Only"],
-            "Radio Taxi": ["Radio Taxi"],
-            "Own Car": ["Own Car"],
-            "Accommodation": ["Guest House", "Company-tied Hotel", "Self-arranged Stay"],
-        }
-
-        for mode_name, sublist in suboptions_map.items():
-            mode = TravelModeMaster.objects.filter(name=mode_name).first()
-            if not mode:
-                self.stdout.write(self.style.WARNING(f"TravelMode '{mode_name}' not found; skipping its sub-options."))
+        for m_name, subs in self.TRAVEL_MODES_AND_SUBS.items():
+            if dry_run:
+                self.stdout.write(f"[DRY] Ensure TravelMode: {m_name} -> Subs: {subs}")
                 continue
-            for sname in sublist:
-                sub_obj, created = TravelSubOptionMaster.objects.update_or_create(
-                    mode=mode,
-                    name=sname,
-                    defaults={"description": f"{sname} for mode {mode_name}", "is_active": True},
-                )
-                self.stdout.write(self.style.SUCCESS(f"{'Created' if created else 'Updated'} SubOption: {mode_name} - {sname}"))
-
-        self.stdout.write(self.style.SUCCESS("Travel modes & sub-options populated."))
-
-    # ---------------------------
-    # 2) Grade Master
-    # ---------------------------
-    @transaction.atomic
-    def populate_grade_master(self):
-        """
-        Create grades used in policy: B-2A, B-2B, B-3, B-4A, B-4B
-        """
-        self.stdout.write(self.style.NOTICE("Populating GradeMaster..."))
-        grades = [
-            {"name": "B-2A", "sorting_no": 1},
-            {"name": "B-2B", "sorting_no": 2},
-            {"name": "B-3", "sorting_no": 3},
-            {"name": "B-4A", "sorting_no": 4},
-            {"name": "B-4B", "sorting_no": 5},
-        ]
-        for g in grades:
-            gm, created = GradeMaster.objects.update_or_create(
-                name=g["name"],
-                defaults={"sorting_no": g["sorting_no"], "is_active": True},
+            tm, created = TravelModeMaster.objects.update_or_create(
+                name=m_name,
+                defaults={"description": f"{m_name}", "is_active": True},
             )
-            self.stdout.write(self.style.SUCCESS(f"{'Created' if created else 'Updated'} Grade: {gm.name}"))
+            created_modes.append(tm)
+            self.stdout.write(self.style.SUCCESS(f"{'Created' if created else 'Updated'} TravelMode: {m_name}"))
+            # suboptions
+            for s in subs:
+                sub_defaults = {"description": f"{s} for {m_name}", "is_active": True}
+                if create_missing_suboptions:
+                    sub_obj, sub_created = TravelSubOptionMaster.objects.update_or_create(
+                        mode=tm, name=s, defaults=sub_defaults
+                    )
+                    if sub_created:
+                        self.stdout.write(self.style.SUCCESS(f"Created SubOption: {m_name} :: {s}"))
+                else:
+                    sub_obj = TravelSubOptionMaster.objects.filter(mode=tm, name=s).first()
+                    if not sub_obj:
+                        self.stdout.write(self.style.WARNING(f"SubOption missing (not created due to settings): {m_name} :: {s}"))
+
+        self.stdout.write(self.style.SUCCESS("Travel modes & suboptions processed."))
+
+    # ---------------------------
+    # Populate grades
+    # ---------------------------
+    def _populate_grades(self, dry_run=False):
+        self.stdout.write(self.style.NOTICE("Populating GradeMaster..."))
+        grades = ["B-2A", "B-2B", "B-3", "B-4A", "B-4B"]
+        if dry_run:
+            for i, g in enumerate(grades, start=1):
+                self.stdout.write(f"[DRY] Grade: {g} (sorting_no={i})")
+            return
+        for i, g in enumerate(grades, start=1):
+            gm, created = GradeMaster.objects.update_or_create(
+                name=g, defaults={"sorting_no": i, "is_active": True}
+            )
+            self.stdout.write(self.style.SUCCESS(f"{'Created' if created else 'Updated'} Grade: {g}"))
         self.stdout.write(self.style.SUCCESS("Grades populated."))
 
     # ---------------------------
-    # 3) Grade Entitlements
+    # Populate grade entitlements (main)
     # ---------------------------
-    @transaction.atomic
-    def populate_grade_entitlements(self):
+    def _populate_grade_entitlements(self, dry_run=False, strict=False, reset=True, batch_size=500, create_missing_suboptions=True):
         """
-        Create grade entitlements using policy tables:
-         - Accommodation entitlement per day (Category A/B)
-         - Train class entitlement
-         - Air entitlement
-         - Stay-with-friends allowance
-        City category link is attempted (A/B) but script will skip or set null if not found.
+        The main function to create exhaustive GradeEntitlementMaster rows
+        for all (grade x suboption x city_category) as per policy values.
         """
-        self.stdout.write(self.style.NOTICE("Populating Grade Entitlements..."))
+        self.stdout.write(self.style.NOTICE("Populating GradeEntitlementMaster (policy-driven expansion)..."))
+        # Preload FKs
+        grades_qs = list(GradeMaster.objects.all())
+        grades_map = {g.name: g for g in grades_qs}
+        modes_qs = list(TravelModeMaster.objects.all())
+        modes_map = {m.name: m for m in modes_qs}
+        subs_qs = list(TravelSubOptionMaster.objects.select_related("mode").all())
+        subs_map = {(s.mode.name, s.name): s for s in subs_qs}
+        # City categories
+        catA = self._get_city_category("A")
+        catB = self._get_city_category("B")
+        catC = self._get_city_category("C")
+        available_city_cats = {c.name: c for c in CityCategoriesMaster.objects.all()}
 
-        # Ensure grades and suboptions exist
-        grades_map = {g.name: g for g in GradeMaster.objects.all()}
-        sub_map = {}
-        for so in TravelSubOptionMaster.objects.select_related("mode").all():
-            sub_map[f"{so.mode.name}::{so.name}"] = so
+        missing_suboptions = []
+        missing_modes = []
 
-        # find city categories if available
-        catA = self.get_city_category("A")
-        catB = self.get_city_category("B")
+        # Reset table if requested
+        if reset and not dry_run:
+            GradeEntitlementMaster.objects.all().delete()
+            self.stdout.write(self.style.WARNING("Cleared existing GradeEntitlementMaster rows."))
 
-        # Delete existing entitlements for idempotency
-        GradeEntitlementMaster.objects.all().delete()
+        # Build list of GradeEntitlementMaster instances to create
+        to_create = []
 
-        # Accommodation per day (Category A / B) (policy table)
-        # Using hotel entitlement values from the policy:
-        accommodation_entitlements = [
-            {"grade": "B-2A", "catA": 7000, "catB": 5000},
-            {"grade": "B-2B", "catA": 7000, "catB": 5000},
-            {"grade": "B-3", "catA": 6500, "catB": 4000},
-            {"grade": "B-4A", "catA": 6500, "catB": 4000},
-            {"grade": "B-4B", "catA": 6500, "catB": 4000},
-        ]
+        # Helper to ensure suboption exists or create (depending on flags)
+        def ensure_suboption(mode_name, sub_name):
+            key = (mode_name, sub_name)
+            sub = subs_map.get(key)
+            if sub:
+                return sub
+            # mode existence
+            mode = modes_map.get(mode_name)
+            if not mode:
+                if strict:
+                    missing_modes.append(mode_name)
+                    return None
+                # create mode if missing
+                if not dry_run:
+                    mode = TravelModeMaster.objects.create(name=mode_name, description="Auto-created mode")
+                    modes_map[mode_name] = mode
+                    self.stdout.write(self.style.SUCCESS(f"Auto-created TravelMode: {mode_name}"))
+                else:
+                    missing_modes.append(mode_name)
+                    return None
+            # now create or get suboption
+            if strict and not create_missing_suboptions:
+                missing_suboptions.append(f"{mode_name}::{sub_name}")
+                return None
+            if dry_run:
+                # just report
+                self.stdout.write(f"[DRY] Would ensure suboption: {mode_name} :: {sub_name}")
+                return None
+            # create
+            sub, created = TravelSubOptionMaster.objects.get_or_create(mode=mode, name=sub_name, defaults={"description": f"Auto-created {sub_name}", "is_active": True})
+            if created:
+                self.stdout.write(self.style.SUCCESS(f"Auto-created TravelSubOption: {mode_name} :: {sub_name}"))
+            # update subs_map
+            subs_map[(mode_name, sub_name)] = sub
+            return sub
 
+        # For every grade and policy-allowed suboption, create rows for each available city category (A,B,C)
+        for grade_name, allowed in self.POLICY_ALLOWED_SUBS_BY_GRADE.items():
+            grade_obj = grades_map.get(grade_name)
+            if not grade_obj:
+                self.stdout.write(self.style.WARNING(f"Grade {grade_name} not found in DB, skipping."))
+                continue
+
+            # Iterate over modes allowed for this grade per policy mapping
+            for mode_name, sublist in allowed.items():
+                for sub_name in sublist:
+                    sub_obj = subs_map.get((mode_name, sub_name))
+                    if not sub_obj:
+                        # ensure or log missing
+                        sub_obj = ensure_suboption(mode_name, sub_name)
+                        if not sub_obj and (strict or dry_run):
+                            # skip creating entitlement if strict or dry-run without actual creation
+                            self.stdout.write(self.style.WARNING(f"Skipping entitlement for {grade_name} - {mode_name}::{sub_name} (suboption missing)."))
+                            continue
+
+                    # Decide max_amount based on policy mapping & mode
+                    # Accommodation: max_amount depends on city category (A/B)
+                    if mode_name == "Accommodation":
+                        # For Accommodation, create entries for Guest House and Company-tied Hotel; use POLICY_ACCOMMODATION
+                        # If sub_name is 'Self-arranged Stay' then use POLICY_STAY_WITH_FRIENDS
+                        if sub_name in ["Guest House", "Company-tied Hotel"]:
+                            policy_vals = self.POLICY_ACCOMMODATION.get(grade_name)
+                            if not policy_vals:
+                                self.stdout.write(self.style.WARNING(f"No accommodation policy for {grade_name}; skipping."))
+                                continue
+                            # Create for Category A and B (and C if available, but policy doesn't give explicit accommodation for C)
+                            for cat_key in ("A", "B"):
+                                city_cat = available_city_cats.get(cat_key)
+                                if not city_cat:
+                                    self.stdout.write(self.style.WARNING(f"CityCategory {cat_key} missing; skipping accommodation {grade_name} {cat_key}"))
+                                    continue
+                                max_amt = policy_vals.get(cat_key)
+                                if not dry_run:
+                                    ent = GradeEntitlementMaster(
+                                        grade=grade_obj,
+                                        sub_option=subs_map.get((mode_name, sub_name)),
+                                        city_category=city_cat,
+                                        max_amount=Decimal(str(max_amt)) if max_amt is not None else None,
+                                        is_allowed=True,
+                                    )
+                                    to_create.append(ent)
+                                else:
+                                    self.stdout.write(f"[DRY] Would create entitlement: {grade_name} - {mode_name}::{sub_name} - Cat {cat_key} max {max_amt}")
+                        elif sub_name == "Self-arranged Stay":
+                            policy_vals = self.POLICY_STAY_WITH_FRIENDS.get(grade_name)
+                            if not policy_vals:
+                                self.stdout.write(self.style.WARNING(f"No stay-with-friends policy for {grade_name}; skipping."))
+                                continue
+                            for cat_key in ("A", "B"):
+                                city_cat = available_city_cats.get(cat_key)
+                                if not city_cat:
+                                    self.stdout.write(self.style.WARNING(f"CityCategory {cat_key} missing; skipping stay-with-friends {grade_name} {cat_key}"))
+                                    continue
+                                max_amt = policy_vals.get(cat_key)
+                                if not dry_run:
+                                    ent = GradeEntitlementMaster(
+                                        grade=grade_obj,
+                                        sub_option=subs_map.get((mode_name, sub_name)),
+                                        city_category=city_cat,
+                                        max_amount=Decimal(str(max_amt)) if max_amt is not None else None,
+                                        is_allowed=True,
+                                    )
+                                    to_create.append(ent)
+                                else:
+                                    self.stdout.write(f"[DRY] Would create stay-with-friends entitlement: {grade_name} - {mode_name}::{sub_name} - Cat {cat_key} max {max_amt}")
+                        else:
+                            # fallback: create entries for A/B/C with no max_amount
+                            for cat_key, city_cat in available_city_cats.items():
+                                if not dry_run:
+                                    ent = GradeEntitlementMaster(
+                                        grade=grade_obj,
+                                        sub_option=subs_map.get((mode_name, sub_name)),
+                                        city_category=city_cat,
+                                        max_amount=None,
+                                        is_allowed=True,
+                                    )
+                                    to_create.append(ent)
+                                else:
+                                    self.stdout.write(f"[DRY] Would create generic accommodation entitlement: {grade_name} - {mode_name}::{sub_name} - Cat {cat_key}")
+                    else:
+                        # For non-accommodation modes (Flight, Train, Car, Radio Taxi, Own Car, Pick-up/drop),
+                        # create entries across available city categories (A/B/C) with max_amount=None unless policy indicates.
+                        # For Train and Flight some grades have specific preferences:
+                        # Train: B-2A -> 1st AC, others -> 2nd AC (already driven by POLICY_ALLOWED_SUBS_BY_GRADE)
+                        for cat_key, city_cat in available_city_cats.items():
+                            if not dry_run:
+                                ent = GradeEntitlementMaster(
+                                    grade=grade_obj,
+                                    sub_option=subs_map.get((mode_name, sub_name)),
+                                    city_category=city_cat,
+                                    max_amount=None,
+                                    is_allowed=True,
+                                )
+                                to_create.append(ent)
+                            else:
+                                self.stdout.write(f"[DRY] Would create entitlement: {grade_name} - {mode_name}::{sub_name} - Cat {cat_key}")
+
+        # Now bulk create in batches unless dry_run
         created_count = 0
-        for row in accommodation_entitlements:
-            grade_obj = grades_map.get(row["grade"])
-            if not grade_obj:
-                self.stdout.write(self.style.WARNING(f"Grade {row['grade']} missing; skipping."))
-                continue
-            # create entry for Category A
-            sub_opt = None
-            # For accommodation, sub_option is "Guest House" or "Company-tied Hotel". We'll create for both with same max_amount.
-            for accom_sub in ["Guest House", "Company-tied Hotel"]:
-                sub_opt = TravelSubOptionMaster.objects.filter(name=accom_sub, mode__name="Accommodation").first()
-                ent_obj = GradeEntitlementMaster.objects.create(
-                    grade=grade_obj,
-                    sub_option=sub_opt,
-                    city_category=catA,
-                    max_amount=row["catA"],
-                    is_allowed=True,
-                )
-                created_count += 1
+        if dry_run:
+            self.stdout.write(self.style.NOTICE("Dry run finished — no DB writes performed."))
+        else:
+            # Bulk create in batches
+            total = len(to_create)
+            self.stdout.write(self.style.NOTICE(f"Creating {total} GradeEntitlementMaster rows in batches of {batch_size}"))
+            for i in range(0, total, batch_size):
+                batch = to_create[i : i + batch_size]
+                GradeEntitlementMaster.objects.bulk_create(batch)
+                created_count += len(batch)
+                self.stdout.write(self.style.SUCCESS(f"Inserted batch {i//batch_size + 1}: {len(batch)} rows"))
 
-                # Category B
-                ent_obj_b = GradeEntitlementMaster.objects.create(
-                    grade=grade_obj,
-                    sub_option=sub_opt,
-                    city_category=catB,
-                    max_amount=row["catB"],
-                    is_allowed=True,
-                )
-                created_count += 1
+        # Summary
+        self.stdout.write(self.style.SQL_TABLE("GRADE ENTITLEMENT SUMMARY"))
+        if dry_run:
+            self.stdout.write("Dry-run mode: preview only.")
+        else:
+            self.stdout.write(self.style.SUCCESS(f"Total entitlements created: {created_count}"))
 
-        # Train & Air entitlements (train class mapping)
-        # Flight: B-2A -> Economy; others Economy as policy mentions lowest fare, but train classes differ
-        # Train mapping:
-        # B-2A -> 1st AC
-        # others -> 2nd AC
-        train_1st = TravelSubOptionMaster.objects.filter(mode__name="Train", name__iexact="1st AC").first()
-        train_2nd = TravelSubOptionMaster.objects.filter(mode__name="Train", name__iexact="2nd AC").first()
-        flight_economy = TravelSubOptionMaster.objects.filter(mode__name="Flight", name__iexact="Economy Class").first()
+        # additional per-grade breakdown
+        try:
+            breakdown = GradeEntitlementMaster.objects.values("grade__name").annotate(count_total=__import__("django.db.models").db.models.Count("pk"))
+            self.stdout.write("Per-grade counts:")
+            for row in breakdown:
+                self.stdout.write(f" - {row['grade__name']}: {row['count_total']}")
+        except Exception:
+            # fallback: compute from local list
+            local_counts = {}
+            for ent in to_create:
+                g = ent.grade.name
+                local_counts[g] = local_counts.get(g, 0) + 1
+            self.stdout.write("Per-grade counts (local):")
+            for k, v in local_counts.items():
+                self.stdout.write(f" - {k}: {v}")
 
-        # Create train entitlement rows
-        for gname, grade_obj in grades_map.items():
-            if gname == "B-2A" and train_1st:
-                GradeEntitlementMaster.objects.create(
-                    grade=grade_obj,
-                    sub_option=train_1st,
-                    city_category=None,
-                    max_amount=None,
-                    is_allowed=True,
-                )
-                created_count += 1
-            elif train_2nd:
-                GradeEntitlementMaster.objects.create(
-                    grade=grade_obj,
-                    sub_option=train_2nd,
-                    city_category=None,
-                    max_amount=None,
-                    is_allowed=True,
-                )
-                created_count += 1
+        if missing_modes:
+            self.stdout.write(self.style.WARNING(f"Missing travel modes encountered (created if allowed): {set(missing_modes)}"))
+        if missing_suboptions:
+            self.stdout.write(self.style.WARNING(f"Missing suboptions encountered (skipped in strict/dry-run): {set(missing_suboptions)}"))
 
-            # Flight entitlement: create economy for all grades (policy expects economy)
-            if flight_economy:
-                GradeEntitlementMaster.objects.create(
-                    grade=grade_obj,
-                    sub_option=flight_economy,
-                    city_category=None,
-                    is_allowed=True,
-                )
-                created_count += 1
-
-        self.stdout.write(self.style.SUCCESS(f"Grade entitlements populated (created {created_count} entries)."))
+        self.stdout.write(self.style.SUCCESS("Grade entitlements processing complete."))
 
     # ---------------------------
-    # 4) DA / Incidentals
+    # Populate DA / Incidentals
     # ---------------------------
-    @transaction.atomic
-    def populate_da_incidentals(self):
+    def _populate_da(self, dry_run=False):
         """
-        Populate DAIncidentalMaster based on policy table:
-        For all grades and city categories A/B/C values.
+        Populate DAIncidentalMaster using policy table values.
         """
-        self.stdout.write(self.style.NOTICE("Populating DA & Incidentals..."))
+        self.stdout.write(self.style.NOTICE("Populating DAIncidentalMaster (DA & Incidentals)..."))
+        # Use the DA table from policy (as earlier)
+        # values per grade & category:
+        DA_TABLE = {
+            "B-2A": {"A": (810, 243), "B": (648, 243), "C": (680, 255)},
+            "B-2B": {"A": (810, 243), "B": (648, 243), "C": (680, 255)},
+            "B-3": {"A": (810, 243), "B": (648, 243), "C": (680, 255)},
+            "B-4A": {"A": (810, 243), "B": (648, 243), "C": (680, 255)},
+            "B-4B": {"A": (729, 162), "B": (648, 162), "C": (680, 170)},
+        }
+
+        if dry_run:
+            self.stdout.write("[DRY] Would delete existing DAIncidentalMaster rows and recreate per policy.")
+            for grade_name, cats in DA_TABLE.items():
+                for cat_key, (da_full, inc_full) in cats.items():
+                    self.stdout.write(f"[DRY] {grade_name} - Cat {cat_key}: DA full {da_full}, Inc full {inc_full}")
+            return
+
         DAIncidentalMaster.objects.all().delete()
-
-        grades = {g.name: g for g in GradeMaster.objects.all()}
-        catA = self.get_city_category("A")
-        catB = self.get_city_category("B")
-        catC = self.get_city_category("C")
-
-        # Policy DA table:
-        # B-2A, B-2B, B-3, B-4A: A->810/243, B->648/243, C->680/255
-        # B-4B: A->729/162, B->648/162, C->680/170
-        data_rows = [
-            {"grade": "B-2A", "A": (810, 243), "B": (648, 243), "C": (680, 255)},
-            {"grade": "B-2B", "A": (810, 243), "B": (648, 243), "C": (680, 255)},
-            {"grade": "B-3",  "A": (810, 243), "B": (648, 243), "C": (680, 255)},
-            {"grade": "B-4A", "A": (810, 243), "B": (648, 243), "C": (680, 255)},
-            {"grade": "B-4B", "A": (729, 162), "B": (648, 162), "C": (680, 170)},
-        ]
-
-        count = 0
-        for row in data_rows:
-            grade_obj = grades.get(row["grade"])
-            if not grade_obj:
-                self.stdout.write(self.style.WARNING(f"Grade {row['grade']} missing; skipping DA row."))
+        created = 0
+        # get grade objects
+        grade_map = {g.name: g for g in GradeMaster.objects.all()}
+        cat_map = {c.name: c for c in CityCategoriesMaster.objects.all()}
+        for grade_name, cats in DA_TABLE.items():
+            g = grade_map.get(grade_name)
+            if not g:
+                self.stdout.write(self.style.WARNING(f"Grade {grade_name} missing; skipping DA entries."))
                 continue
-            for cat_key, vals in (("A", row["A"]), ("B", row["B"]), ("C", row["C"])):
-                city_cat = self.get_city_category(cat_key)
+            for cat_key, (da_full, inc_full) in cats.items():
+                city_cat = cat_map.get(cat_key)
                 if not city_cat:
-                    # If city category master not present, skip and warn
-                    self.stdout.write(self.style.WARNING(f"City category '{cat_key}' missing; skipping DA entry for {row['grade']} {cat_key}."))
+                    self.stdout.write(self.style.WARNING(f"City category {cat_key} missing; skipping DA for {grade_name} {cat_key}."))
                     continue
-                da_full, inc_full = vals
                 da_half = Decimal(str(da_full)) / 2
                 inc_half = Decimal(str(inc_full)) / 2
                 DAIncidentalMaster.objects.create(
-                    grade=grade_obj,
+                    grade=g,
                     city_category=city_cat,
                     da_full_day=Decimal(str(da_full)),
                     da_half_day=da_half,
                     incidental_full_day=Decimal(str(inc_full)),
                     incidental_half_day=inc_half,
-                    stay_allowance_category_a=Decimal("1800") if row["grade"] == "B-2A" else Decimal("1200") if row["grade"] == "B-2B" else Decimal("1000"),
-                    stay_allowance_category_b=Decimal("1000") if row["grade"] == "B-2A" else Decimal("800") if row["grade"] == "B-2B" else Decimal("600"),
+                    stay_allowance_category_a=Decimal(str(self.POLICY_STAY_WITH_FRIENDS.get(grade_name, {}).get("A", 0))),
+                    stay_allowance_category_b=Decimal(str(self.POLICY_STAY_WITH_FRIENDS.get(grade_name, {}).get("B", 0))),
                     effective_from=timezone.now().date(),
                     is_active=True,
                 )
-                count += 1
-
-        self.stdout.write(self.style.SUCCESS(f"DA & Incidentals populated ({count} rows)."))
+                created += 1
+        self.stdout.write(self.style.SUCCESS(f"DA/Incidentals populated: {created} rows."))
 
     # ---------------------------
-    # 5) Conveyance Rates
+    # Populate conveyance rates
     # ---------------------------
-    @transaction.atomic
-    def populate_conveyance_rates(self):
-        """
-        Populate ConveyanceRateMaster per policy:
-         - taxi_with_receipt -> requires_receipt True (actuals); rate_per_km left at 0 or null
-         - taxi_without_receipt -> 15 / km (self declaration)
-         - own_vehicle -> 15 / km (max 150 km rule captured in ApprovalMatrix/Policy)
-         - auto_rickshaw / public_transport entries can be added as needed
-        """
-        self.stdout.write(self.style.NOTICE("Populating Conveyance Rates..."))
+    def _populate_conveyance(self, dry_run=False):
+        self.stdout.write(self.style.NOTICE("Populating ConveyanceRateMaster..."))
+        if dry_run:
+            for e in self.POLICY_CONVEYANCE:
+                self.stdout.write(f"[DRY] Conveyance: {e['conveyance_type']} -> rate {e['rate_per_km']} requires_receipt={e['requires_receipt']}")
+            return
         ConveyanceRateMaster.objects.all().delete()
-        entries = [
-            {
-                "conveyance_type": "taxi_with_receipt",
-                "rate_per_km": Decimal("0"),  # rate not used because reimbursed on actuals
-                "max_distance_per_day": None,
-                "requires_receipt": True,
-                "max_claim_amount": None,
-            },
-            {
-                "conveyance_type": "taxi_without_receipt",
-                "rate_per_km": Decimal("15"),
-                "max_distance_per_day": None,
-                "requires_receipt": False,
-                "max_claim_amount": None,
-            },
-            {
-                "conveyance_type": "own_vehicle",
-                "rate_per_km": Decimal("15"),
-                "max_distance_per_day": None,
-                "requires_receipt": False,
-                "max_claim_amount": None,
-            },
-            {
-                "conveyance_type": "auto_rickshaw",
-                "rate_per_km": Decimal("0"),
-                "max_distance_per_day": None,
-                "requires_receipt": False,
-                "max_claim_amount": None,
-            },
-            {
-                "conveyance_type": "public_transport",
-                "rate_per_km": Decimal("0"),
-                "max_distance_per_day": None,
-                "requires_receipt": True,
-                "max_claim_amount": None,
-            },
-        ]
-
-        created = 0
-        for e in entries:
-            obj = ConveyanceRateMaster.objects.create(
+        for e in self.POLICY_CONVEYANCE:
+            ConveyanceRateMaster.objects.create(
                 conveyance_type=e["conveyance_type"],
                 rate_per_km=e["rate_per_km"],
-                max_distance_per_day=e["max_distance_per_day"],
+                max_distance_per_day=None,
                 requires_receipt=e["requires_receipt"],
-                max_claim_amount=e["max_claim_amount"],
+                max_claim_amount=None,
                 effective_from=timezone.now().date(),
                 is_active=True,
             )
-            created += 1
-            self.stdout.write(self.style.SUCCESS(f"Created conveyance: {obj.conveyance_type}"))
-
-        self.stdout.write(self.style.SUCCESS(f"Conveyance rates populated ({created} entries)."))
+            self.stdout.write(self.style.SUCCESS(f"Created conveyance rate: {e['conveyance_type']}"))
+        self.stdout.write(self.style.SUCCESS("Conveyance rates populated."))
 
     # ---------------------------
-    # 6) Approval Matrix
+    # Populate approval matrix
     # ---------------------------
-    @transaction.atomic
-    def populate_approval_matrix(self):
+    def _populate_approval_matrix(self, dry_run=False):
         """
-        Populate ApprovalMatrix rules according to policy:
-         - flight approval thresholds (self-approve for B-2A/B-2B; manager for lower grades)
-         - flight > 10000 requires CHRO (or CEO if CHRO not present)
-         - Car at disposal > 5 days requires CHRO approval
-         - Train approvals following policy
-        This uses safe lookups for travel_mode and grade objects.
+        Populate ApprovalMatrix according to policy summary:
+        - Flight: B-2A/B-2B self-approve; B-3/B-4 require manager; above 10k requires CHRO
+        - Train: B-2A/B-2B/B-3 self-approve; B-4 require manager
+        - Pick-up/Drop + Radio Taxi: self-approve
+        - Car at Disposal: >5 days CHRO; B-3/B-4 manager
+        - Own Car: limit 150 km → CHRO if exceeded
         """
-        self.stdout.write(self.style.NOTICE("Populating Approval Matrix..."))
+        self.stdout.write(self.style.NOTICE("Populating ApprovalMatrix..."))
+        # Build maps
+        grade_map = {g.name: g for g in GradeMaster.objects.all()}
+        mode_map = {m.name: m for m in TravelModeMaster.objects.all()}
 
-        # Clear existing
-        ApprovalMatrix.objects.all().delete()
-
-        # Map grades and travel modes
-        grades = {g.name: g for g in GradeMaster.objects.all()}
-        modes = {m.name: m for m in TravelModeMaster.objects.all()}
-
-        # approvers
-        chro_user = self.get_user_by_role("chro")
-        ceo_user = self.get_user_by_role("ceo")
-        manager_user = self.get_user_by_role("manager")
-
-        if not chro_user:
-            self.stdout.write(self.style.WARNING("CHRO user not found; CHRO-required rules will fallback to CEO if available."))
-
-        # Helper to create matrix rows
-        def create_matrix(travel_mode_name, grade_name, **kwargs):
-            tm = modes.get(travel_mode_name)
-            grade_obj = grades.get(grade_name)
+        # Helpers
+        def create_or_report(tm_name, grade_name, kwargs):
+            tm = mode_map.get(tm_name)
+            grade_obj = grade_map.get(grade_name)
             if not tm or not grade_obj:
-                self.stdout.write(self.style.WARNING(f"Skipping ApprovalMatrix for {travel_mode_name} / {grade_name} (mode or grade missing)."))
-                return None
-            defaults = {
-                "min_amount": Decimal(kwargs.get("min_amount", 0)),
-                "max_amount": Decimal(kwargs.get("max_amount")) if kwargs.get("max_amount") is not None else None,
-                "requires_manager": kwargs.get("requires_manager", True),
-                "requires_chro": kwargs.get("requires_chro", False),
-                "requires_ceo": kwargs.get("requires_ceo", False),
-                "flight_above_10k_ceo": kwargs.get("flight_above_10k_ceo", False),
-                "manager_can_view": kwargs.get("manager_can_view", True),
-                "manager_can_approve": kwargs.get("manager_can_approve", True),
-                "advance_booking_required_days": kwargs.get("advance_booking_required_days", 0),
-                "distance_limit_km": kwargs.get("distance_limit_km"),
-                "requires_chro_for_distance": kwargs.get("requires_chro_for_distance", False),
-                "disposal_days_limit": kwargs.get("disposal_days_limit"),
-                "requires_chro_for_disposal": kwargs.get("requires_chro_for_disposal", False),
-            }
-            # Create row
-            am = ApprovalMatrix.objects.create(
+                self.stdout.write(self.style.WARNING(f"Skipping ApprovalMatrix for {tm_name} / {grade_name} (missing)"))
+                return
+            if dry_run:
+                self.stdout.write(f"[DRY] Would create ApprovalMatrix: {tm_name} - {grade_name} -> {kwargs}")
+                return
+            ApprovalMatrix.objects.create(
                 travel_mode=tm,
                 employee_grade=grade_obj,
-                min_amount=defaults["min_amount"],
-                max_amount=defaults["max_amount"],
-                requires_manager=defaults["requires_manager"],
-                requires_chro=defaults["requires_chro"],
-                requires_ceo=defaults["requires_ceo"],
-                flight_above_10k_ceo=defaults.get("flight_above_10k_ceo", False),
-                manager_can_view=defaults["manager_can_view"],
-                manager_can_approve=defaults["manager_can_approve"],
-                advance_booking_required_days=defaults["advance_booking_required_days"],
-                distance_limit_km=defaults["distance_limit_km"],
-                requires_chro_for_distance=defaults["requires_chro_for_distance"],
-                disposal_days_limit=defaults["disposal_days_limit"],
-                requires_chro_for_disposal=defaults["requires_chro_for_disposal"],
+                min_amount=Decimal(str(kwargs.get("min_amount", 0))),
+                max_amount=Decimal(str(kwargs.get("max_amount"))) if kwargs.get("max_amount") is not None else None,
+                requires_manager=kwargs.get("requires_manager", True),
+                requires_chro=kwargs.get("requires_chro", False),
+                requires_ceo=kwargs.get("requires_ceo", False),
+                flight_above_10k_ceo=kwargs.get("flight_above_10k_ceo", False),
+                manager_can_view=kwargs.get("manager_can_view", True),
+                manager_can_approve=kwargs.get("manager_can_approve", True),
+                advance_booking_required_days=kwargs.get("advance_booking_required_days", 0),
+                distance_limit_km=kwargs.get("distance_limit_km"),
+                requires_chro_for_distance=kwargs.get("requires_chro_for_distance", False),
+                disposal_days_limit=kwargs.get("disposal_days_limit"),
+                requires_chro_for_disposal=kwargs.get("requires_chro_for_disposal", False),
                 is_active=True,
             )
-            self.stdout.write(self.style.SUCCESS(f"Created ApprovalMatrix: {tm.name} - {grade_obj.name}"))
-            return am
+            self.stdout.write(self.style.SUCCESS(f"Created ApprovalMatrix: {tm_name} - {grade_name}"))
 
-        # Policy-driven rules (representative rows)
-        # FLIGHT rules:
-        # B-2A, B-2B => self-approve
+        if not dry_run:
+            ApprovalMatrix.objects.all().delete()
+            self.stdout.write(self.style.WARNING("Cleared existing ApprovalMatrix rows."))
+
+        # Flight
         for g in ["B-2A", "B-2B"]:
-            create_matrix("Flight", g, requires_manager=False, requires_chro=False, requires_ceo=False, manager_can_approve=False, advance_booking_required_days=7)
-
-        # B-3, B-4A, B-4B => manager approval required
+            create_or_report("Flight", g, {"requires_manager": False, "advance_booking_required_days": 7, "manager_can_approve": False})
         for g in ["B-3", "B-4A", "B-4B"]:
-            create_matrix("Flight", g, requires_manager=True, requires_chro=False, requires_ceo=False, advance_booking_required_days=7)
+            create_or_report("Flight", g, {"requires_manager": True, "advance_booking_required_days": 7})
 
-        # Special rule: Flight above 10000 requires CHRO (or CEO fallback)
-        # We'll create an additional matrix entry for each grade with min_amount=10000, requires_chro=True
+        # Flight above 10k -> CHRO required
         for g in ["B-2A", "B-2B", "B-3", "B-4A", "B-4B"]:
-            create_matrix("Flight", g, min_amount=10000, max_amount=None, requires_manager=False, requires_chro=True, flight_above_10k_ceo=True)
+            create_or_report("Flight", g, {"min_amount": 10000, "requires_manager": False, "requires_chro": True, "flight_above_10k_ceo": True})
 
-        # TRAIN rules: B-2A/B-2B/B-3 self-approve; B-4 require manager
+        # Train
         for g in ["B-2A", "B-2B", "B-3"]:
-            create_matrix("Train", g, requires_manager=False, requires_chro=False, advance_booking_required_days=3)
+            create_or_report("Train", g, {"requires_manager": False, "advance_booking_required_days": 3})
         for g in ["B-4A", "B-4B"]:
-            create_matrix("Train", g, requires_manager=True, requires_chro=False, advance_booking_required_days=3)
+            create_or_report("Train", g, {"requires_manager": True, "advance_booking_required_days": 3})
 
-        # PICKUP & DROP / RADIO TAXI: self-approve for most grades
-        for mode in ["Pick-up and Drop", "Radio Taxi"]:
+        # Pickup & Radio Taxi
+        for m in ["Pick-up and Drop", "Radio Taxi"]:
             for g in ["B-2A", "B-2B", "B-3", "B-4A", "B-4B"]:
-                create_matrix(mode, g, requires_manager=False, requires_chro=False)
+                create_or_report(m, g, {"requires_manager": False})
 
-        # CAR AT DISPOSAL: B-2A/B-2B self, others manager; >5 days require CHRO
+        # Car at Disposal
         for g in ["B-2A", "B-2B"]:
-            create_matrix("Car at Disposal", g, requires_manager=False, disposal_days_limit=5, requires_chro_for_disposal=True)
+            create_or_report("Car at Disposal", g, {"requires_manager": False, "disposal_days_limit": 5, "requires_chro_for_disposal": True})
         for g in ["B-3", "B-4A", "B-4B"]:
-            create_matrix("Car at Disposal", g, requires_manager=True, disposal_days_limit=5, requires_chro_for_disposal=True)
+            create_or_report("Car at Disposal", g, {"requires_manager": True, "disposal_days_limit": 5, "requires_chro_for_disposal": True})
 
-        # OWN CAR rules: allow up to 150 km; above requires CHRO approval
+        # Own Car
         for g in ["B-2A", "B-2B", "B-3", "B-4A", "B-4B"]:
-            create_matrix("Own Car", g, distance_limit_km=Decimal("150"), requires_chro_for_distance=True)
+            create_or_report("Own Car", g, {"distance_limit_km": Decimal("150"), "requires_chro_for_distance": True})
 
         self.stdout.write(self.style.SUCCESS("Approval matrix populated."))
 

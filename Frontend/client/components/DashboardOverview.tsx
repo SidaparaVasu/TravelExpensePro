@@ -116,7 +116,7 @@ export function DashboardOverview() {
         />
         {/* <StatCard
           title="Monthly Budget"
-          value="$45,000"
+          value="₹45,000"
           icon={<IndianRupeeIcon className="h-9 w-9 text-green-500" />}
           bgColor="bg-green-50"
         /> */}
@@ -191,21 +191,21 @@ export function DashboardOverview() {
             <ExpenseReportItem
               title="Q1 2025 Business Travel"
               submittedBy="Submitted by Alex Rivera"
-              amount="$3.245"
+              amount="₹3.245"
               status="pending"
             />
             <div className="h-px bg-foreground/10" />
             <ExpenseReportItem
               title="Client Meeting Expenses"
               submittedBy="Submitted by Lisa Park"
-              amount="$3.245"
+              amount="₹3.245"
               status="approved"
             />
             <div className="h-px bg-foreground/10" />
             <ExpenseReportItem
               title="Conference Attendance"
               submittedBy="Submitted by David Kim"
-              amount="$3.245"
+              amount="₹3.245"
               status="rejected"
             />
           </div>

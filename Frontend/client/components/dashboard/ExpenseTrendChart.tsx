@@ -43,7 +43,7 @@ export function ExpenseTrendChart({
               <div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">
                 <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${p.color}"></span>
                 <span style="color:#64748B">${seriesName}</span>
-                <span style="margin-left:8px;font-weight:700;color:#F97316">$${value}</span>
+                <span style="margin-left:8px;font-weight:700;color:#F97316">₹${value}</span>
               </div>
             </div>`;
         },
