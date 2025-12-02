@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
-    allowedHosts: ['.ngrok-free.app', '192.168.1.90', 'http://hrms.orangetechnolab.com','http://120.72.91.78'], // 👈 Add your ngrok domain here
+    allowedHosts: ['.ngrok-free.app', '192.168.1.90', 'http://hrms.orangetechnolab.com','http://120.72.91.78'],
   },
   build: {
     outDir: "dist",
