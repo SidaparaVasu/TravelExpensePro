@@ -39,8 +39,8 @@ export const approvalAPI = {
     return data;
   },
 
-  getApprovals: async (status: string = 'pending'): Promise<ApprovalApplication[]> => {
-    const { data } = await apiClient.get(`/travel/manager-approvals/?status=${status}`);
+  getApprovals: async (status: string = 'pending', page: number): Promise<ApprovalApplication[]> => {
+    const { data } = await apiClient.get(`/travel/manager-approvals/?status=${status}&page=${page}`);
     return data;
   },
 

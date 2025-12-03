@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-// import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-// import { useApprovalStore } from '@/src/store/approvalStore';
 import {
   Select,
   SelectContent,
@@ -23,16 +21,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { approvalApplicationList, approveTravelApplication, rejectTravelApplication } from "@/lib/api/travel_application";
-import { getUser } from "@/lib/api/user";
-import {
   Download,
   Filter,
   Search,
@@ -40,11 +28,8 @@ import {
   CheckCircle,
   IndianRupeeIcon,
   XCircle,
-  ChevronDown
+
 } from "lucide-react";
-import { api } from "@/lib/http";
-import { travelAPI } from "@/lib/api/travel";
-// import { approvalAPI, ApprovalApplication } from "@/lib/api/approval";
 import { approvalAPI } from "@/src/api/approval";
 
 interface ApprovalStats {
@@ -52,28 +37,6 @@ interface ApprovalStats {
   approvedToday: number;
   totalBudget: string;
   rejected: number;
-}
-
-interface TravelRequestApproval {
-  id: string;
-  employee: {
-    name: string;
-    avatar: string;
-    department: string;
-  };
-  destination: {
-    location: string;
-    purpose: string;
-  };
-  travelDates: {
-    startDate: string;
-    endDate: string;
-    duration: string;
-  };
-  budget: string;
-  status: "pending" | "approved" | "rejected";
-  priority: "high" | "medium" | "low";
-  requestDate: string;
 }
 
 export interface TripSummary {
@@ -105,18 +68,118 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
+function Pagination({ pagination, onPageChange }) {
+  console.log(pagination, onPageChange);
+  if (!pagination) return null;
+
+  const { current_page, total_pages, next, previous } = pagination;
+
+  const [jumpPage, setJumpPage] = useState("");
+
+  const handleJump = () => {
+    const pageNum = parseInt(jumpPage);
+    if (!pageNum || pageNum < 1 || pageNum > total_pages) return;
+    onPageChange(pageNum);
+    setJumpPage("");
+  };
+
+  return (
+    <div className="
+      sticky bottom-0 left-0 right-0 
+      bg-white 
+      border-t 
+      mt-4 
+      py-4 
+      px-3 
+      flex flex-col gap-3 
+      md:flex-row md:items-center md:justify-between
+      z-20
+    ">
+
+      {/* LEFT — Jump to page */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-600">Jump to:</span>
+
+        <Input
+          value={jumpPage}
+          onChange={(e) => setJumpPage(e.target.value)}
+          className="w-16 h-8 text-center"
+          placeholder="Page"
+          type="number"
+          min={1}
+          max={total_pages}
+        />
+
+        <Button
+          variant="default"
+          size="sm"
+          className="h-8 px-3"
+          onClick={handleJump}
+        >
+          Go
+        </Button>
+      </div>
+
+      {/* CENTER — Page Numbers (Responsive) */}
+      <div className="flex flex-wrap justify-center gap-2">
+
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={!previous}
+          onClick={() => onPageChange(current_page - 1)}
+          className="h-8"
+        >
+          Previous
+        </Button>
+
+        {/* Page Numbers */}
+        <div className="flex flex-wrap gap-1 justify-center">
+          {Array.from({ length: total_pages }, (_, i) => i + 1).map((page) => (
+            <Button
+              key={page}
+              size="sm"
+              variant={page === current_page ? "default" : "outline"}
+              className={`h-8 px-3 ${page === current_page
+                ? "bg-blue-600 text-white"
+                : "border-gray-300"
+                }`}
+              onClick={() => onPageChange(page)}
+            >
+              {page}
+            </Button>
+          ))}
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={!next}
+          onClick={() => onPageChange(current_page + 1)}
+          className="h-8"
+        >
+          Next
+        </Button>
+      </div>
+
+      {/* RIGHT — Total pages */}
+      <div className="text-sm text-gray-600 text-center md:text-right">
+        Page <b>{current_page}</b> of <b>{total_pages}</b>
+      </div>
+    </div>
+  );
+}
 
 export default function TravelRequestApprovals() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<ApprovalStats | null>(null);
-  // const [approvals, setApprovals] = useState<ApprovalResponse | null>(null);
-  // const [approvals, setApprovals] = useState<ApprovalApplication[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("pending"); // Default status 'pending'
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [dateRangeFilter, setDateRangeFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState();
 
   const [applications, setApplications] = useState<PaginatedResponse<TravelApplication>>({
     count: 0,
@@ -126,16 +189,41 @@ export default function TravelRequestApprovals() {
   });
 
   useEffect(() => {
-    // loadData();
-    fetchApprovals(statusFilter);
+    fetchApprovals(statusFilter, page);
     fetchStatistics();
   }, [statusFilter]);
 
-  const fetchApprovals = async (filter: string) => {
+  const canUserApprove = (request) => {
+    const pendingStatuses = [
+      "pending_manager",
+      "pending_chro",
+      "pending_ceo"
+    ];
+
+    // If request is not pending – cannot approve
+    if (!pendingStatuses.includes(request.status)) return false;
+
+    // Must match backend current approver
+    if (request.current_approval !== null && request.current_approval.can_approve) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  const fetchApprovals = async (filter: string, page: number) => {
+    setLoading(true);
     try {
-      const appr: PaginatedResponse<TravelApplication> = await approvalAPI.getApprovals(statusFilter);
-      setApplications(appr.data);
-      console.log(appr.data);
+      const res = await approvalAPI.getApprovals(filter, page);
+      setApplications({
+        count: res.meta.pagination.count,
+        next: res.meta.pagination.next,
+        previous: res.meta.pagination.previous,
+        results: Array.isArray(res.data) ? res.data : [],
+      });
+
+      setPagination(res.meta.pagination);
+
     } catch (err) {
       console.error("Failed to load pending approvals!", err);
     } finally {
@@ -204,28 +292,6 @@ export default function TravelRequestApprovals() {
     return <Badge variant={variants[status] || 'default'}>{status.replace(/_/g, ' ')}</Badge>;
   };
 
-  // const getStatusBadge = (status: string) => {
-  //   const variants = {
-  //     pending: "bg-orange-50 text-orange-500 hover:bg-orange-100",
-  //     approved: "bg-green-50 text-green-600 hover:bg-green-100",
-  //     rejected: "bg-red-50 text-red-500 hover:bg-red-100",
-  //     submitted: "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-100",
-  //   };
-
-  //   const labels = {
-  //     pending: "Pending",
-  //     approved: "Approved",
-  //     rejected: "Rejected",
-  //     submitted: "Submitted"
-  //   };
-
-  //   return (
-  //     <Badge className={`${variants[status as keyof typeof variants]} rounded-sm px-3 py-1`}>
-  //       {labels[status as keyof typeof labels]}
-  //     </Badge>
-  //   );
-  // };
-
   const getPriorityBadge = (priority: string) => {
     const variants = {
       high: "bg-green-100 text-green-600 border-green-200 hover:bg-green-100",
@@ -281,365 +347,316 @@ export default function TravelRequestApprovals() {
 
   if (loading) {
     return (
-      // <Layout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-lg">Loading...</div>
-        </div>
-      // </Layout>
+      <div className="flex items-center justify-center h-96">
+        <div className="text-lg">Loading...</div>
+      </div>
     );
   }
 
 
   return (
-    // <Layout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-semibold text-foreground">
-              Travel Request Approvals
-            </h1>
-            <p className="text-lg text-muted-foreground mt-1">
-              Review and process employee travel request.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button variant="outline" className="gap-2">
-              <Download className="h-4 w-4" />
-              Export
-            </Button>
-            <Button className="gap-2">
-              <Filter className="h-4 w-4" />
-              Filters
-            </Button>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-semibold text-foreground">
+            Travel Request Approvals
+          </h1>
+          <p className="text-lg text-muted-foreground mt-1">
+            Review and process employee travel request.
+          </p>
         </div>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button variant="outline" className="gap-2">
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+          <Button className="gap-2">
+            <Filter className="h-4 w-4" />
+            Filters
+          </Button>
+        </div>
+      </div>
 
-        {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-[70px] h-[70px] rounded-lg bg-orange-50 flex items-center justify-center">
-                    <Clock className="h-9 w-9 text-orange-500" />
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-[70px] h-[70px] rounded-lg bg-orange-50 flex items-center justify-center">
+                  <Clock className="h-9 w-9 text-orange-500" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {stats.data.pending_approval}
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {stats.data.pending_approval}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Pending Approval
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    Pending Approval
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-[70px] h-[70px] rounded-lg bg-green-50 flex items-center justify-center">
-                    <CheckCircle className="h-9 w-9 text-green-500" />
+          <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-[70px] h-[70px] rounded-lg bg-green-50 flex items-center justify-center">
+                  <CheckCircle className="h-9 w-9 text-green-500" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {stats.data.approved_today}
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {stats.data.approved_today}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Approved Today
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    Approved Today
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-[70px] h-[70px] rounded-lg bg-blue-50 flex items-center justify-center">
-                    <IndianRupeeIcon className="h-9 w-9 text-blue-500" />
+          <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-[70px] h-[70px] rounded-lg bg-blue-50 flex items-center justify-center">
+                  <IndianRupeeIcon className="h-9 w-9 text-blue-500" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {stats.data.total_budget}
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {stats.data.total_budget}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Total Budget
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    Total Budget
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-[70px] h-[70px] rounded-lg bg-red-50 flex items-center justify-center">
-                    <XCircle className="h-9 w-9 text-red-500" />
+          <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-[70px] h-[70px] rounded-lg bg-red-50 flex items-center justify-center">
+                  <XCircle className="h-9 w-9 text-red-500" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {stats.data.rejected}
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {stats.data.rejected}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Rejected
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    Rejected
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Filters */}
+      <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search by employee name or request ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[170px]">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="All Departments" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem value="engineering">Engineering</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="sales">Sales</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
+                <SelectTrigger className="w-full sm:w-[170px]">
+                  <SelectValue placeholder="Date Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Dates</SelectItem>
+                  <SelectItem value="this-week">This Week</SelectItem>
+                  <SelectItem value="this-month">This Month</SelectItem>
+                  <SelectItem value="last-month">Last Month</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        )}
+        </CardContent>
+      </Card>
 
-        {/* Filters */}
-        <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
-          <CardContent className="p-6">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search by employee name or request ID..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-[170px]">
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                  <SelectTrigger className="w-full sm:w-[200px]">
-                    <SelectValue placeholder="All Departments" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Departments</SelectItem>
-                    <SelectItem value="engineering">Engineering</SelectItem>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="sales">Sales</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
-                  <SelectTrigger className="w-full sm:w-[170px]">
-                    <SelectValue placeholder="Date Range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Dates</SelectItem>
-                    <SelectItem value="this-week">This Week</SelectItem>
-                    <SelectItem value="this-month">This Month</SelectItem>
-                    <SelectItem value="last-month">Last Month</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+      {/* Travel Requests Table */}
+      <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
+        <CardContent className="p-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-6">
+            <h2 className="text-xl font-semibold text-foreground">
+              Recent Travel Requests
+            </h2>
+            <div className="text-sm text-blue-800 font-medium mt-2 sm:mt-0">
+              {applications.results.length} pending requests
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Travel Requests Table */}
-        <Card className="bg-white shadow-[0_2px_2px_0_rgba(59,130,247,0.30)]">
-          <CardContent className="p-0">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-6">
-              <h2 className="text-xl font-semibold text-foreground">
-                Recent Travel Requests
-              </h2>
-              <div className="text-sm text-blue-800 font-medium mt-2 sm:mt-0">
-                {applications?.length || 0} pending requests
-              </div>
-            </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-blue-50/30">
+                  <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
+                    Employee
+                  </TableHead>
+                  <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
+                    Destination
+                  </TableHead>
+                  <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
+                    Travel Dates
+                  </TableHead>
+                  <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
+                    Budget
+                  </TableHead>
+                  <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
+                    Status
+                  </TableHead>
+                  <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
+                    Priority
+                  </TableHead>
+                  <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
+                    Action
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
 
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-blue-50/30">
-                    <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
-                      Employee
-                    </TableHead>
-                    <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
-                      Destination
-                    </TableHead>
-                    <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
-                      Travel Dates
-                    </TableHead>
-                    <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
-                      Budget
-                    </TableHead>
-                    <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
-                      Status
-                    </TableHead>
-                    <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
-                      Priority
-                    </TableHead>
-                    <TableHead className="text-dark-600 text-center font-semibold text-xs uppercase tracking-wider">
-                      Action
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+                {
 
-                  {
-
-                    Array.isArray(applications) && applications.map((request) => (
-                      <TableRow key={request.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            {/* <img
-                              // src={request.employee.avatar}
-                              // alt={request.employee.name}
-                              className="w-12 h-12 rounded-md object-cover"
-                            /> */}
-                            <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold shadow-lg">
-                              {request.employee_name?.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <div className="font-medium text-foreground">
-                                {/* {request.employee_name} */}
-                                {request.employee_name}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {/* {request.employee} */}
-                              </div>
-                            </div>
+                  applications.results.map((request) => (
+                    <TableRow key={request.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold shadow-lg">
+                            {request.employee_name?.charAt(0).toUpperCase()}
                           </div>
-                        </TableCell>
-                        <TableCell>
                           <div>
                             <div className="font-medium text-foreground">
-                              {request.trip_summary[0]?.from} → {request.trip_summary[0]?.to}
-                            </div>
-                            <div className="text-sm text-muted-foreground line-clamp-1">
-                              {request.purpose}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium text-foreground">
-                              {formatDateRange(request.trip_summary[0]?.departure, request.trip_summary[0]?.return)}
+                              {request.employee_name}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {/* {daysBetween(request.trip_summary[0]?.departure, request.trip_summary[0]?.return)} */}
-                              {request.trip_summary[0]?.duration} Days
                             </div>
                           </div>
-                        </TableCell>
-                        <TableCell>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
                           <div className="font-medium text-foreground">
-                            {/* {request.trip_summary[0].bookings[0].booking_value} */}
-                            &#x20b9;{request.estimated_total_cost}
+                            {request.trip_summary[0]?.from} → {request.trip_summary[0]?.to}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          {/* {request.status === "submitted" && getStatusBadge("submitted")}
-                          {request.status === "pending_manager" && getStatusBadge("pending")}
-                          {request.status === "approved_manager" && getStatusBadge("approved")}
-                          {request.status === "rejected_manager" && getStatusBadge("rejected")} */}
-                          {getStatusBadge(request.status)}
-                        </TableCell>
-                        <TableCell>
-                          {getPriorityBadge("high")}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            {(request.status === "pending_manager" || request.status === "pending_ceo" || request.status === "pending_chro") && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
-                                  onClick={() => handleStatusUpdate(request.id, "approve")}
-                                  disabled={updatingId === request.id}
-                                >
-                                  {updatingId === request.id ? (
-                                    <>
-                                      <Spinner size="sm" /> Processing
-                                    </>
-                                  ) : (
-                                    "Approve"
-                                  )}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => handleStatusUpdate(request.id, "reject")}
-                                  disabled={updatingId === request.id}
-                                >
-                                  Reject
-                                </Button>
-                              </>
-                            )}
-                            <Button size="sm" variant="outline"
-                              // onClick={() => navigate(`/travel-request/${request.id}`)}
-                              onClick={() => navigate(`/travel/travel-application/${request.id}/`)}
-                            >
-                              View
-                            </Button>
+                          <div className="text-sm text-muted-foreground line-clamp-1">
+                            {request.purpose}
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  }
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium text-foreground">
+                            {formatDateRange(request.trip_summary[0]?.departure, request.trip_summary[0]?.return)}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {request.trip_summary[0]?.duration} Days
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium text-foreground">
+                          &#x20b9;{request.estimated_total_cost}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(request.status)}
+                      </TableCell>
+                      <TableCell>
+                        {getPriorityBadge("high")}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          {canUserApprove(request) && (
+                            <>
+                              <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                                onClick={() => handleStatusUpdate(request.id, "approve")}
+                                disabled={updatingId === request.id}
+                              >
+                                {updatingId === request.id ? (
+                                  <>
+                                    <Spinner size="sm" /> Processing
+                                  </>
+                                ) : (
+                                  "Approve"
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleStatusUpdate(request.id, "reject")}
+                                disabled={updatingId === request.id}
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          <Button size="sm" variant="outline"
+                            onClick={() => navigate(`/travel/travel-application/${request.id}/`)}
+                          >
+                            View
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                }
 
-                </TableBody>
-              </Table>
-              {applications.length === 0 && (
-                // <center className="m-5">No pending application for approval.</center>
-                <center className="m-5">
-                  {statusFilter === "all" && "No travel applications for approval."}
-                  {statusFilter === "pending" && "No pending applications for approval."}
-                  {statusFilter === "approved" && "No approved applications for approval."}
-                  {statusFilter === "rejected" && "No rejected applications for approval."}
-                </center>
-              )}
-            </div>
+              </TableBody>
+            </Table>
+            {applications.results.length === 0 && (
+              <center className="m-5">
+                {statusFilter === "all" && "No travel applications for approval."}
+                {statusFilter === "pending" && "No pending applications for approval."}
+                {statusFilter === "approved" && "No approved applications for approval."}
+                {statusFilter === "rejected" && "No rejected applications for approval."}
+              </center>
+            )}
+          </div>
 
-            {/* Pagination */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-6 pt-4 border-t">
-              <div className="text-sm text-muted-foreground mb-4 sm:mb-0">
-                {/* Showing 1-10 of {approvals?.length || 0} requests */}
-                Showing 1-10 of {applications.length || 0} requests
-              </div>
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      href="#"
-                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                    />
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#" isActive={currentPage === 1}>
-                      1
-                    </PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#" isActive={false}>
-                      2
-                    </PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#" isActive={false}>
-                      3
-                    </PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationNext href="#" />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    // </Layout>
+          {/* Pagination */}
+          <Pagination
+            pagination={pagination}
+            onPageChange={(newPage) => setPage(newPage)}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -79,7 +79,7 @@ const MASTER_CATEGORIES = [
         icon: CheckCircle2,
         items: [
             { id: 'approval-matrix', title: 'Approval Matrix', route: ROUTES.approvalMatrixMaster },
-            { id: 'da-incidental', title: 'DA Incidental', route: ROUTES.daIncidentalMaster },
+            { id: 'da-incidental', title: 'Daily Allowance Incidental', route: ROUTES.daIncidentalMaster },
             { id: 'conveyance-rate', title: 'Conveyance Rate', route: ROUTES.conveyanceRateMaster },
         ],
     },

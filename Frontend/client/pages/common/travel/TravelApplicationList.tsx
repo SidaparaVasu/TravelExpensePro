@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTravelStore } from '@/src/store/travelStore';
-// import { Layout } from '@/components/Layout';
 import { Input } from "@/components/ui/input";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,14 +20,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Download,
-  Filter,
   Search,
   Clock,
   CheckCircle,
-  DollarSign,
-  XCircle,
-  ChevronDown,
   ClipboardList,
   SquarePen,
 } from "lucide-react";
@@ -150,7 +144,6 @@ export default function TravelApplicationList() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
 
   useEffect(() => {
     loadApplications(statusFilter, page);

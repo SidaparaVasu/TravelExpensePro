@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Save, Send, ChevronRight, ChevronLeft, Calendar, MapPin, Plane, Home, Car, Wallet } from 'lucide-react';
-// import { Layout } from '@/components/Layout';
 import { travelAPI } from '@/src/api/travel';
 import { locationAPI } from '@/src/api/master_location';
 import GuestHouseSelector from './components/GuestHouseSelector';
@@ -10,14 +9,6 @@ import GuestSelector from "./components/GuestSelector";
 // =============================================
 // UTILITY FUNCTIONS
 // =============================================    
-// const getEmptyTripDetails = () => ({
-//     trip_from_location: '',
-//     trip_to_location: '',
-//     start_date: '',
-//     end_date: '',
-//     guest_count: '',
-// });
-
 const getEmptyTicketing = () => ({
     booking_type: '',
     sub_option: '',
@@ -114,34 +105,6 @@ const FormSelect = ({ label, required, options, ...props }) => (
     </div>
 );
 
-// Datalist Component
-// const FormDatalist = ({ label, required, options, name, value, listId, onChange, placeholder = '', ...props }) => (
-//   <div>
-//     <label className="block text-sm font-medium text-slate-700 mb-1.5">
-//       {label} {required && <span className="text-red-500">*</span>}
-//     </label>
-
-//     <input
-//       {...props}
-//       type="text"
-//       name={name}
-//       list={listId}
-//       placeholder={placeholder}
-//       value={value || ""}
-//       onChange={onChange}
-//       autoComplete="off"
-//       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-//     />
-
-//     <datalist id={listId}>
-//       {options.map((opt, index) => (
-//         <option key={`${opt.value}-${index}`} value={opt.value}>
-//           {opt.label}
-//         </option>
-//       ))}
-//     </datalist>
-//   </div>
-// );
 const FormDatalist = ({ label, required, options, value, onChange, listId, placeholder, ...props }) => {
     const [inputValue, setInputValue] = useState("");
 
@@ -163,13 +126,6 @@ const FormDatalist = ({ label, required, options, value, onChange, listId, place
         } else {
             onChange(null, newInput); // send only text if not matched
         }
-
-        // If valid city selected, send its primary key (value)
-        // if (selected) {
-        //     onChange(selected.value);
-        // } else {
-        //     onChange(""); // reset if no valid city
-        // }
     };
 
     return (
@@ -745,20 +701,7 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
                                     }))
                                 ]}
                             />
-                            {/* <FormSelect
-                            label="Travel Sub-Option"
-                            required
-                            value={form.sub_option}
-                            onChange={(e) => setForm({ ...form, sub_option: e.target.value })}
-                            options={[
-                                { value: '', label: form.booking_type ? 'Select sub-option' : 'Select travel mode first' },
-                                ...currentSubOptions.filter(s => s.mode === parseInt(form.booking_type)).map(s => ({
-                                    value: s.id.toString(),
-                                    label: s.name
-                                }))
-                            ]}
-                            disabled={!form.booking_type}
-                        /> */}
+
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                                     Travel Sub-Option <span className="text-red-500">*</span>
@@ -801,20 +744,6 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
                                     </p>
                                 )}
                             </div>
-                            {/* <FormInput label="From" required value={form.from_location} onChange={(e) => setForm({ ...form, from_location: e.target.value })} placeholder="Origin" /> */}
-                            {/* <FormSelect
-                            label="From"
-                            required
-                            value={form.from_location}
-                            onChange={(e) => setForm({ ...form, from_location: e.target.value })}
-                            options={[
-                                { value: '', label: 'Select From Location' },
-                                ...cities.map((m) => ({
-                                    value: m.id.toString(),
-                                    label: m.city_name,
-                                })),
-                            ]}
-                        /> */}
 
                             <FormDatalist
                                 label="From"
@@ -833,19 +762,6 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
                                 }
                             />
 
-
-                            {/* <FormInput label="To" required value={form.to_location} onChange={(e) => setForm({ ...form, to_location: e.target.value })} placeholder="Destination" /> */}
-                            {/* <FormDatalist
-                            label="To"
-                            required
-                            name="to_location"
-                            listId="toList"
-                            placeholder="Enter To Location"
-                            // value={form.to_location}
-                            options={cityOptions}
-                            // onChange={(e) => setForm({ ...form, to_location: e.target.value })}
-                            onChange={(id) => setForm(prev => ({ ...prev, to_location: id }))}
-                        /> */}
                             <FormDatalist
                                 label="To"
                                 required
@@ -866,20 +782,6 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
                                 }}
                             />
 
-                            {/* <FormSelect
-                            label="To"
-                            required
-                            value={form.to_location}
-                            onChange={(e) => setForm({ ...form, to_location: e.target.value })}
-                            options={[
-                                { value: '', label: 'Select To Location' },
-                                ...cities.map((m) => ({
-                                    value: m.id.toString(),
-                                    label: m.city_name,
-                                })),
-                            ]}
-                        /> */}
-                            {/* <FormInput label="Departure Date" required type="date" value={form.departure_date} onChange={(e) => setForm({ ...form, departure_date: e.target.value })} /> */}
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                                     Departure Date <span className="text-red-500">*</span>
@@ -918,7 +820,7 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
                                 )}
                             </div>
                             <FormInput label="Departure Time" type="time" value={form.departure_time} onChange={(e) => setForm({ ...form, departure_time: e.target.value })} />
-                            {/* <FormInput label="Arrival Date" type="date" value={form.arrival_date || ''} onChange={(e) => setForm({ ...form, arrival_date: e.target.value })} /> */}
+
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                                     Arrival Date
@@ -952,7 +854,6 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
                             </div>
                             <FormInput label="Arrival Time" type="time" value={form.arrival_time || ''} onChange={(e) => setForm({ ...form, arrival_time: e.target.value })} />
 
-                            {/* <FormInput label="Estimated Cost (₹)" type="number" value={form.estimated_cost} onChange={(e) => setForm({ ...form, estimated_cost: e.target.value })} placeholder="0.00" /> */}
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                                     Estimated Cost (₹)
@@ -1015,350 +916,440 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
 };
 
 // Accommodation Section Component
+// AccommodationSection (updated)
 const AccommodationSection = ({
-    accommodation,
-    setAccommodation,
-    showToast,
-    travelModes,
-    subOptions,
-    onModeChange,
-    guestHouses,
-    arcHotels,
-    form,
-    setForm,
-    notRequired,
-    setNotRequired
+  accommodation,
+  setAccommodation,
+  showToast,
+  travelModes,
+  subOptions,
+  onModeChange,
+  guestHouses,
+  arcHotels,
+  form,
+  setForm,
+  notRequired,
+  setNotRequired,
 }) => {
+  const [editIndex, setEditIndex] = useState(null);
+  const [guestHousePreferences, setGuestHousePreferences] = useState([]);
 
-    const [editIndex, setEditIndex] = useState(null);
-    const [guestHousePreferences, setGuestHousePreferences] = useState([]);
+  // ===== Find "Accommodation" mode =====
+  const accommodationMode = travelModes?.find((m) => m.name === "Accommodation");
+  const accommodationModeId = accommodationMode?.id;
 
-    // ===== Find "Accommodation" mode =====
-    const accommodationMode = travelModes?.find(m => m.name === "Accommodation");
-    const accommodationModeId = accommodationMode?.id;
-    form.accommodation_type_id = accommodationModeId;
+  const hasLoadedAccommodation = useRef(false);
 
-    const hasLoadedAccommodation = useRef(false);
+  // Ensure accommodation_type_id is set in form (do not mutate prop directly)
+  useEffect(() => {
+    if (accommodationModeId && String(form.accommodation_type_id) !== String(accommodationModeId)) {
+      setForm((prev) => ({ ...prev, accommodation_type_id: accommodationModeId }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accommodationModeId]);
 
-    // ===== Load sub-options first time =====
-    useEffect(() => {
-        if (
-            accommodationModeId &&
-            onModeChange &&
-            !hasLoadedAccommodation.current &&
-            !subOptions?.[accommodationModeId?.toString()]
-        ) {
-            hasLoadedAccommodation.current = true;
-            onModeChange(accommodationModeId);
+  // ===== Load sub-options first time =====
+  useEffect(() => {
+    if (
+      accommodationModeId &&
+      onModeChange &&
+      !hasLoadedAccommodation.current &&
+      !subOptions?.[accommodationModeId?.toString()]
+    ) {
+      hasLoadedAccommodation.current = true;
+      onModeChange(accommodationModeId);
+    }
+  }, [accommodationModeId, subOptions, onModeChange]);
+
+  // ===== Extract only accommodation-related sub-options =====
+  const currentAccommodationSubOptions =
+    subOptions?.[accommodationModeId?.toString()]?.filter((s) => s.mode === accommodationModeId) || [];
+
+  // Helper: find specific sub-option by heuristic name checks
+  const findGuestHouseOption = () =>
+    currentAccommodationSubOptions.find((s) => String(s.name).toLowerCase().includes("guest house"));
+
+  const findCompanyHotelOption = () =>
+    currentAccommodationSubOptions.find((s) =>
+      String(s.name).toLowerCase().includes("arc") ||
+      String(s.name).toLowerCase().includes("company-tied") ||
+      String(s.name).toLowerCase().includes("company hotel") ||
+      String(s.name).toLowerCase().includes("hotel")
+    );
+
+  const findSelfArrangedOption = () =>
+    currentAccommodationSubOptions.find((s) => String(s.name).toLowerCase().includes("self"));
+
+  // ===== When accommodation_type changes, enforce rules =====
+  useEffect(() => {
+    const owner = form.accommodation_type; // "company" | "self" | ""
+    if (!owner) return;
+
+    if (owner === "company") {
+      // If guest house option exists -> auto-select it
+      const gh = findGuestHouseOption();
+      if (gh) {
+        // set guest house id if not already set
+        if (!form.accommodation_sub_option || String(form.accommodation_sub_option) !== String(gh.id)) {
+          setForm((prev) => ({
+            ...prev,
+            accommodation_sub_option: String(gh.id),
+          }));
         }
-    }, [accommodationModeId, subOptions, onModeChange]);
+        return;
+      }
 
-    // ===== Extract only accommodation-related sub-options =====
-    const currentAccommodationSubOptions =
-        subOptions?.[accommodationModeId?.toString()]
-            ?.filter((s) => s.mode === accommodationModeId) || [];
-
-    // ===== Auto-select Guest House when Company is chosen =====
-    useEffect(() => {
-        if (form.accommodation_type === "company" && !form.accommodation_sub_option) {
-            const gh = currentAccommodationSubOptions.find(s =>
-                s.name?.toLowerCase().includes("guest house")
-            );
-
-            if (gh) {
-                setForm(prev => ({
-                    ...prev,
-                    accommodation_sub_option: gh.id.toString()
-                }));
-            }
+      // if guest house not available, fallback to company hotel option (ARC)
+      const ch = findCompanyHotelOption();
+      if (ch) {
+        if (!form.accommodation_sub_option || String(form.accommodation_sub_option) !== String(ch.id)) {
+          setForm((prev) => ({
+            ...prev,
+            accommodation_sub_option: String(ch.id),
+          }));
         }
-    }, [form.accommodation_type, currentAccommodationSubOptions]);
+        return;
+      }
 
+      // No known options → clear sub option (let user choose if any show up later)
+      setForm((prev) => ({ ...prev, accommodation_sub_option: "" }));
+    }
 
-    // ===========================
-    //        SUBMIT HANDLER
-    // ===========================
-    const handleSubmit = () => {
-        if (!form.place || !form.check_in_date || !form.check_out_date) {
-            showToast("Please fill Place, Check-in date, and Check-out date", "error");
-            return;
-        }
+    if (owner === "self") {
+      // Force self-arranged selection if available
+      const selfOpt = findSelfArrangedOption();
+      if (selfOpt) {
+        setForm((prev) => ({ ...prev, accommodation_sub_option: String(selfOpt.id) }));
+      } else {
+        // if there is no explicit suboption for self, set to a stable sentinel (e.g., "self_arranged")
+        setForm((prev) => ({ ...prev, accommodation_sub_option: "self_arranged" }));
+      }
 
-        // Guest House preferences required only when guest house selected
-        if (form.accommodation_type === "company") {
-            const sub = currentAccommodationSubOptions.find(
-                s => s.id === parseInt(form.accommodation_sub_option)
-            );
+      // clear guest house preferences since self does not need it
+      setGuestHousePreferences([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.accommodation_type, currentAccommodationSubOptions]);
 
-            if (sub?.name?.toLowerCase().includes("guest house") &&
-                guestHousePreferences.length === 0
-            ) {
-                showToast("Please select at least one guest house preference", "error");
-                return;
-            }
-        }
+  // If user changes accommodation_sub_option manually, clear guest-house prefs if sub isn't guest-house
+  useEffect(() => {
+    if (!form.accommodation_sub_option) return;
+    const selected = currentAccommodationSubOptions.find((s) => String(s.id) === String(form.accommodation_sub_option));
+    const isGuestHouse = selected?.name?.toLowerCase().includes("guest house");
+    if (!isGuestHouse && guestHousePreferences.length > 0) {
+      setGuestHousePreferences([]); // clear stale preferences
+    }
+  }, [form.accommodation_sub_option, currentAccommodationSubOptions]);
 
-        const bookingData = {
-            ...form,
-            guest_house_preferences: guestHousePreferences,
-            id: editIndex !== null ? accommodation[editIndex].id : Date.now()
-        };
+  // ===========================
+  //        SUBMIT HANDLER
+  // ===========================
+  const handleSubmit = () => {
+    // Basic required fields
+    if (!form.place || !form.check_in_date || !form.check_out_date) {
+      showToast("Please fill Place, Check-in date, and Check-out date", "error");
+      return;
+    }
 
-        if (editIndex !== null) {
-            const updated = [...accommodation];
-            updated[editIndex] = bookingData;
-            setAccommodation(updated);
-            showToast("Accommodation updated successfully", "success");
-        } else {
-            setAccommodation([...accommodation, bookingData]);
-            showToast("Accommodation added successfully", "success");
-        }
+    // If company arranged, enforce guest house preference only when guest house is selected
+    if (form.accommodation_type === "company") {
+      const sub = currentAccommodationSubOptions.find((s) => String(s.id) === String(form.accommodation_sub_option));
+      const isGuestHouse = sub?.name?.toLowerCase().includes("guest house");
 
+      if (isGuestHouse && guestHousePreferences.length === 0) {
+        showToast("Please select at least one guest house preference", "error");
+        return;
+      }
+    }
+
+    // For self arranged, ensure sub option is present (we set it automatically above)
+    if (form.accommodation_type === "self" && !form.accommodation_sub_option) {
+      showToast("Self-arranged stay requires selecting 'Self-arranged Stay' option", "error");
+      return;
+    }
+
+    const bookingData = {
+      ...form,
+      guest_house_preferences: guestHousePreferences,
+      id: editIndex !== null ? accommodation[editIndex].id : Date.now(),
+    };
+
+    if (editIndex !== null) {
+      const updated = [...accommodation];
+      updated[editIndex] = bookingData;
+      setAccommodation(updated);
+      showToast("Accommodation updated successfully", "success");
+    } else {
+      setAccommodation([...accommodation, bookingData]);
+      showToast("Accommodation added successfully", "success");
+    }
+
+    setForm(getEmptyAccommodation());
+    setGuestHousePreferences([]);
+    setEditIndex(null);
+  };
+
+  // ===========================
+  //         EDIT HANDLER
+  // ===========================
+  const handleEdit = (index) => {
+    setEditIndex(index);
+    const booking = accommodation[index];
+    setForm(booking);
+    setGuestHousePreferences(booking.guest_house_preferences || []);
+  };
+
+  // ===========================
+  //         DELETE HANDLER
+  // ===========================
+  const handleDelete = (index) => {
+    if (window.confirm("Delete this accommodation?")) {
+      setAccommodation(accommodation.filter((_, i) => i !== index));
+
+      if (editIndex !== null && editIndex >= index) {
         setForm(getEmptyAccommodation());
         setGuestHousePreferences([]);
         setEditIndex(null);
-    };
+      }
 
+      showToast("Accommodation deleted", "success");
+    }
+  };
 
-    // ===========================
-    //         EDIT HANDLER
-    // ===========================
-    const handleEdit = (index) => {
-        setEditIndex(index);
-        const booking = accommodation[index];
-        setForm(booking);
-        setGuestHousePreferences(booking.guest_house_preferences || []);
-    };
+  // ===========================
+  //       TABLE COLUMNS
+  // ===========================
+  const columns = [
+    {
+      label: "Type",
+      render: (row) => (
+        <span className="capitalize px-2 py-1 bg-slate-100 rounded text-xs font-medium">
+          {row.accommodation_type}
+        </span>
+      ),
+    },
+    { label: "Place", key: "place" },
+    {
+      label: "Check-in",
+      render: (row) => `${row.check_in_date} ${row.check_in_time || ""}`,
+    },
+    {
+      label: "Check-out",
+      render: (row) => `${row.check_out_date} ${row.check_out_time || ""}`,
+    },
+    {
+      label: "Cost (₹)",
+      align: "text-right",
+      render: (row) => `₹${Number(row.estimated_cost || 0).toLocaleString("en-IN")}`,
+    },
+  ];
 
-
-    // ===========================
-    //         DELETE HANDLER
-    // ===========================
-    const handleDelete = (index) => {
-        if (window.confirm("Delete this accommodation?")) {
-            setAccommodation(accommodation.filter((_, i) => i !== index));
-
-            // Reset form if deleted row was being edited
-            if (editIndex !== null && editIndex >= index) {
-                setForm(getEmptyAccommodation());
-                setGuestHousePreferences([]);
-                setEditIndex(null);
-            }
-
-            showToast("Accommodation deleted", "success");
-        }
-    };
-
-
-    // ===========================
-    //       TABLE COLUMNS
-    // ===========================
-    const columns = [
-        {
-            label: "Type",
-            render: (row) => (
-                <span className="capitalize px-2 py-1 bg-slate-100 rounded text-xs font-medium">
-                    {row.accommodation_type}
-                </span>
-            )
-        },
-        { label: "Place", key: "place" },
-        { label: "Check-in", render: (row) => `${row.check_in_date} ${row.check_in_time || ""}` },
-        { label: "Check-out", render: (row) => `${row.check_out_date} ${row.check_out_time || ""}` },
-        {
-            label: "Cost (₹)",
-            align: "text-right",
-            render: (row) => `₹${Number(row.estimated_cost || 0).toLocaleString("en-IN")}`
-        }
-    ];
-
-
-    // ===========================
-    //           RETURN JSX
-    // ===========================
-    return (
-        <div className="space-y-6 max-w-6xl mx-auto">
-
-            {/* HEADER */}
-            <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Home className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                    <h2 className="text-xl font-semibold text-slate-800">Accommodation</h2>
-                    <p className="text-sm text-slate-500">Add your hotel and lodging requirements</p>
-                </div>
-            </div>
-
-
-            {/* MAIN CARD */}
-            <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
-
-                {/* Not Required Checkbox */}
-                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={notRequired}
-                            onChange={(e) => {
-                                setNotRequired(e.target.checked);
-                                if (e.target.checked) {
-                                    setForm(getEmptyAccommodation());
-                                    setEditIndex(null);
-                                }
-                            }}
-                            className="mt-1"
-                        />
-                        <span className="text-sm text-slate-700">
-                            I hereby declare that I do not need accommodation in any form - neither
-                            Company nor Self for this travel.
-                        </span>
-                    </label>
-                </div>
-
-                {/* ======================== FORM ======================== */}
-                {!notRequired && (
-                    <>
-                        <h3 className="text-sm font-semibold text-slate-700 mb-4">
-                            {editIndex !== null ? "Edit Accommodation" : "Add New Accommodation"}
-                        </h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                            {/* Accommodation Type */}
-                            <FormSelect
-                                label="Accommodation Type"
-                                required
-                                value={form.accommodation_type}
-                                onChange={(e) => {
-                                    setForm({
-                                        ...form,
-                                        accommodation_type: e.target.value,
-                                        accommodation_sub_option: ""
-                                    });
-                                    setGuestHousePreferences([]);
-                                }}
-                                options={[
-                                    { value: "", label: "Select accommodation type" },
-                                    { value: "company", label: "Company Arranged" },
-                                    { value: "self", label: "Self Arranged" }
-                                ]}
-                            />
-
-                            {/* Auto-selected Guest House Sub-option */}
-                            {form.accommodation_type === "company" && (
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                                        Accommodation Sub-Option <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="px-3 py-2 border border-slate-300 bg-slate-50 rounded-lg text-sm text-slate-600">
-                                        Guest House (Auto-selected)
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Guest House Preferences */}
-                            {form.accommodation_type === "company" && (
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                                        Select Guest House Preferences <span className="text-red-500">*</span>
-                                    </label>
-                                    <GuestHouseSelector
-                                        guestHouses={guestHouses?.data?.results || []}
-                                        selectedPreferences={guestHousePreferences}
-                                        setSelectedPreferences={setGuestHousePreferences}
-                                    />
-                                </div>
-                            )}
-
-                            <FormInput
-                                label="Place/Location"
-                                required
-                                value={form.place}
-                                onChange={(e) => setForm({ ...form, place: e.target.value })}
-                                placeholder="City or area"
-                            />
-
-                            <FormInput
-                                label="Check-in Date"
-                                required
-                                type="date"
-                                value={form.check_in_date}
-                                onChange={(e) => setForm({ ...form, check_in_date: e.target.value })}
-                            />
-
-                            <FormInput
-                                label="Check-in Time"
-                                type="time"
-                                value={form.check_in_time}
-                                onChange={(e) => setForm({ ...form, check_in_time: e.target.value })}
-                            />
-
-                            <FormInput
-                                label="Check-out Date"
-                                required
-                                type="date"
-                                value={form.check_out_date}
-                                onChange={(e) => setForm({ ...form, check_out_date: e.target.value })}
-                            />
-
-                            <FormInput
-                                label="Check-out Time"
-                                type="time"
-                                value={form.check_out_time}
-                                onChange={(e) => setForm({ ...form, check_out_time: e.target.value })}
-                            />
-
-                            <FormInput
-                                label="Estimated Cost (₹)"
-                                type="number"
-                                value={form.estimated_cost}
-                                onChange={(e) => setForm({ ...form, estimated_cost: e.target.value })}
-                                min="0"
-                                placeholder="₹12000"
-                            />
-
-                            <div className="md:col-span-2">
-                                <FormInput
-                                    label="Special Instructions"
-                                    value={form.special_instruction}
-                                    onChange={(e) => setForm({ ...form, special_instruction: e.target.value })}
-                                    placeholder="e.g., Veg meal preference, room preference..."
-                                />
-                            </div>
-                        </div>
-
-                        {/* Buttons */}
-                        <div className="flex justify-end gap-3 mt-6">
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    setForm(getEmptyAccommodation());
-                                    setGuestHousePreferences([]);
-                                    setEditIndex(null);
-                                }}
-                            >
-                                Clear
-                            </Button>
-
-                            <Button icon={Plus} onClick={handleSubmit}>
-                                {editIndex !== null ? "Update" : "Add"} Accommodation
-                            </Button>
-                        </div>
-                    </>
-                )}
-            </div>
-
-            {/* TABLE */}
-            <DataTable
-                columns={columns}
-                data={accommodation}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                emptyMessage="No accommodation added yet. Add your first accommodation above."
-            />
+  // Render UI
+  return (
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* HEADER */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+          <Home className="w-5 h-5 text-blue-600" />
         </div>
-    );
+        <div>
+          <h2 className="text-xl font-semibold text-slate-800">Accommodation</h2>
+          <p className="text-sm text-slate-500">Add your hotel and lodging requirements</p>
+        </div>
+      </div>
+
+      {/* MAIN CARD */}
+      <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+        {/* Not Required Checkbox */}
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={notRequired}
+              onChange={(e) => {
+                setNotRequired(e.target.checked);
+                if (e.target.checked) {
+                  setForm(getEmptyAccommodation());
+                  setEditIndex(null);
+                }
+              }}
+              className="mt-1"
+            />
+            <span className="text-sm text-slate-700">
+              I hereby declare that I do not need accommodation in any form - neither Company nor Self for this travel.
+            </span>
+          </label>
+        </div>
+
+        {/* FORM */}
+        {!notRequired && (
+          <>
+            <h3 className="text-sm font-semibold text-slate-700 mb-4">
+              {editIndex !== null ? "Edit Accommodation" : "Add New Accommodation"}
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Accommodation Type */}
+              <FormSelect
+                label="Accommodation Type"
+                required
+                value={form.accommodation_type}
+                onChange={(e) => {
+                  setForm({
+                    ...form,
+                    accommodation_type: e.target.value,
+                    accommodation_sub_option: "",
+                  });
+                  setGuestHousePreferences([]);
+                }}
+                options={[
+                  { value: "", label: "Select accommodation type" },
+                  { value: "company", label: "Company Arranged" },
+                  { value: "self", label: "Self Arranged" },
+                ]}
+              />
+
+              {/* Display / Auto-selection for Company */}
+              {form.accommodation_type === "company" && (
+                <>
+                  {/* If Guest House option exists -> show auto selected label + GuestHouseSelector */}
+                  {findGuestHouseOption() ? (
+                    <div className="md:col-span-1">
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        Accommodation Sub-Option
+                      </label>
+                      <div className="px-3 py-2 border border-slate-300 bg-slate-50 rounded-lg text-sm text-slate-600">
+                        Guest House (Auto-selected)
+                      </div>
+                    </div>
+                  ) : (
+                    // Guest house not available but company hotel exists -> auto-select and show label
+                    <div className="md:col-span-1">
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        Accommodation Sub-Option
+                      </label>
+                      <div className="px-3 py-2 border border-slate-300 bg-slate-50 rounded-lg text-sm text-slate-600">
+                        {findCompanyHotelOption()
+                          ? "Company-tied Hotel (ARC Hotel) (Auto-selected)"
+                          : "Company Arranged (No specific sub-option available)"}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* For self -> show simple label */}
+              {form.accommodation_type === "self" && (
+                <div className="md:col-span-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Accommodation Sub-Option</label>
+                  <div className="px-3 py-2 border border-slate-300 bg-slate-50 rounded-lg text-sm text-slate-600">
+                    Self-arranged Stay
+                  </div>
+                </div>
+              )}
+
+              {/* Guest House Preferences */}
+              {form.accommodation_type === "company" && findGuestHouseOption() && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Select Guest House Preferences <span className="text-red-500">*</span>
+                  </label>
+                  <GuestHouseSelector
+                    guestHouses={guestHouses?.data?.results || []}
+                    selectedPreferences={guestHousePreferences}
+                    setSelectedPreferences={setGuestHousePreferences}
+                  />
+                </div>
+              )}
+
+              <FormInput
+                label="Place/Location"
+                required
+                value={form.place}
+                onChange={(e) => setForm({ ...form, place: e.target.value })}
+                placeholder="City or area"
+              />
+
+              <FormInput
+                label="Check-in Date"
+                required
+                type="date"
+                value={form.check_in_date}
+                onChange={(e) => setForm({ ...form, check_in_date: e.target.value })}
+              />
+
+              <FormInput
+                label="Check-in Time"
+                type="time"
+                value={form.check_in_time}
+                onChange={(e) => setForm({ ...form, check_in_time: e.target.value })}
+              />
+
+              <FormInput
+                label="Check-out Date"
+                required
+                type="date"
+                value={form.check_out_date}
+                onChange={(e) => setForm({ ...form, check_out_date: e.target.value })}
+              />
+
+              <FormInput
+                label="Check-out Time"
+                type="time"
+                value={form.check_out_time}
+                onChange={(e) => setForm({ ...form, check_out_time: e.target.value })}
+              />
+
+              <FormInput
+                label="Estimated Cost (₹)"
+                type="number"
+                value={form.estimated_cost}
+                onChange={(e) => setForm({ ...form, estimated_cost: e.target.value })}
+                min="0"
+                placeholder="₹12000"
+              />
+
+              <div className="md:col-span-2">
+                <FormInput
+                  label="Special Instructions"
+                  value={form.special_instruction}
+                  onChange={(e) => setForm({ ...form, special_instruction: e.target.value })}
+                  placeholder="e.g., Veg meal preference, room preference..."
+                />
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setForm(getEmptyAccommodation());
+                  setGuestHousePreferences([]);
+                  setEditIndex(null);
+                }}
+              >
+                Clear
+              </Button>
+
+              <Button icon={Plus} onClick={handleSubmit}>
+                {editIndex !== null ? "Update" : "Add"} Accommodation
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* TABLE */}
+      <DataTable
+        columns={columns}
+        data={accommodation}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        emptyMessage="No accommodation added yet. Add your first accommodation above."
+      />
+    </div>
+  );
 };
 
 
@@ -1385,7 +1376,11 @@ const ConveyanceSection = ({
         }
     };
 
-    const availableModes = travelModes?.filter((m) => m.name === 'Car') || [];
+    const allowed = ['own car', 'car at disposal', 'radio Taxi', 'pick-up and drop'];
+    const availableModes = travelModes?.filter((m) =>
+    allowed.includes(m.name.toLowerCase())
+    ) || [];
+    console.log(availableModes);
     const currentSubOptions = form.vehicle_type ? (subOptions[form.vehicle_type.toString()] || []) : [];
 
     const handleSubmit = () => {
@@ -1790,15 +1785,6 @@ const TravelAdvanceSection = ({ sums, otherExpenses, setOtherExpenses, totalAdva
                     <div className="flex justify-between items-center py-2 border-b border-blue-200">
                         <span className="text-slate-700">Other Expenses</span>
                         <span className="font-semibold text-slate-900">₹{otherExpenses.toLocaleString('en-IN')}</span>
-                        {/* <input
-                            type="number"
-                            className="w-32 px-3 py-1.5 border border-slate-300 rounded-lg text-right font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value={otherExpenses}
-                            min="0"
-                            placeholder="₹0"
-                            disabled
-                            onChange={(e) => setOtherExpenses(Number(e.target.value) || '')}
-                        /> */}
                     </div>
 
                     <div className="flex justify-between items-center pt-4 mt-2">
@@ -1844,57 +1830,57 @@ const TravelAdvanceSection = ({ sums, otherExpenses, setOtherExpenses, totalAdva
 );
 
 // Helper to extract readable error message
-// Helper function to parse backend errors recursively
-const parseBackendError = (error) => {
-    const backendError = error.response?.data;
+const extractErrorMessage = (err) => {
+    const res = err?.response?.data;
 
-    if (!backendError) {
-        return error.message || 'An unexpected error occurred';
+    if (!res) {
+        return err?.message || "Something went wrong.";
     }
 
-    const errorMessages = [];
+    // Universal Python ErrorDetail string extractor
+    const extractPythonMessage = (input) => {
+        if (!input || typeof input !== "string") return null;
 
-    // Recursive function to extract all error messages
-    const extractMessages = (obj, prefix = '') => {
-        if (!obj || typeof obj !== 'object') {
-            return;
-        }
+        // 1) ErrorDetail(string='...')
+        const detail = input.match(/ErrorDetail\(string='(.+?)'/);
+        if (detail) return detail[1];
 
-        Object.entries(obj).forEach(([key, value]) => {
-            // Skip metadata fields
-            if (['success', 'data'].includes(key)) {
-                return;
-            }
+        // 2) Any single-quoted text
+        const simple = input.match(/'([^']+)'/);
+        if (simple) return simple[1];
 
-            // Handle arrays of messages
-            if (Array.isArray(value)) {
-                value.forEach(item => {
-                    if (typeof item === 'string') {
-                        errorMessages.push(prefix ? `${prefix} ${key}: ${item}` : `${key}: ${item}`);
-                    } else if (typeof item === 'object') {
-                        extractMessages(item, prefix ? `${prefix} ${key}` : key);
-                    }
-                });
-            }
-            // Handle nested objects
-            else if (typeof value === 'object' && value !== null) {
-                extractMessages(value, prefix ? `${prefix} ${key}` : key);
-            }
-            // Handle string/primitive values
-            else {
-                errorMessages.push(prefix ? `${prefix} ${key}: ${value}` : `${key}: ${value}`);
-            }
-        });
+        return input;
     };
 
-    extractMessages(backendError);
+    // ----------------------------
+    // CASE: errors is an object (your case)
+    // ----------------------------
+    if (res.errors && typeof res.errors === "object") {
+        for (const key in res.errors) {
+            const raw = res.errors[key];
 
-    // Return parsed messages or fallback to message field
-    if (errorMessages.length > 0) {
-        return errorMessages.join('\n');
+            // raw is the Python dict string
+            const extracted = extractPythonMessage(raw);
+
+            if (extracted) return extracted;
+        }
     }
 
-    return backendError.message || 'Validation failed. Please check your input.';
+    // ----------------------------
+    // CASE: errors is a string
+    // ----------------------------
+    if (typeof res?.errors === "string") {
+        const extracted = extractPythonMessage(res.errors);
+        if (extracted) return extracted;
+        return res.errors;
+    }
+
+    // ----------------------------
+    // CASE: message
+    // ----------------------------
+    if (res.message) return res.message;
+
+    return "Something went wrong.";
 };
 
 // =============================================
@@ -2043,7 +2029,6 @@ export default function CreateTravelApplication() {
 
     // Add to main component
     const [isValidating, setIsValidating] = useState(false);
-    const [validationErrors, setValidationErrors] = useState(null);
 
     // Validation function
     const validateApplication = async () => {
@@ -2133,86 +2118,9 @@ export default function CreateTravelApplication() {
             navigate("/travel/travel-application-list");
         } catch (error) {
             console.error('Save draft error:', error);
-            showToast(parseBackendError(error), 'error');
+            showToast(extractErrorMessage(error), 'error');
         }
     };
-
-    // const handleSubmit = async () => {
-    //     setIsValidating(true);
-
-    //     try {
-    //         // Step 1: Frontend validation
-    //         const frontendErrors = await validateApplication();
-    //         if (frontendErrors.length > 0) {
-    //             console.log(frontendErrors);
-    //             setValidationErrors(frontendErrors);
-    //             showToast('Please fix validation errors before submitting', 'error');
-    //             return;
-    //         }
-
-    //         // Step 2: Ensure draft is saved (create/update)
-    //         const payload = prepareSubmissionPayload();
-    //         console.log('Payload: <br/>\n', payload);
-
-    //         let appId = draftApplicationId;
-
-    //         if (!appId) {
-    //             // No draft exists, create new
-    //             const appResponse = await travelAPI.createApplication(payload);
-    //             appId = appResponse.data?.id;
-    //             setDraftApplicationId(appId);
-    //         } else {
-    //             // Update existing draft
-    //             await travelAPI.updateApplication(appId, payload);
-    //         }
-
-    //         if (!appId) throw new Error('Application ID not available');
-
-    //         // Step 3: Backend validation
-    //         const validation = await travelAPI.validateApplication(appId);
-
-    //         if (!validation.data?.can_submit) {
-    //             const validationResults = validation.data?.validation_results || [];
-    //             setValidationErrors(validationResults);
-
-    //             const errorMessages = [];
-    //             validationResults.forEach(trip => {
-    //                 const tripLabel = `Trip #${trip.trip_id}`;
-    //                 trip.bookings?.forEach(booking => {
-    //                     booking.issues?.forEach(issue => {
-    //                         if (issue.severity === 'error') {
-    //                             errorMessages.push(`${tripLabel} → ${booking.booking_type}: ${issue.message.replace(/[\[\]']/g, '')}`);
-    //                         }
-    //                     });
-    //                 });
-    //             });
-
-    //             if (errorMessages.length > 0) {
-    //                 showToast(`Validation Failed:\n${errorMessages.join('\n')}`, 'error');
-    //             } else {
-    //                 showToast('Application has validation errors. Please review.', 'error');
-    //             }
-    //             return; // DON'T proceed to submit
-    //         }
-
-    //         // Step 4: Submit only if validation passed
-    //         await travelAPI.submitApplication(appId);
-
-    //         showToast('Application submitted successfully!', 'success');
-
-    //         // Clear draft ID and redirect
-    //         setDraftApplicationId(null);
-
-    //         navigate("/travel/travel-application-list");
-
-    //     } catch (error) {
-    //         console.error('Submission error:', error);
-    //         showToast(parseBackendError(error), 'error');
-    //     } finally {
-    //         setIsValidating(false);
-    //     }
-
-    // };
 
     const handleSubmit = async () => {
         setIsValidating(true);
@@ -2224,7 +2132,6 @@ export default function CreateTravelApplication() {
             const frontendErrors = await validateApplication();
 
             if (frontendErrors.length > 0) {
-                setValidationErrors(frontendErrors);
                 showToast('Please fix validation errors before submitting', 'error');
                 return;
             }
@@ -2267,7 +2174,10 @@ export default function CreateTravelApplication() {
 
         } catch (err: any) {
             console.error("Submit Error:", err);
-            showToast(parseBackendError(err), 'error');
+            console.log("RAW RES DATA:", err.response?.data);
+            console.log("RAW ERRORS FIELD:", err.response?.data?.errors);
+            console.log("EXTRACTED:", extractErrorMessage(err));
+            showToast(extractErrorMessage(err), 'error');
         } finally {
             setIsValidating(false);
         }
@@ -2351,7 +2261,6 @@ export default function CreateTravelApplication() {
     };
 
     return (
-        // <Layout>
         <div>
             <div className="min-h-screen">
                 {/* Toast Notification */}
@@ -2449,9 +2358,6 @@ export default function CreateTravelApplication() {
                                             <Button variant="outline" icon={Save} onClick={handleSaveDraft}>
                                                 Save as Draft
                                             </Button>
-                                            {/* <Button icon={Send} onClick={handleSubmit}>
-                                                Submit Application
-                                            </Button> */}
                                             <Button
                                                 icon={Send}
                                                 onClick={handleSubmit}
@@ -2471,59 +2377,7 @@ export default function CreateTravelApplication() {
                     </div>
                 </div>
             </div>
-            {/* Validation Errors Modal */}
-            {validationErrors && validationErrors.length > 0 && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
-                        <div className="bg-red-50 px-6 py-4 border-b border-red-200">
-                            <h3 className="text-lg font-bold text-red-700">Validation Errors</h3>
-                            <p className="text-sm text-red-600 mt-1">Please fix these issues before submitting</p>
-                        </div>
 
-                        <div className="overflow-y-auto p-6 flex-1">
-                            {validationErrors.map((trip, tripIdx) => (
-                                <div key={tripIdx} className="mb-4 border-l-4 border-red-400 pl-4">
-                                    <h4 className="font-semibold text-slate-800 mb-2">
-                                        Trip #{trip.trip_id || tripIdx + 1}: {trip.from_to}
-                                    </h4>
-
-                                    {trip.issues?.map((issue, issueIdx) => (
-                                        <div key={issueIdx} className="mb-2 text-sm">
-                                            <span className="text-red-600">• {issue.message}</span>
-                                        </div>
-                                    ))}
-
-                                    {trip.bookings?.map((booking, bookingIdx) => (
-                                        booking.issues?.length > 0 && (
-                                            <div key={bookingIdx} className="mt-3 ml-4">
-                                                <p className="text-sm font-medium text-slate-700">
-                                                    {booking.booking_type || 'Booking'} - ₹{booking.estimated_cost}
-                                                </p>
-                                                {booking.issues.map((issue, idx) => (
-                                                    <p key={idx} className={`text-sm ml-4 ${issue.severity === 'error' ? 'text-red-600' : 'text-amber-600'
-                                                        }`}>
-                                                        • {issue.message.replace(/[\[\]']/g, '')}
-                                                    </p>
-                                                ))}
-                                            </div>
-                                        )
-                                    ))}
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="bg-slate-50 px-6 py-4 border-t flex justify-end gap-3">
-                            <Button
-                                variant="outline"
-                                onClick={() => setValidationErrors(null)}
-                            >
-                                Close & Fix Issues
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
-        // </Layout>
     );
 }
