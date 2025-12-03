@@ -31,6 +31,7 @@ import { Plus, SendHorizontal, Eye, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useParams } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ROUTES } from "@/routes/routes";
 import { travelAPI } from "@/src/api/travel";
 
 function Pagination({ pagination, onPageChange }) {
@@ -105,8 +106,8 @@ function Pagination({ pagination, onPageChange }) {
               size="sm"
               variant={page === current_page ? "default" : "outline"}
               className={`h-8 px-3 ${page === current_page
-                  ? "bg-blue-600 text-white"
-                  : "border-gray-300"
+                ? "bg-blue-600 text-white"
+                : "border-gray-300"
                 }`}
               onClick={() => onPageChange(page)}
             >
@@ -391,7 +392,7 @@ export default function TravelApplicationList() {
                       <TableCell>₹{parseFloat(app.estimated_total_cost).toLocaleString()}</TableCell>
                       <TableCell className="text-center">{getStatusBadge(app.status)}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-center gap-2">
+                        <div className="flex justify-end gap-2">
                           {app.status === 'draft' && (
                             <Button
                               size="sm"
@@ -413,11 +414,20 @@ export default function TravelApplicationList() {
                               <Trash2 className="w-2 h-2" />
                             </Button>
                           )}
+                          {/* {!["cancelled", "completed"].includes(app.status) && (
+                            <Button
+                              size="sm"
+                              className="bg-blue-600 text-white hover:bg-blue-700"
+                              onClick={() => navigate(ROUTES.makeTravelApplication(app.id))}
+                            >
+                              Edit
+                            </Button>
+                          )} */}
                           <Button
                             size="sm"
                             variant="outline"
                             className="hover:bg-dark-200 hover:text-dark-foreground"
-                            onClick={() => navigate(`/travel/travel-application/${app.id}/`)}
+                            onClick={() => navigate(ROUTES.travelApplicationView(app.id))}
                           >
                             <Eye className="w-2 h-2" />
                           </Button>

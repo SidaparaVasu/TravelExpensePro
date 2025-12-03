@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Save, Send, ChevronRight, ChevronLeft, Calendar, MapPin, Plane, Home, Car, Wallet } from 'lucide-react';
+import { ROUTES } from '@/routes/routes';
 import { travelAPI } from '@/src/api/travel';
 import { locationAPI } from '@/src/api/master_location';
 import GuestHouseSelector from './components/GuestHouseSelector';
@@ -918,438 +919,438 @@ const TicketingSection = ({ ticketing, setTicketing, showToast, cities, travelMo
 // Accommodation Section Component
 // AccommodationSection (updated)
 const AccommodationSection = ({
-  accommodation,
-  setAccommodation,
-  showToast,
-  travelModes,
-  subOptions,
-  onModeChange,
-  guestHouses,
-  arcHotels,
-  form,
-  setForm,
-  notRequired,
-  setNotRequired,
+    accommodation,
+    setAccommodation,
+    showToast,
+    travelModes,
+    subOptions,
+    onModeChange,
+    guestHouses,
+    arcHotels,
+    form,
+    setForm,
+    notRequired,
+    setNotRequired,
 }) => {
-  const [editIndex, setEditIndex] = useState(null);
-  const [guestHousePreferences, setGuestHousePreferences] = useState([]);
+    const [editIndex, setEditIndex] = useState(null);
+    const [guestHousePreferences, setGuestHousePreferences] = useState([]);
 
-  // ===== Find "Accommodation" mode =====
-  const accommodationMode = travelModes?.find((m) => m.name === "Accommodation");
-  const accommodationModeId = accommodationMode?.id;
+    // ===== Find "Accommodation" mode =====
+    const accommodationMode = travelModes?.find((m) => m.name === "Accommodation");
+    const accommodationModeId = accommodationMode?.id;
 
-  const hasLoadedAccommodation = useRef(false);
+    const hasLoadedAccommodation = useRef(false);
 
-  // Ensure accommodation_type_id is set in form (do not mutate prop directly)
-  useEffect(() => {
-    if (accommodationModeId && String(form.accommodation_type_id) !== String(accommodationModeId)) {
-      setForm((prev) => ({ ...prev, accommodation_type_id: accommodationModeId }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accommodationModeId]);
-
-  // ===== Load sub-options first time =====
-  useEffect(() => {
-    if (
-      accommodationModeId &&
-      onModeChange &&
-      !hasLoadedAccommodation.current &&
-      !subOptions?.[accommodationModeId?.toString()]
-    ) {
-      hasLoadedAccommodation.current = true;
-      onModeChange(accommodationModeId);
-    }
-  }, [accommodationModeId, subOptions, onModeChange]);
-
-  // ===== Extract only accommodation-related sub-options =====
-  const currentAccommodationSubOptions =
-    subOptions?.[accommodationModeId?.toString()]?.filter((s) => s.mode === accommodationModeId) || [];
-
-  // Helper: find specific sub-option by heuristic name checks
-  const findGuestHouseOption = () =>
-    currentAccommodationSubOptions.find((s) => String(s.name).toLowerCase().includes("guest house"));
-
-  const findCompanyHotelOption = () =>
-    currentAccommodationSubOptions.find((s) =>
-      String(s.name).toLowerCase().includes("arc") ||
-      String(s.name).toLowerCase().includes("company-tied") ||
-      String(s.name).toLowerCase().includes("company hotel") ||
-      String(s.name).toLowerCase().includes("hotel")
-    );
-
-  const findSelfArrangedOption = () =>
-    currentAccommodationSubOptions.find((s) => String(s.name).toLowerCase().includes("self"));
-
-  // ===== When accommodation_type changes, enforce rules =====
-  useEffect(() => {
-    const owner = form.accommodation_type; // "company" | "self" | ""
-    if (!owner) return;
-
-    if (owner === "company") {
-      // If guest house option exists -> auto-select it
-      const gh = findGuestHouseOption();
-      if (gh) {
-        // set guest house id if not already set
-        if (!form.accommodation_sub_option || String(form.accommodation_sub_option) !== String(gh.id)) {
-          setForm((prev) => ({
-            ...prev,
-            accommodation_sub_option: String(gh.id),
-          }));
+    // Ensure accommodation_type_id is set in form (do not mutate prop directly)
+    useEffect(() => {
+        if (accommodationModeId && String(form.accommodation_type_id) !== String(accommodationModeId)) {
+            setForm((prev) => ({ ...prev, accommodation_type_id: accommodationModeId }));
         }
-        return;
-      }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [accommodationModeId]);
 
-      // if guest house not available, fallback to company hotel option (ARC)
-      const ch = findCompanyHotelOption();
-      if (ch) {
-        if (!form.accommodation_sub_option || String(form.accommodation_sub_option) !== String(ch.id)) {
-          setForm((prev) => ({
-            ...prev,
-            accommodation_sub_option: String(ch.id),
-          }));
+    // ===== Load sub-options first time =====
+    useEffect(() => {
+        if (
+            accommodationModeId &&
+            onModeChange &&
+            !hasLoadedAccommodation.current &&
+            !subOptions?.[accommodationModeId?.toString()]
+        ) {
+            hasLoadedAccommodation.current = true;
+            onModeChange(accommodationModeId);
         }
-        return;
-      }
+    }, [accommodationModeId, subOptions, onModeChange]);
 
-      // No known options → clear sub option (let user choose if any show up later)
-      setForm((prev) => ({ ...prev, accommodation_sub_option: "" }));
-    }
+    // ===== Extract only accommodation-related sub-options =====
+    const currentAccommodationSubOptions =
+        subOptions?.[accommodationModeId?.toString()]?.filter((s) => s.mode === accommodationModeId) || [];
 
-    if (owner === "self") {
-      // Force self-arranged selection if available
-      const selfOpt = findSelfArrangedOption();
-      if (selfOpt) {
-        setForm((prev) => ({ ...prev, accommodation_sub_option: String(selfOpt.id) }));
-      } else {
-        // if there is no explicit suboption for self, set to a stable sentinel (e.g., "self_arranged")
-        setForm((prev) => ({ ...prev, accommodation_sub_option: "self_arranged" }));
-      }
+    // Helper: find specific sub-option by heuristic name checks
+    const findGuestHouseOption = () =>
+        currentAccommodationSubOptions.find((s) => String(s.name).toLowerCase().includes("guest house"));
 
-      // clear guest house preferences since self does not need it
-      setGuestHousePreferences([]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.accommodation_type, currentAccommodationSubOptions]);
+    const findCompanyHotelOption = () =>
+        currentAccommodationSubOptions.find((s) =>
+            String(s.name).toLowerCase().includes("arc") ||
+            String(s.name).toLowerCase().includes("company-tied") ||
+            String(s.name).toLowerCase().includes("company hotel") ||
+            String(s.name).toLowerCase().includes("hotel")
+        );
 
-  // If user changes accommodation_sub_option manually, clear guest-house prefs if sub isn't guest-house
-  useEffect(() => {
-    if (!form.accommodation_sub_option) return;
-    const selected = currentAccommodationSubOptions.find((s) => String(s.id) === String(form.accommodation_sub_option));
-    const isGuestHouse = selected?.name?.toLowerCase().includes("guest house");
-    if (!isGuestHouse && guestHousePreferences.length > 0) {
-      setGuestHousePreferences([]); // clear stale preferences
-    }
-  }, [form.accommodation_sub_option, currentAccommodationSubOptions]);
+    const findSelfArrangedOption = () =>
+        currentAccommodationSubOptions.find((s) => String(s.name).toLowerCase().includes("self"));
 
-  // ===========================
-  //        SUBMIT HANDLER
-  // ===========================
-  const handleSubmit = () => {
-    // Basic required fields
-    if (!form.place || !form.check_in_date || !form.check_out_date) {
-      showToast("Please fill Place, Check-in date, and Check-out date", "error");
-      return;
-    }
+    // ===== When accommodation_type changes, enforce rules =====
+    useEffect(() => {
+        const owner = form.accommodation_type; // "company" | "self" | ""
+        if (!owner) return;
 
-    // If company arranged, enforce guest house preference only when guest house is selected
-    if (form.accommodation_type === "company") {
-      const sub = currentAccommodationSubOptions.find((s) => String(s.id) === String(form.accommodation_sub_option));
-      const isGuestHouse = sub?.name?.toLowerCase().includes("guest house");
+        if (owner === "company") {
+            // If guest house option exists -> auto-select it
+            const gh = findGuestHouseOption();
+            if (gh) {
+                // set guest house id if not already set
+                if (!form.accommodation_sub_option || String(form.accommodation_sub_option) !== String(gh.id)) {
+                    setForm((prev) => ({
+                        ...prev,
+                        accommodation_sub_option: String(gh.id),
+                    }));
+                }
+                return;
+            }
 
-      if (isGuestHouse && guestHousePreferences.length === 0) {
-        showToast("Please select at least one guest house preference", "error");
-        return;
-      }
-    }
+            // if guest house not available, fallback to company hotel option (ARC)
+            const ch = findCompanyHotelOption();
+            if (ch) {
+                if (!form.accommodation_sub_option || String(form.accommodation_sub_option) !== String(ch.id)) {
+                    setForm((prev) => ({
+                        ...prev,
+                        accommodation_sub_option: String(ch.id),
+                    }));
+                }
+                return;
+            }
 
-    // For self arranged, ensure sub option is present (we set it automatically above)
-    if (form.accommodation_type === "self" && !form.accommodation_sub_option) {
-      showToast("Self-arranged stay requires selecting 'Self-arranged Stay' option", "error");
-      return;
-    }
+            // No known options → clear sub option (let user choose if any show up later)
+            setForm((prev) => ({ ...prev, accommodation_sub_option: "" }));
+        }
 
-    const bookingData = {
-      ...form,
-      guest_house_preferences: guestHousePreferences,
-      id: editIndex !== null ? accommodation[editIndex].id : Date.now(),
-    };
+        if (owner === "self") {
+            // Force self-arranged selection if available
+            const selfOpt = findSelfArrangedOption();
+            if (selfOpt) {
+                setForm((prev) => ({ ...prev, accommodation_sub_option: String(selfOpt.id) }));
+            } else {
+                // if there is no explicit suboption for self, set to a stable sentinel (e.g., "self_arranged")
+                setForm((prev) => ({ ...prev, accommodation_sub_option: "self_arranged" }));
+            }
 
-    if (editIndex !== null) {
-      const updated = [...accommodation];
-      updated[editIndex] = bookingData;
-      setAccommodation(updated);
-      showToast("Accommodation updated successfully", "success");
-    } else {
-      setAccommodation([...accommodation, bookingData]);
-      showToast("Accommodation added successfully", "success");
-    }
+            // clear guest house preferences since self does not need it
+            setGuestHousePreferences([]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [form.accommodation_type, currentAccommodationSubOptions]);
 
-    setForm(getEmptyAccommodation());
-    setGuestHousePreferences([]);
-    setEditIndex(null);
-  };
+    // If user changes accommodation_sub_option manually, clear guest-house prefs if sub isn't guest-house
+    useEffect(() => {
+        if (!form.accommodation_sub_option) return;
+        const selected = currentAccommodationSubOptions.find((s) => String(s.id) === String(form.accommodation_sub_option));
+        const isGuestHouse = selected?.name?.toLowerCase().includes("guest house");
+        if (!isGuestHouse && guestHousePreferences.length > 0) {
+            setGuestHousePreferences([]); // clear stale preferences
+        }
+    }, [form.accommodation_sub_option, currentAccommodationSubOptions]);
 
-  // ===========================
-  //         EDIT HANDLER
-  // ===========================
-  const handleEdit = (index) => {
-    setEditIndex(index);
-    const booking = accommodation[index];
-    setForm(booking);
-    setGuestHousePreferences(booking.guest_house_preferences || []);
-  };
+    // ===========================
+    //        SUBMIT HANDLER
+    // ===========================
+    const handleSubmit = () => {
+        // Basic required fields
+        if (!form.place || !form.check_in_date || !form.check_out_date) {
+            showToast("Please fill Place, Check-in date, and Check-out date", "error");
+            return;
+        }
 
-  // ===========================
-  //         DELETE HANDLER
-  // ===========================
-  const handleDelete = (index) => {
-    if (window.confirm("Delete this accommodation?")) {
-      setAccommodation(accommodation.filter((_, i) => i !== index));
+        // If company arranged, enforce guest house preference only when guest house is selected
+        if (form.accommodation_type === "company") {
+            const sub = currentAccommodationSubOptions.find((s) => String(s.id) === String(form.accommodation_sub_option));
+            const isGuestHouse = sub?.name?.toLowerCase().includes("guest house");
 
-      if (editIndex !== null && editIndex >= index) {
+            if (isGuestHouse && guestHousePreferences.length === 0) {
+                showToast("Please select at least one guest house preference", "error");
+                return;
+            }
+        }
+
+        // For self arranged, ensure sub option is present (we set it automatically above)
+        if (form.accommodation_type === "self" && !form.accommodation_sub_option) {
+            showToast("Self-arranged stay requires selecting 'Self-arranged Stay' option", "error");
+            return;
+        }
+
+        const bookingData = {
+            ...form,
+            guest_house_preferences: guestHousePreferences,
+            id: editIndex !== null ? accommodation[editIndex].id : Date.now(),
+        };
+
+        if (editIndex !== null) {
+            const updated = [...accommodation];
+            updated[editIndex] = bookingData;
+            setAccommodation(updated);
+            showToast("Accommodation updated successfully", "success");
+        } else {
+            setAccommodation([...accommodation, bookingData]);
+            showToast("Accommodation added successfully", "success");
+        }
+
         setForm(getEmptyAccommodation());
         setGuestHousePreferences([]);
         setEditIndex(null);
-      }
+    };
 
-      showToast("Accommodation deleted", "success");
-    }
-  };
+    // ===========================
+    //         EDIT HANDLER
+    // ===========================
+    const handleEdit = (index) => {
+        setEditIndex(index);
+        const booking = accommodation[index];
+        setForm(booking);
+        setGuestHousePreferences(booking.guest_house_preferences || []);
+    };
 
-  // ===========================
-  //       TABLE COLUMNS
-  // ===========================
-  const columns = [
-    {
-      label: "Type",
-      render: (row) => (
-        <span className="capitalize px-2 py-1 bg-slate-100 rounded text-xs font-medium">
-          {row.accommodation_type}
-        </span>
-      ),
-    },
-    { label: "Place", key: "place" },
-    {
-      label: "Check-in",
-      render: (row) => `${row.check_in_date} ${row.check_in_time || ""}`,
-    },
-    {
-      label: "Check-out",
-      render: (row) => `${row.check_out_date} ${row.check_out_time || ""}`,
-    },
-    {
-      label: "Cost (₹)",
-      align: "text-right",
-      render: (row) => `₹${Number(row.estimated_cost || 0).toLocaleString("en-IN")}`,
-    },
-  ];
+    // ===========================
+    //         DELETE HANDLER
+    // ===========================
+    const handleDelete = (index) => {
+        if (window.confirm("Delete this accommodation?")) {
+            setAccommodation(accommodation.filter((_, i) => i !== index));
 
-  // Render UI
-  return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {/* HEADER */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-          <Home className="w-5 h-5 text-blue-600" />
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold text-slate-800">Accommodation</h2>
-          <p className="text-sm text-slate-500">Add your hotel and lodging requirements</p>
-        </div>
-      </div>
+            if (editIndex !== null && editIndex >= index) {
+                setForm(getEmptyAccommodation());
+                setGuestHousePreferences([]);
+                setEditIndex(null);
+            }
 
-      {/* MAIN CARD */}
-      <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
-        {/* Not Required Checkbox */}
-        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={notRequired}
-              onChange={(e) => {
-                setNotRequired(e.target.checked);
-                if (e.target.checked) {
-                  setForm(getEmptyAccommodation());
-                  setEditIndex(null);
-                }
-              }}
-              className="mt-1"
-            />
-            <span className="text-sm text-slate-700">
-              I hereby declare that I do not need accommodation in any form - neither Company nor Self for this travel.
-            </span>
-          </label>
-        </div>
+            showToast("Accommodation deleted", "success");
+        }
+    };
 
-        {/* FORM */}
-        {!notRequired && (
-          <>
-            <h3 className="text-sm font-semibold text-slate-700 mb-4">
-              {editIndex !== null ? "Edit Accommodation" : "Add New Accommodation"}
-            </h3>
+    // ===========================
+    //       TABLE COLUMNS
+    // ===========================
+    const columns = [
+        {
+            label: "Type",
+            render: (row) => (
+                <span className="capitalize px-2 py-1 bg-slate-100 rounded text-xs font-medium">
+                    {row.accommodation_type}
+                </span>
+            ),
+        },
+        { label: "Place", key: "place" },
+        {
+            label: "Check-in",
+            render: (row) => `${row.check_in_date} ${row.check_in_time || ""}`,
+        },
+        {
+            label: "Check-out",
+            render: (row) => `${row.check_out_date} ${row.check_out_time || ""}`,
+        },
+        {
+            label: "Cost (₹)",
+            align: "text-right",
+            render: (row) => `₹${Number(row.estimated_cost || 0).toLocaleString("en-IN")}`,
+        },
+    ];
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Accommodation Type */}
-              <FormSelect
-                label="Accommodation Type"
-                required
-                value={form.accommodation_type}
-                onChange={(e) => {
-                  setForm({
-                    ...form,
-                    accommodation_type: e.target.value,
-                    accommodation_sub_option: "",
-                  });
-                  setGuestHousePreferences([]);
-                }}
-                options={[
-                  { value: "", label: "Select accommodation type" },
-                  { value: "company", label: "Company Arranged" },
-                  { value: "self", label: "Self Arranged" },
-                ]}
-              />
-
-              {/* Display / Auto-selection for Company */}
-              {form.accommodation_type === "company" && (
-                <>
-                  {/* If Guest House option exists -> show auto selected label + GuestHouseSelector */}
-                  {findGuestHouseOption() ? (
-                    <div className="md:col-span-1">
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                        Accommodation Sub-Option
-                      </label>
-                      <div className="px-3 py-2 border border-slate-300 bg-slate-50 rounded-lg text-sm text-slate-600">
-                        Guest House (Auto-selected)
-                      </div>
-                    </div>
-                  ) : (
-                    // Guest house not available but company hotel exists -> auto-select and show label
-                    <div className="md:col-span-1">
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                        Accommodation Sub-Option
-                      </label>
-                      <div className="px-3 py-2 border border-slate-300 bg-slate-50 rounded-lg text-sm text-slate-600">
-                        {findCompanyHotelOption()
-                          ? "Company-tied Hotel (ARC Hotel) (Auto-selected)"
-                          : "Company Arranged (No specific sub-option available)"}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* For self -> show simple label */}
-              {form.accommodation_type === "self" && (
-                <div className="md:col-span-1">
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Accommodation Sub-Option</label>
-                  <div className="px-3 py-2 border border-slate-300 bg-slate-50 rounded-lg text-sm text-slate-600">
-                    Self-arranged Stay
-                  </div>
+    // Render UI
+    return (
+        <div className="space-y-6 max-w-6xl mx-auto">
+            {/* HEADER */}
+            <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Home className="w-5 h-5 text-blue-600" />
                 </div>
-              )}
-
-              {/* Guest House Preferences */}
-              {form.accommodation_type === "company" && findGuestHouseOption() && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                    Select Guest House Preferences <span className="text-red-500">*</span>
-                  </label>
-                  <GuestHouseSelector
-                    guestHouses={guestHouses?.data?.results || []}
-                    selectedPreferences={guestHousePreferences}
-                    setSelectedPreferences={setGuestHousePreferences}
-                  />
+                    <h2 className="text-xl font-semibold text-slate-800">Accommodation</h2>
+                    <p className="text-sm text-slate-500">Add your hotel and lodging requirements</p>
                 </div>
-              )}
-
-              <FormInput
-                label="Place/Location"
-                required
-                value={form.place}
-                onChange={(e) => setForm({ ...form, place: e.target.value })}
-                placeholder="City or area"
-              />
-
-              <FormInput
-                label="Check-in Date"
-                required
-                type="date"
-                value={form.check_in_date}
-                onChange={(e) => setForm({ ...form, check_in_date: e.target.value })}
-              />
-
-              <FormInput
-                label="Check-in Time"
-                type="time"
-                value={form.check_in_time}
-                onChange={(e) => setForm({ ...form, check_in_time: e.target.value })}
-              />
-
-              <FormInput
-                label="Check-out Date"
-                required
-                type="date"
-                value={form.check_out_date}
-                onChange={(e) => setForm({ ...form, check_out_date: e.target.value })}
-              />
-
-              <FormInput
-                label="Check-out Time"
-                type="time"
-                value={form.check_out_time}
-                onChange={(e) => setForm({ ...form, check_out_time: e.target.value })}
-              />
-
-              <FormInput
-                label="Estimated Cost (₹)"
-                type="number"
-                value={form.estimated_cost}
-                onChange={(e) => setForm({ ...form, estimated_cost: e.target.value })}
-                min="0"
-                placeholder="₹12000"
-              />
-
-              <div className="md:col-span-2">
-                <FormInput
-                  label="Special Instructions"
-                  value={form.special_instruction}
-                  onChange={(e) => setForm({ ...form, special_instruction: e.target.value })}
-                  placeholder="e.g., Veg meal preference, room preference..."
-                />
-              </div>
             </div>
 
-            {/* Buttons */}
-            <div className="flex justify-end gap-3 mt-6">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setForm(getEmptyAccommodation());
-                  setGuestHousePreferences([]);
-                  setEditIndex(null);
-                }}
-              >
-                Clear
-              </Button>
+            {/* MAIN CARD */}
+            <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+                {/* Not Required Checkbox */}
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={notRequired}
+                            onChange={(e) => {
+                                setNotRequired(e.target.checked);
+                                if (e.target.checked) {
+                                    setForm(getEmptyAccommodation());
+                                    setEditIndex(null);
+                                }
+                            }}
+                            className="mt-1"
+                        />
+                        <span className="text-sm text-slate-700">
+                            I hereby declare that I do not need accommodation in any form - neither Company nor Self for this travel.
+                        </span>
+                    </label>
+                </div>
 
-              <Button icon={Plus} onClick={handleSubmit}>
-                {editIndex !== null ? "Update" : "Add"} Accommodation
-              </Button>
+                {/* FORM */}
+                {!notRequired && (
+                    <>
+                        <h3 className="text-sm font-semibold text-slate-700 mb-4">
+                            {editIndex !== null ? "Edit Accommodation" : "Add New Accommodation"}
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Accommodation Type */}
+                            <FormSelect
+                                label="Accommodation Type"
+                                required
+                                value={form.accommodation_type}
+                                onChange={(e) => {
+                                    setForm({
+                                        ...form,
+                                        accommodation_type: e.target.value,
+                                        accommodation_sub_option: "",
+                                    });
+                                    setGuestHousePreferences([]);
+                                }}
+                                options={[
+                                    { value: "", label: "Select accommodation type" },
+                                    { value: "company", label: "Company Arranged" },
+                                    { value: "self", label: "Self Arranged" },
+                                ]}
+                            />
+
+                            {/* Display / Auto-selection for Company */}
+                            {form.accommodation_type === "company" && (
+                                <>
+                                    {/* If Guest House option exists -> show auto selected label + GuestHouseSelector */}
+                                    {findGuestHouseOption() ? (
+                                        <div className="md:col-span-1">
+                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                                                Accommodation Sub-Option
+                                            </label>
+                                            <div className="px-3 py-2 border border-slate-300 bg-slate-50 rounded-lg text-sm text-slate-600">
+                                                Guest House (Auto-selected)
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        // Guest house not available but company hotel exists -> auto-select and show label
+                                        <div className="md:col-span-1">
+                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                                                Accommodation Sub-Option
+                                            </label>
+                                            <div className="px-3 py-2 border border-slate-300 bg-slate-50 rounded-lg text-sm text-slate-600">
+                                                {findCompanyHotelOption()
+                                                    ? "Company-tied Hotel (ARC Hotel) (Auto-selected)"
+                                                    : "Company Arranged (No specific sub-option available)"}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* For self -> show simple label */}
+                            {form.accommodation_type === "self" && (
+                                <div className="md:col-span-1">
+                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Accommodation Sub-Option</label>
+                                    <div className="px-3 py-2 border border-slate-300 bg-slate-50 rounded-lg text-sm text-slate-600">
+                                        Self-arranged Stay
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Guest House Preferences */}
+                            {form.accommodation_type === "company" && findGuestHouseOption() && (
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                                        Select Guest House Preferences <span className="text-red-500">*</span>
+                                    </label>
+                                    <GuestHouseSelector
+                                        guestHouses={guestHouses?.data?.results || []}
+                                        selectedPreferences={guestHousePreferences}
+                                        setSelectedPreferences={setGuestHousePreferences}
+                                    />
+                                </div>
+                            )}
+
+                            <FormInput
+                                label="Place/Location"
+                                required
+                                value={form.place}
+                                onChange={(e) => setForm({ ...form, place: e.target.value })}
+                                placeholder="City or area"
+                            />
+
+                            <FormInput
+                                label="Check-in Date"
+                                required
+                                type="date"
+                                value={form.check_in_date}
+                                onChange={(e) => setForm({ ...form, check_in_date: e.target.value })}
+                            />
+
+                            <FormInput
+                                label="Check-in Time"
+                                type="time"
+                                value={form.check_in_time}
+                                onChange={(e) => setForm({ ...form, check_in_time: e.target.value })}
+                            />
+
+                            <FormInput
+                                label="Check-out Date"
+                                required
+                                type="date"
+                                value={form.check_out_date}
+                                onChange={(e) => setForm({ ...form, check_out_date: e.target.value })}
+                            />
+
+                            <FormInput
+                                label="Check-out Time"
+                                type="time"
+                                value={form.check_out_time}
+                                onChange={(e) => setForm({ ...form, check_out_time: e.target.value })}
+                            />
+
+                            <FormInput
+                                label="Estimated Cost (₹)"
+                                type="number"
+                                value={form.estimated_cost}
+                                onChange={(e) => setForm({ ...form, estimated_cost: e.target.value })}
+                                min="0"
+                                placeholder="₹12000"
+                            />
+
+                            <div className="md:col-span-2">
+                                <FormInput
+                                    label="Special Instructions"
+                                    value={form.special_instruction}
+                                    onChange={(e) => setForm({ ...form, special_instruction: e.target.value })}
+                                    placeholder="e.g., Veg meal preference, room preference..."
+                                />
+                            </div>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="flex justify-end gap-3 mt-6">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setForm(getEmptyAccommodation());
+                                    setGuestHousePreferences([]);
+                                    setEditIndex(null);
+                                }}
+                            >
+                                Clear
+                            </Button>
+
+                            <Button icon={Plus} onClick={handleSubmit}>
+                                {editIndex !== null ? "Update" : "Add"} Accommodation
+                            </Button>
+                        </div>
+                    </>
+                )}
             </div>
-          </>
-        )}
-      </div>
 
-      {/* TABLE */}
-      <DataTable
-        columns={columns}
-        data={accommodation}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        emptyMessage="No accommodation added yet. Add your first accommodation above."
-      />
-    </div>
-  );
+            {/* TABLE */}
+            <DataTable
+                columns={columns}
+                data={accommodation}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                emptyMessage="No accommodation added yet. Add your first accommodation above."
+            />
+        </div>
+    );
 };
 
 
@@ -1378,7 +1379,7 @@ const ConveyanceSection = ({
 
     const allowed = ['own car', 'car at disposal', 'radio Taxi', 'pick-up and drop'];
     const availableModes = travelModes?.filter((m) =>
-    allowed.includes(m.name.toLowerCase())
+        allowed.includes(m.name.toLowerCase())
     ) || [];
     console.log(availableModes);
     const currentSubOptions = form.vehicle_type ? (subOptions[form.vehicle_type.toString()] || []) : [];
@@ -1886,9 +1887,10 @@ const extractErrorMessage = (err) => {
 // =============================================
 // MAIN COMPONENT
 // =============================================
-
 export default function CreateTravelApplication() {
     const navigate = useNavigate()
+    const { id: editId } = useParams();
+    const isEditMode = Boolean(editId);
 
     const [activeTab, setActiveTab] = useState('purpose');
     const [toast, setToast] = useState(null);
@@ -1932,6 +1934,9 @@ export default function CreateTravelApplication() {
                 const hotels = await travelAPI.getARCHotels();
                 setARCHotels(hotels);
 
+                if (isEditMode) {
+                    loadExistingApplication(editId);
+                }
             } catch (error) {
                 console.log(error);
                 showToast('Failed to load master data', 'error');
@@ -1939,6 +1944,36 @@ export default function CreateTravelApplication() {
         };
         loadMasterData();
     }, []);
+
+    const formatCityName = (city) => {
+        if (!city) return "";
+        return `${city.city_name} (${city.state_name}, ${city.country_name})`;
+    };
+    
+    useEffect(() => {
+        if (!isEditMode || cities.length === 0) return;
+
+        // Prefill trip labels
+        setFormData((prev) => {
+            const fromCity = cities.find((c) => c.id === prev.trip_from_location);
+            const toCity = cities.find((c) => c.id === prev.trip_to_location);
+
+            return {
+                ...prev,
+                trip_from_location_label: fromCity ? formatCityName(fromCity) : "",
+                trip_to_location_label: toCity ? formatCityName(toCity) : "",
+            };
+        });
+
+        // Prefill ticketing labels
+        setTicketing((prev) =>
+            prev.map((b) => ({
+                ...b,
+                from_label: formatCityName(cities.find((c) => c.id === b.from_location)),
+                to_label: formatCityName(cities.find((c) => c.id === b.to_location)),
+            }))
+        );
+    }, [cities]);
 
     const loadSubOptions = async (modeId) => {
         const key = modeId.toString();
@@ -1949,6 +1984,102 @@ export default function CreateTravelApplication() {
             } catch (error) {
                 showToast('Failed to load sub-options', 'error');
             }
+        }
+    };
+
+    const loadExistingApplication = async (appId) => {
+        try {
+            const res = await travelAPI.getApplication(appId);
+            const app = res.data;
+
+            // -----------------------------
+            // 1. Basic Request Information
+            // -----------------------------
+            setFormData((prev) => ({
+                ...prev,
+                purpose: app.purpose || "",
+                internal_order: app.internal_order || "",
+                general_ledger: app.general_ledger || "",
+                sanction_number: app.sanction_number || "",
+                advance_amount: app.advance_amount || "",
+            }));
+
+            // -----------------------------
+            // 2. Trip Details (Multiple Trips Support)
+            // -----------------------------
+            const trip = app.trip_details?.[0] || null;
+
+            if (trip) {
+                setFormData((prev) => ({
+                    ...prev,
+                    trip_from_location: trip.from_location || "",
+                    trip_to_location: trip.to_location || "",
+                    departure_date: trip.departure_date || "",
+                    start_time: trip.start_time || "",
+                    return_date: trip.return_date || "",
+                    end_time: trip.end_time || "",
+                }));
+            }
+
+            // -----------------------------
+            // 3. Restore NOT REQUIRED toggles
+            // -----------------------------
+            setTicketingNotRequired(app.ticketing_not_required ?? false);
+            setAccommodationNotRequired(app.accommodation_not_required ?? false);
+            setConveyanceNotRequired(app.conveyance_not_required ?? false);
+
+            // -----------------------------
+            // 4. Restore Ticketing (All Bookings)
+            // -----------------------------
+            let allBookings = [];
+            app.trip_details?.forEach((t) => {
+                t.bookings?.forEach((b) => {
+                    allBookings.push({
+                        ...b,
+                        trip_id: t.id, // keep link to trip
+                    });
+                });
+            });
+            setTicketing(allBookings);
+
+            // -----------------------------
+            // 5. Restore Accommodation
+            // -----------------------------
+            setAccommodation(app.accommodation || []);
+
+            // -----------------------------
+            // 6. Restore Conveyance
+            // -----------------------------
+            setConveyance(app.conveyance || []);
+
+            // -----------------------------
+            // 7. Load Sub-options for Edit Mode
+            // -----------------------------
+            // Ticketing sub-options
+            allBookings.forEach((b) => {
+                if (b.booking_type) loadSubOptions(b.booking_type);
+            });
+
+            // Accommodation sub-options
+            const accommodationMode = travelModes?.find((m) => m.name === "Accommodation");
+            if (accommodationMode) {
+                loadSubOptions(accommodationMode.id);
+            }
+
+            // Conveyance sub-options
+            (app.conveyance || []).forEach((c) => {
+                if (c.vehicle_type) loadSubOptions(c.vehicle_type);
+            });
+
+            // -----------------------------
+            // 8. City Labels Restored After Cities Load
+            // -----------------------------
+            // Handled in useEffect(cities) — no action here
+
+            setDraftApplicationId(appId);
+        } catch (error) {
+            console.error("Failed to load application", error);
+            showToast("Failed to load application for editing", "error");
         }
     };
 
@@ -2147,13 +2278,22 @@ export default function CreateTravelApplication() {
             // -------------------------------------
             // 3. Create or Update Draft (backend)
             // -------------------------------------
-            if (!appId) {
+            if (isEditMode) {
+                await travelAPI.updateApplication(editId, payload);
+                appId = editId;
+            } else if (!appId) {
                 const res = await travelAPI.createApplication(payload);
                 appId = res.data?.id;
                 setDraftApplicationId(appId);
-            } else {
-                await travelAPI.updateApplication(appId, payload);
             }
+
+            // if (!appId) {
+            //     const res = await travelAPI.createApplication(payload);
+            //     appId = res.data?.id;
+            //     setDraftApplicationId(appId);
+            // } else {
+            //     await travelAPI.updateApplication(appId, payload);
+            // }
 
             if (!appId) {
                 throw new Error("Application ID not available");
@@ -2170,7 +2310,7 @@ export default function CreateTravelApplication() {
             // 5. Clear draft + redirect
             // -------------------------------------
             setDraftApplicationId(null);
-            navigate("/travel/travel-application-list");
+            navigate(ROUTES.travelApplicationList);
 
         } catch (err: any) {
             console.error("Submit Error:", err);

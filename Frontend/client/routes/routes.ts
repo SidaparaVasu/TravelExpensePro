@@ -13,7 +13,7 @@ export const ROUTES = {
 
   // ---------------- TRAVEL (Employee/Admin) ----------------
   makeTravelApplicationOld: "/travel/make-travel-application-old",
-  makeTravelApplication: "/travel/make-travel-application",
+  makeTravelApplication: (id?:number | string) => id ? `/travel/make-travel-application/${id}` : `/travel/make-travel-application`,
   travelApplicationList: "/travel/travel-application-list",
   travelApplicationView: (id: number | string) =>
     `/travel/travel-application/${id}/`,

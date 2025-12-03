@@ -175,7 +175,7 @@ const App = () => (
           />
 
           <Route
-            path={ROUTES.makeTravelApplication}
+            path={ROUTES.makeTravelApplication(":id?")}
             element={
               <AuthOnly>
                 {isAdminUser() ? (

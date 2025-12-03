@@ -100,7 +100,7 @@ const getAdminSidebar = (primaryDashboard) => [
     icon: Plane,
     collapsible: true,
     items: [
-      { label: "Create Request", path: ROUTES.makeTravelApplication, Icon: FilePlus },
+      { label: "Create Request", path: ROUTES.makeTravelApplication(), Icon: FilePlus },
       { label: "My Applications", path: ROUTES.travelApplicationList, Icon: ClipboardIcon },
       { label: "Approvals", path: ROUTES.travelRequestApproval, Icon: CircleCheckBig },
     ],

@@ -192,7 +192,15 @@ const HeaderCard = ({ application, onSubmit, onDelete }: any) => {
             </div>
             <div className="flex justify-end items-center">
               {!application.is_settled ? (
-                <p className="text-sm">Settlement due date: <span className="font-medium text-slate-800">{formatDateToDDMMYYYY(application.settlement_due_date)}</span></p>
+                <>
+                  {application.settlement_due_date !== null && (
+                      <>
+                        <p className="text-sm">Settlement due date:
+                          <span className="font-medium text-slate-800"> {formatDateToDDMMYYYY(application.settlement_due_date)}</span>
+                        </p>
+                      </>
+                    )}
+                </>
               ) : (
                 <Badge className={`uppercase text-xs px-2 py-0.5 ml-3 ${statusColorClass('settled')}`}>
                   {application.status.replace("_", " ")}
