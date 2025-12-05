@@ -31,6 +31,7 @@ import {
 
 } from "lucide-react";
 import { approvalAPI } from "@/src/api/approval";
+import { ROUTES } from "@/routes/routes";
 
 interface ApprovalStats {
   pendingApproval: number;
@@ -650,7 +651,7 @@ export default function TravelRequestApprovals() {
                             </>
                           )}
                           <Button size="sm" variant="outline"
-                            onClick={() => navigate(`/travel/travel-application/${request.id}/`)}
+                            onClick={() => navigate(ROUTES.travelApplicationView(request.id))}
                           >
                             View
                           </Button>

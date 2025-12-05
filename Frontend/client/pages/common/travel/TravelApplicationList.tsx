@@ -261,7 +261,7 @@ export default function TravelApplicationList() {
             Track your travel requests, approvals, and booking progress in one place.
           </p>
         </div>
-        <Button onClick={() => navigate('/travel/make-travel-application')}>
+        <Button onClick={() => navigate(ROUTES.makeTravelApplicationNew)}>
           <Plus className="w-4 h-4 mr-2" />
           New Application
         </Button>
