@@ -3,7 +3,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from "framer-motion";
 import { travelAPI } from "@/lib/api/travel";
-// import { Layout } from "@/components/Layout";
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,19 +11,8 @@ import { useTravelStore } from '@/src/store/travelStore';
 import {
   FileText, Plane, MapPin, CalendarDays, Home, Car, Users, User, SendHorizontal, Trash2, Info, ChevronDown, ChevronUp
 } from 'lucide-react';
+import { ROUTES } from "@/routes/routes";
 
-/**
- * Full Application View with:
- * - Collapsible Trip Cards (click header to expand/collapse)
- * - Mobile-optimized swipeable booking lists
- * - Extracted subcomponents inside the same file for ease-of-paste
- * - Medium spacing (balanced density)
- * - Framer Motion animations
- *
- * Notes:
- * - This file assumes your project already provides Button, Card, Badge, etc.
- * - Add `framer-motion` to your dependencies if not present.
- */
 function formatDateToDDMMYYYY(dateStr) {
   if (!dateStr) return "";
 
@@ -79,7 +67,7 @@ const ApplicationView: React.FC = () => {
     try {
       await deleteApplication(appId);
       toast({ title: 'Success', description: 'Application deleted successfully' });
-      navigate('/travel-application-list');
+      navigate(ROUTES.travelApplicationList);
     } catch (err) {
       toast({ title: 'Error', description: 'Failed to delete application', variant: 'destructive' });
     }
@@ -87,14 +75,12 @@ const ApplicationView: React.FC = () => {
 
   if (loading) {
     return (
-      // <Layout>
       <div className="flex items-center justify-center h-72">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-slate-600">Loading application...</p>
         </div>
       </div>
-      // </Layout> 
     );
   }
 
@@ -130,7 +116,7 @@ const ApplicationView: React.FC = () => {
           key={trip.id}
           trip={trip}
           parentPurpose={application.purpose}
-          guestHousesMap={createGuestHouseMap(application)} // attempt to map preferences to names (best-effort)
+          guestHousesMap={createGuestHouseMap(application)}
         />
       ))}
     </div>

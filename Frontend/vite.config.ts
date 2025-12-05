@@ -19,4 +19,7 @@ export default defineConfig({
       "@shared": path.resolve(__dirname, "./shared"),
     },
   },
+  ssr: {
+    noExternal: ['react-helmet-async'],
+  },
 });

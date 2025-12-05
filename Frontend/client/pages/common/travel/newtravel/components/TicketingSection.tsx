@@ -1,0 +1,434 @@
+import React, { useState, useEffect } from "react";
+import { Plane, Plus, Save } from "lucide-react";
+import { toast } from "sonner";
+import { FormInput } from "./FormInput";
+import { FormSelect } from "./FormSelect";
+import { FormTextarea } from "./FormTextarea";
+import { CityCombobox } from "./CityCombobox";
+import { NotRequiredToggle } from "./NotRequiredToggle";
+import { DataTable } from "./DataTable";
+import { Button } from "@/components/ui/button";
+import {
+  CITIES,
+  TRAVEL_MODES,
+  TRAVEL_SUB_OPTIONS,
+  getEmptyTicketing,
+} from "../lib/travel-constants";
+import {
+  isDateInRange,
+  validateAdvanceBooking,
+  validateLocationPair,
+  validateEstimatedCost,
+  validateSpecialInstructions,
+} from "../lib/travel-validation";
+import { travelAPI, locationAPI, type City, type TravelMode, type TravelSubOption } from "@/src/api/travel-api";
+
+interface TicketingFormData {
+  booking_type: string;
+  sub_option: string;
+  from_location: string;
+  ticket_number: string;
+  from_label: string;
+  to_location: string;
+  to_label: string;
+  departure_date: string;
+  departure_time: string;
+  arrival_date: string;
+  arrival_time: string;
+  estimated_cost: string;
+  special_instruction: string;
+}
+
+interface TicketingSectionProps {
+  ticketing: TicketingFormData[];
+  setTicketing: React.Dispatch<React.SetStateAction<TicketingFormData[]>>;
+  notRequired: boolean;
+  setNotRequired: (value: boolean) => void;
+  tripStartDate: string;
+  tripEndDate: string;
+  cities?: City[];
+  travelModes?: TravelMode[];
+  travelSubOptions?: Record<string, TravelSubOption[]>;
+}
+
+export const TicketingSection: React.FC<TicketingSectionProps> = ({
+  ticketing,
+  setTicketing,
+  notRequired,
+  setNotRequired,
+  tripStartDate,
+  tripEndDate,
+  cities: propCities,
+  travelModes: propModes,
+  travelSubOptions: propSubOptions,
+}) => {
+  const [form, setForm] = useState<TicketingFormData>({ ...getEmptyTicketing(), ticket_number: "" });
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Use props if provided, otherwise use constants
+  const cities = propCities && propCities.length > 0 ? propCities : [];
+  const travelModes = propModes && propModes.length > 0 ? propModes : [];
+  console.log('travel modes in ticketing section: ', travelModes);
+  const travelSubOptions = propSubOptions && Object.keys(propSubOptions).length > 0 ? propSubOptions : [];
+  console.log('travel sub modes in ticketing section: ', travelSubOptions);
+  const currentSubOptions = form.booking_type
+    ? travelSubOptions[form.booking_type] || []
+    : [];
+
+  const getModeNameById = (modeId: string) => {
+    return travelModes.find((m) => String(m.id) === modeId)?.name;
+  };
+
+  const getTicketLabel = () => {
+    const modeName = getModeNameById(form.booking_type);
+    if (modeName === "Flight") return "Ticket No. / Flight Name";
+    if (modeName === "Train") return "Ticket No. / Train Name";
+    return "Ticket No. / Name";
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!form.booking_type) newErrors.booking_type = "Travel mode is required";
+    if (!form.sub_option) newErrors.sub_option = "Sub-option is required";
+    if (!form.ticket_number?.trim()) newErrors.ticket_number = `${getTicketLabel()} is required`;
+    if (!form.from_location) newErrors.from_location = "From location is required";
+    if (!form.to_location) newErrors.to_location = "To location is required";
+    if (!form.departure_date) newErrors.departure_date = "Departure date is required";
+    if (!form.arrival_date) newErrors.arrival_date = "Arrival date is required";
+    // if (!form.estimated_cost) newErrors.estimated_cost = "Estimated cost is required";
+
+    // Location validation
+    const locationError = validateLocationPair(form.from_location, form.to_location);
+    if (locationError) newErrors.to_location = locationError;
+
+    // Date range validation
+    if (form.departure_date && tripStartDate && tripEndDate) {
+      if (!isDateInRange(form.departure_date, tripStartDate, tripEndDate)) {
+        newErrors.departure_date = "Departure must be within trip dates";
+      }
+    }
+    if (form.arrival_date && tripStartDate && tripEndDate) {
+      if (!isDateInRange(form.arrival_date, tripStartDate, tripEndDate)) {
+        newErrors.arrival_date = "Arrival must be within trip dates";
+      }
+    }
+
+    // Arrival after departure
+    if (form.departure_date && form.arrival_date && form.arrival_date < form.departure_date) {
+      newErrors.arrival_date = "Arrival date cannot be before departure date";
+    }
+
+    // Advance booking validation
+    if (form.departure_date && form.booking_type) {
+      const modeName = getModeNameById(form.booking_type);
+      if (modeName === "Flight" || modeName === "Train") {
+        const advanceError = validateAdvanceBooking(form.departure_date, modeName);
+        if (advanceError) newErrors.departure_date = advanceError;
+      }
+    }
+
+    // Cost validation
+    if (form.estimated_cost.trim() !== "") {
+      const costError = validateEstimatedCost(form.estimated_cost);
+      if (costError) newErrors.estimated_cost = costError;
+    }
+
+    // CEO approval warning for flights
+    if (form.booking_type && getModeNameById(form.booking_type) === "Flight") {
+      const cost = parseFloat(form.estimated_cost);
+      if (!isNaN(cost) && cost > 10000) {
+        toast.warning("CEO approval required for flights above ₹10,000");
+      }
+    }
+
+    // Special instructions
+    const instructionError = validateSpecialInstructions(form.special_instruction);
+    if (instructionError) newErrors.special_instruction = instructionError;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (!validateForm()) {
+      toast.error("Please fix validation errors before adding");
+      return;
+    }
+
+    if (editIndex !== null) {
+      const updated = [...ticketing];
+      updated[editIndex] = { ...form };
+      setTicketing(updated);
+      toast.success("Ticket updated successfully");
+    } else {
+      setTicketing([...ticketing, { ...form }]);
+      toast.success("Ticket added successfully");
+    }
+
+    setForm({ ...getEmptyTicketing(), ticket_number: "" });
+    setEditIndex(null);
+    setErrors({});
+  };
+
+  const handleEdit = (index: number) => {
+    setEditIndex(index);
+    setForm(ticketing[index]);
+    setErrors({});
+  };
+
+  const handleDelete = (index: number) => {
+    if (window.confirm("Delete this ticket?")) {
+      setTicketing(ticketing.filter((_, i) => i !== index));
+      if (editIndex !== null && editIndex >= index) {
+        setForm({ ...getEmptyTicketing(), ticket_number: "" });
+        setEditIndex(null);
+        setErrors({});
+      }
+      toast.success("Ticket deleted");
+    }
+  };
+
+  const handleModeChange = (modeId: string) => {
+    setForm({ ...getEmptyTicketing(), ticket_number: "", booking_type: modeId });
+    setErrors({});
+  };
+
+  const columns = [
+    {
+      label: "Travel Mode",
+      render: (row: TicketingFormData) => {
+        const mode = travelModes.find((m) => String(m.id) === row.booking_type);
+        const subOption = travelSubOptions[row.booking_type]?.find(
+          (s) => String(s.id) === row.sub_option
+        );
+        return `${mode?.name || row.booking_type} - ${subOption?.name || row.sub_option}`;
+      },
+    },
+    {
+      label: "Ticket/Name",
+      render: (row: TicketingFormData) => row.ticket_number || "-",
+    },
+    {
+      label: "Route",
+      render: (row: TicketingFormData) => {
+        const fromCity = cities.find((c) => String(c.id) === row.from_location);
+        const toCity = cities.find((c) => String(c.id) === row.to_location);
+        return `${fromCity?.city_name || row.from_label} → ${toCity?.city_name || row.to_label}`;
+      },
+    },
+    {
+      label: "Departure",
+      render: (row: TicketingFormData) => `${row.departure_date} ${row.departure_time || ""}`,
+    },
+    {
+      label: "Arrival",
+      render: (row: TicketingFormData) =>
+        row.arrival_date ? `${row.arrival_date} ${row.arrival_time || ""}` : "-",
+    },
+    {
+      label: "Cost (₹)",
+      align: "right" as const,
+      render: (row: TicketingFormData) =>
+        `₹${Number(row.estimated_cost || 0).toLocaleString("en-IN")}`,
+    },
+  ];
+
+  return (
+    <div className="space-y-6 max-w-6xl mx-auto animate-fade-in">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+          <Plane className="w-6 h-6 text-primary" />
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold text-foreground">Flight & Train Bookings</h2>
+          <p className="text-sm text-muted-foreground">Add your ticketing requirements</p>
+        </div>
+      </div>
+
+      <NotRequiredToggle
+        checked={notRequired}
+        onChange={(checked) => {
+          setNotRequired(checked);
+          if (checked) {
+            setForm({ ...getEmptyTicketing(), ticket_number: "" });
+            setEditIndex(null);
+            setErrors({});
+          }
+        }}
+        section="ticketing"
+      />
+
+      {!notRequired && (
+        <>
+          <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <h3 className="text-sm font-semibold text-foreground mb-4">
+              {editIndex !== null ? "Edit Ticket" : "Add New Ticket"}
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormSelect
+                label="Travel Mode"
+                required
+                value={form.booking_type}
+                onChange={handleModeChange}
+                options={[
+                  { value: "", label: "Select travel mode" },
+                  ...travelModes.map((m) => ({
+                    value: String(m.id),
+                    label: m.name,
+                  })),
+                ]}
+                error={errors.booking_type}
+              />
+
+              <FormSelect
+                label="Travel Sub-Option"
+                required
+                value={form.sub_option}
+                onChange={(value) => setForm({ ...form, sub_option: value })}
+                options={[
+                  { value: "", label: form.booking_type ? "Select sub-option" : "Select mode first" },
+                  ...currentSubOptions.map((s) => ({
+                    value: String(s.id),
+                    label: s.name,
+                  })),
+                ]}
+                disabled={!form.booking_type}
+                error={errors.sub_option}
+              />
+
+              <FormInput
+                label={getTicketLabel()}
+                required
+                value={form.ticket_number || ""}
+                onChange={(e) => setForm({ ...form, ticket_number: e.target.value })}
+                placeholder={getModeNameById(form.booking_type) === "Flight" ? "e.g., AI-302 / Air India" : "e.g., 12301 / Rajdhani Express"}
+                error={errors.ticket_number}
+              />
+
+              <CityCombobox
+                label="From"
+                required
+                cities={cities}
+                value={form.from_location ? parseInt(form.from_location) : null}
+                displayValue={form.from_label}
+                onChange={(id, label) =>
+                  setForm({ ...form, from_location: id ? String(id) : "", from_label: label })
+                }
+                placeholder="Departure city"
+                error={errors.from_location}
+              />
+
+              <CityCombobox
+                label="To"
+                required
+                cities={cities}
+                value={form.to_location ? parseInt(form.to_location) : null}
+                displayValue={form.to_label}
+                onChange={(id, label) =>
+                  setForm({ ...form, to_location: id ? String(id) : "", to_label: label })
+                }
+                placeholder="Arrival city"
+                error={errors.to_location}
+              />
+
+              <FormInput
+                label="Departure Date"
+                required
+                type="date"
+                value={form.departure_date}
+                onChange={(e) => setForm({ ...form, departure_date: e.target.value })}
+                min={tripStartDate}
+                max={tripEndDate}
+                error={errors.departure_date}
+              />
+
+              <FormInput
+                label="Departure Time"
+                type="time"
+                value={form.departure_time}
+                onChange={(e) => setForm({ ...form, departure_time: e.target.value })}
+              />
+
+              <FormInput
+                label="Arrival Date"
+                required
+                type="date"
+                value={form.arrival_date}
+                onChange={(e) => setForm({ ...form, arrival_date: e.target.value })}
+                min={tripStartDate}
+                max={tripEndDate}
+                error={errors.arrival_date}
+              />
+
+              <FormInput
+                label="Arrival Time"
+                type="time"
+                value={form.arrival_time}
+                onChange={(e) => setForm({ ...form, arrival_time: e.target.value })}
+              />
+
+              <FormInput
+                label="Estimated Cost (₹)"
+                // required
+                type="number"
+                min="0"
+                value={form.estimated_cost}
+                onChange={(e) => setForm({ ...form, estimated_cost: e.target.value })}
+                placeholder="0.00"
+                error={errors.estimated_cost}
+              />
+
+              <div className="md:col-span-3">
+                <FormTextarea
+                  label="Special Instructions"
+                  value={form.special_instruction}
+                  onChange={(e) => setForm({ ...form, special_instruction: e.target.value })}
+                  placeholder="Any special requirements..."
+                  rows={2}
+                  error={errors.special_instruction}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              {editIndex !== null && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setForm({ ...getEmptyTicketing(), ticket_number: "" });
+                    setEditIndex(null);
+                    setErrors({});
+                  }}
+                >
+                  Cancel
+                </Button>
+              )}
+              <Button onClick={handleSubmit}>
+                {editIndex !== null ? (
+                  <>
+                    <Save className="w-4 h-4 mr-2" /> Update Ticket
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" /> Add Ticket
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <DataTable
+            columns={columns}
+            data={ticketing}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            emptyMessage="No tickets added yet"
+          />
+        </>
+      )}
+    </div>
+  );
+};

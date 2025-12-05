@@ -78,7 +78,9 @@ class TravelApplication(models.Model):
         decimal_places=2, 
         default=0,
         validators=[MinValueValidator(0)],
-        help_text="Advance amount requested"
+        help_text="Advance amount requested",
+        blank=True,
+        null=True
     )
     estimated_total_cost = models.DecimalField(
         max_digits=10, 

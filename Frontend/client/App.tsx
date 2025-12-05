@@ -27,7 +27,7 @@ import DeskAgentIndex from "./pages/deskagent/Index";
 // Travel
 import MakeTravelApplicationOld from "./pages/common/travel/MakeTravelApplication";
 import MakeTravelApplication3 from "./pages/common/travel/MakeTravelApplication3";
-import MakeTravelApplication4 from "./pages/common/travel/MakeTravelApplication4";
+import MakeTravelApplicationNew from "./pages/common/travel/newtravel/Index";
 import TravelApplicationList from "./pages/common/travel/TravelApplicationList";
 import ApplicationView from "./pages/common/travel/ApplicationView";
 import TravelRequestApprovals from "./pages/common/travel/TravelRequestApprovals";
@@ -192,16 +192,16 @@ const App = () => (
           />
 
           <Route
-            path='/travel/new-application'
+            path={ROUTES.makeTravelApplicationNew}
             element={
               <AuthOnly>
                 {isAdminUser() ? (
                   <AdminLayout>
-                    <MakeTravelApplication4 />
+                    <MakeTravelApplicationNew />
                   </AdminLayout>
                 ) : (
                   <EmployeeLayout>
-                    <MakeTravelApplication4 />
+                    <MakeTravelApplicationNew />
                   </EmployeeLayout>
                 )}
               </AuthOnly>
@@ -505,4 +505,14 @@ const App = () => (
   </QueryClientProvider>
 );
 
-createRoot(document.getElementById("root")!).render(<App />);
+import { HelmetProvider } from "react-helmet-async";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+
+createRoot(document.getElementById("root")!).render(
+  <HelmetProvider>
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+    <App />
+    </LocalizationProvider>
+  </HelmetProvider>
+);

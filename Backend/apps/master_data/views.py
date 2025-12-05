@@ -275,6 +275,53 @@ class GradeEntitlementBulkCreateView(APIView):
             status=status.HTTP_201_CREATED
         )
 
+class AllowedTravelModesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        profile = getattr(user, "organizational_profile", None)
+
+        if not profile or not profile.grade:
+            return Response({
+                "success": False,
+                "message": "User grade not found.",
+                "data": []
+            }, status=400)
+
+        grade = profile.grade
+
+        # Fetch only allowed entitlements for this grade
+        entitlements = GradeEntitlementMaster.objects.filter(
+            grade=grade,
+            is_allowed=True
+        ).select_related("sub_option", "sub_option__mode")
+
+        response = {}
+
+        for ent in entitlements:
+            mode = ent.sub_option.mode   # TravelModeMaster FK
+            sub = ent.sub_option         # TravelSubOptionMaster
+
+            if mode.id not in response:
+                response[mode.id] = {
+                    "id": mode.id,
+                    "name": mode.name,
+                    "sub_options": []
+                }
+
+            response[mode.id]["sub_options"].append({
+                "id": sub.id,
+                "name": sub.name,
+                "max_amount": ent.max_amount
+            })
+
+        return Response({
+            "success": True,
+            "message": "Allowed travel modes loaded successfully.",
+            "data": list(response.values())
+        }, status=200)
+    
 # Accommodation Views
 class GuestHouseMasterViewSet(viewsets.ModelViewSet):
     queryset = GuestHouseMaster.objects.select_related('city', 'state', 'country', 'gl_code', 'manager').all()

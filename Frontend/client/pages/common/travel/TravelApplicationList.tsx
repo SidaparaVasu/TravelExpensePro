@@ -193,7 +193,9 @@ export default function TravelApplicationList() {
     const variants: Record<string, any> = {
       draft: 'secondary',
       submitted: 'default',
-      pending_manager: 'pending',
+      pending_manager: 'default',
+      pending_ceo: 'default',
+      pending_chro: 'default',
       pending_travel_desk: 'pending',
       approved_manager: 'success',
       rejected_manager: 'destructive',
@@ -201,7 +203,26 @@ export default function TravelApplicationList() {
       rejected_ceo: 'destructive',
       completed: 'success',
     };
-    return <Badge variant={variants[status] || 'default'}>{status.replace(/_/g, ' ')}</Badge>;
+
+    const badgeMapper: Record<string, string> = {
+      draft: 'Draft',
+      submitted: 'Submitted',
+      pending_manager: 'Pending By Manager',
+      pending_ceo: 'Pending by CEO',
+      pending_chro: 'Pending by CHRO',
+      pending_travel_desk: 'Pending By Travel Desk',
+      approved_manager: 'Approved By Manager',
+      rejected_manager: 'Rejected By Manager',
+      rejected_chro: 'Rejected By CHRO',
+      rejected_ceo: 'Rejected By CEO',
+      completed: 'Success',
+    };
+
+    return (
+      <Badge variant={variants[status] || "default"}>
+        {badgeMapper[status] || status}
+      </Badge>
+    );
   };
 
   const formatDateRange = (startDate: string, endDate: string) => {

@@ -14,6 +14,7 @@ export const ROUTES = {
   // ---------------- TRAVEL (Employee/Admin) ----------------
   makeTravelApplicationOld: "/travel/make-travel-application-old",
   makeTravelApplication: (id?:number | string) => id ? `/travel/make-travel-application/${id}` : `/travel/make-travel-application`,
+  makeTravelApplicationNew: "/travel/create-travel-application",
   travelApplicationList: "/travel/travel-application-list",
   travelApplicationView: (id: number | string) =>
     `/travel/travel-application/${id}/`,

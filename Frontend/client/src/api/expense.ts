@@ -64,6 +64,7 @@ export const expenseAPI = {
           },
         }
       );
+      console.log("from expense.ts, uploadReciepts: ", data);
       return data;
     },
     getPendingApprovals: async (params?: any) => {

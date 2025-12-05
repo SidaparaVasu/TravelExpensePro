@@ -261,13 +261,14 @@ export default function TravelRequestApprovals() {
       }
 
       // Update local state immediately
-      setApplications(prev =>
-        prev.map(req =>
+      setApplications(prev => ({
+        ...prev,
+        results: prev.results.map(req =>
           req.id === id
             ? { ...req, status: action === "approve" ? "approved_manager" : "rejected_manager" }
             : req
         )
-      );
+      }));
 
       fetchStatistics();
     } catch (error) {
@@ -282,6 +283,8 @@ export default function TravelRequestApprovals() {
       draft: 'secondary',
       submitted: 'default',
       pending_manager: 'default',
+      pending_ceo: 'default',
+      pending_chro: 'default',
       pending_travel_desk: 'pending',
       approved_manager: 'success',
       rejected_manager: 'destructive',
@@ -289,7 +292,26 @@ export default function TravelRequestApprovals() {
       rejected_ceo: 'destructive',
       completed: 'success',
     };
-    return <Badge variant={variants[status] || 'default'}>{status.replace(/_/g, ' ')}</Badge>;
+
+    const badgeMapper: Record<string, string> = {
+      draft: 'Draft',
+      submitted: 'Submitted',
+      pending_manager: 'Pending By Manager',
+      pending_ceo: 'Pending by CEO',
+      pending_chro: 'Pending by CHRO',
+      pending_travel_desk: 'Pending By Travel Desk',
+      approved_manager: 'Approved By Manager',
+      rejected_manager: 'Rejected By Manager',
+      rejected_chro: 'Rejected By CHRO',
+      rejected_ceo: 'Rejected By CEO',
+      completed: 'Success',
+    };
+
+    return (
+      <Badge variant={variants[status] || "default"}>
+        {badgeMapper[status] || status}
+      </Badge>
+    );
   };
 
   const getPriorityBadge = (priority: string) => {

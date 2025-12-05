@@ -39,7 +39,9 @@ class Booking(models.Model):
         max_digits=10, 
         decimal_places=2, 
         default=0,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(0)],
+        null=True,
+        blank=True
     )
     actual_cost = models.DecimalField(
         max_digits=10, 

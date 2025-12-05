@@ -65,6 +65,7 @@ export default function CreateClaimApplicationPage() {
   // When user selects Travel App
   const handleSelectApplication = (appId: string) => {
     const app = applications.find((a: any) => a.id === Number(appId));
+    console.log(app);
     setSelectedApp(app);
     setErrors({});
 
@@ -73,7 +74,7 @@ export default function CreateClaimApplicationPage() {
       const rows = [];
       app.trip_details.forEach((trip: any) => {
         trip.bookings
-          .filter((b: any) => b.status === "confirmed")
+          .filter((b: any) => b.status === "completed")
           .forEach((b: any) => {
             rows.push({
               bookingId: b.id,
@@ -83,13 +84,14 @@ export default function CreateClaimApplicationPage() {
               subType: b.sub_option_name || "",
               estimated: Number(b.estimated_cost || 0),
               amount: Number(b.estimated_cost || 0),
+              booking_file: b.booking_file,
               has_receipt: false,
               receipt_file: null,
               remarks: ""
             });
           });
       });
-
+      console.log(rows);
       setBookingRows(rows);
     }
 
@@ -220,23 +222,32 @@ export default function CreateClaimApplicationPage() {
 
   const fetchCreatedItems = async (claimId: number) => {
     const res = await expenseAPI.claims.get(claimId);
-    return res?.data?.items || [];
+    console.log('expense data: ', res);
+    return res?.items || [];
   };
 
   const uploadReceipts = async (claimId: number, createdItems: any[]) => {
     const formData = new FormData();
 
+    const itemList = createdItems;
     const allItems = [...bookingRows, ...otherExpenses];
 
     allItems.forEach((row, index) => {
       if (row.receipt_file) {
-        const itemId = createdItems[index].id; // match by order
+
+        const itemId = itemList[index]?.id;
+
+        if (!itemId) {
+          console.error("❌ No item ID for index:", index);
+          return;
+        }
+
         formData.append("files", row.receipt_file);
         formData.append("items", itemId);
       }
     });
 
-    if ([...formData.keys()].length === 0) {
+    if ([...formData.values()].length === 0) {
       return { success: true, message: "No receipts to upload" };
     }
 
@@ -311,13 +322,18 @@ export default function CreateClaimApplicationPage() {
 
     try {
       const submitResult = await submitClaimJson();
+      console.log("SUBMIT RESULT: ", submitResult);
+      console.log("SUBMIT RESULT: ", submitResult?.success);
 
       // SUCCESS FLOW
       if (submitResult?.success === true) {
         const claimId = submitResult.data.claim_id;
+        console.log("claimID: ", claimId);
 
         const createdItems = await fetchCreatedItems(claimId);
-        await uploadReceipts(claimId, createdItems);
+        console.log("createdItems: ", createdItems);
+        const uploadRecieptRes = await uploadReceipts(claimId, createdItems);
+        console.log("Upload Res: ", uploadRecieptRes);
 
         toast({
           title: "Success",
@@ -552,6 +568,36 @@ export default function CreateClaimApplicationPage() {
                         </TableCell>
 
                         <TableCell>
+                          {row.receipt_file ? (
+                            // Claim receipt exists
+                            <a href={row.receipt_file} target="_blank" className="text-blue-600 underline">
+                              View Receipt
+                            </a>
+                          ) : row.booking_file ? (
+                            // Booking file exists from Travel Application
+                            <a href={row.booking_file} target="_blank" className="text-blue-600 underline">
+                              View Booking File
+                            </a>
+                          ) : (
+                            // No existing file → allow upload
+                            <Checkbox
+                              checked={row.has_receipt}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  openUploadModal(row, 'booking', index);
+                                } else {
+                                  setBookingRows(prev => {
+                                    const updated = [...prev];
+                                    updated[index].has_receipt = false;
+                                    updated[index].receipt_file = null;
+                                    return updated;
+                                  });
+                                }
+                              }}
+                            />
+                          )}
+                        </TableCell>
+                        {/* <TableCell>
                           <div className="flex items-center gap-2">
                             <Checkbox
                               checked={row.has_receipt}
@@ -577,7 +623,7 @@ export default function CreateClaimApplicationPage() {
                               <span className="text-xs text-red-500">Receipt required</span>
                             )}
                           </div>
-                        </TableCell>
+                        </TableCell> */}
 
                         <TableCell>
                           <Input

@@ -1831,58 +1831,112 @@ const TravelAdvanceSection = ({ sums, otherExpenses, setOtherExpenses, totalAdva
 );
 
 // Helper to extract readable error message
-const extractErrorMessage = (err) => {
+export const extractErrorMessage = (err) => {
     const res = err?.response?.data;
 
-    if (!res) {
-        return err?.message || "Something went wrong.";
-    }
-
-    // Universal Python ErrorDetail string extractor
-    const extractPythonMessage = (input) => {
-        if (!input || typeof input !== "string") return null;
-
-        // 1) ErrorDetail(string='...')
-        const detail = input.match(/ErrorDetail\(string='(.+?)'/);
-        if (detail) return detail[1];
-
-        // 2) Any single-quoted text
-        const simple = input.match(/'([^']+)'/);
-        if (simple) return simple[1];
-
-        return input;
-    };
+    if (!res) return err?.message || "Something went wrong.";
 
     // ----------------------------
-    // CASE: errors is an object (your case)
+    // 1. Handle serializer validation format
+    // ----------------------------
+    if (res.validation_error) {
+        let msg = res.validation_error;
+
+        // If it's an array of ErrorDetail → convert to string
+        if (typeof msg === "object") {
+            msg = JSON.stringify(msg);
+        }
+
+        // Cleanup "[ErrorDetail(...)]"
+        msg = msg.replace(/ErrorDetail\(string=| code=.*?\)/g, "")
+                 .replace(/[\[\]\(\)'"]/g, "")
+                 .trim();
+
+        return msg;
+    }
+
+    // ----------------------------
+    // 2. Handle DRF "errors" object
     // ----------------------------
     if (res.errors && typeof res.errors === "object") {
-        for (const key in res.errors) {
-            const raw = res.errors[key];
+        try {
+            const msgs = [];
 
-            // raw is the Python dict string
-            const extracted = extractPythonMessage(raw);
+            Object.entries(res.errors).forEach(([field, value]) => {
+                if (typeof value === "string") msgs.push(value);
+                else if (Array.isArray(value)) msgs.push(value.join(" "));
+                else if (typeof value === "object") msgs.push(JSON.stringify(value));
+            });
 
-            if (extracted) return extracted;
-        }
+            if (msgs.length > 0) return msgs.join("\n");
+        } catch (e) {}
     }
 
     // ----------------------------
-    // CASE: errors is a string
+    // 3. Handle DRF "detail"
     // ----------------------------
-    if (typeof res?.errors === "string") {
-        const extracted = extractPythonMessage(res.errors);
-        if (extracted) return extracted;
-        return res.errors;
-    }
+    if (res.detail) return String(res.detail);
 
     // ----------------------------
-    // CASE: message
+    // 4. Handle general message
     // ----------------------------
     if (res.message) return res.message;
 
     return "Something went wrong.";
 };
+
+// const extractErrorMessage = (err) => {
+//     const res = err?.response?.data;
+
+//     if (!res) {
+//         return err?.message || "Something went wrong.";
+//     }
+
+//     // Universal Python ErrorDetail string extractor
+//     const extractPythonMessage = (input) => {
+//         if (!input || typeof input !== "string") return null;
+
+//         // 1) ErrorDetail(string='...')
+//         const detail = input.match(/ErrorDetail\(string='(.+?)'/);
+//         if (detail) return detail[1];
+
+//         // 2) Any single-quoted text
+//         const simple = input.match(/'([^']+)'/);
+//         if (simple) return simple[1];
+
+//         return input;
+//     };
+
+//     // ----------------------------
+//     // CASE: errors is an object (your case)
+//     // ----------------------------
+//     if (res.errors && typeof res.errors === "object") {
+//         for (const key in res.errors) {
+//             const raw = res.errors[key];
+
+//             // raw is the Python dict string
+//             const extracted = extractPythonMessage(raw);
+
+//             if (extracted) return extracted;
+//         }
+//     }
+
+//     // ----------------------------
+//     // CASE: errors is a string
+//     // ----------------------------
+//     if (typeof res?.errors === "string") {
+//         const extracted = extractPythonMessage(res.errors);
+//         if (extracted) return extracted;
+//         return res.errors;
+//     }
+
+//     // ----------------------------
+//     // CASE: message
+//     // ----------------------------
+//     if (res.message) return res.message;
+
+//     return "Something went wrong.";
+// };
 
 // =============================================
 // MAIN COMPONENT
