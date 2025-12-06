@@ -9,6 +9,7 @@ import { DataTable } from "./DataTable";
 import { GuestHouseSelector } from "./GuestHouseSelector";
 import { ARCHotelSelector } from "./ARCHotelSelector";
 import { Button } from "@/components/ui/button";
+import { TimePickerField } from "./TimePickerField";
 import {
   getEmptyAccommodation,
 } from "../lib/travel-constants";
@@ -45,6 +46,7 @@ interface AccommodationSectionProps {
   travelSubOptions: Record<string, any>;
   guestHouses: any[];
   arcHotels: any[];
+  bookingErrors?: Record<number, string>;
 }
 
 export const AccommodationSection: React.FC<AccommodationSectionProps> = ({
@@ -58,6 +60,7 @@ export const AccommodationSection: React.FC<AccommodationSectionProps> = ({
   travelSubOptions,
   guestHouses,
   arcHotels,
+  bookingErrors = {},
 }) => {
   const [form, setForm] = useState<AccommodationFormData>(getEmptyAccommodation());
   const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -408,15 +411,23 @@ export const AccommodationSection: React.FC<AccommodationSectionProps> = ({
                 max={tripEndDate}
                 error={errors.check_in_date}
               />
+              
+              <TimePickerField
+                label="Check-in Time"
+                required
+                value={form.check_in_time}
+                onChange={(value) => setForm({ ...form, check_in_time: value })}
+                error={errors.check_in_time}
+              />
 
-              <FormInput
+              {/* <FormInput
                 label="Check-in Time"
                 required
                 type="time"
                 value={form.check_in_time}
                 onChange={(e) => setForm({ ...form, check_in_time: e.target.value })}
                 error={errors.check_in_time}
-              />
+              /> */}
 
               <FormInput
                 label="Check-out Date"
@@ -429,14 +440,22 @@ export const AccommodationSection: React.FC<AccommodationSectionProps> = ({
                 error={errors.check_out_date}
               />
 
-              <FormInput
+              <TimePickerField
+                label="Check-out Time"
+                required
+                value={form.check_out_time}
+                onChange={(value) => setForm({ ...form, check_out_time: value })}
+                error={errors.check_out_time}
+              />
+
+              {/* <FormInput
                 label="Check-out Time"
                 required
                 type="time"
                 value={form.check_out_time}
                 onChange={(e) => setForm({ ...form, check_out_time: e.target.value })}
                 error={errors.check_out_time}
-              />
+              /> */}
 
               <FormInput
                 label="Estimated Cost (₹)"
@@ -494,6 +513,7 @@ export const AccommodationSection: React.FC<AccommodationSectionProps> = ({
             onEdit={handleEdit}
             onDelete={handleDelete}
             emptyMessage="No accommodation added yet"
+            rowErrors={bookingErrors}
           />
         </>
       )}
