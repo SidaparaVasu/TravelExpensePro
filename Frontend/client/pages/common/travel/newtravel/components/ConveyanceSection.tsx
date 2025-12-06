@@ -7,6 +7,7 @@ import { FormTextarea } from "./FormTextarea";
 import { NotRequiredToggle } from "./NotRequiredToggle";
 import { DataTable } from "./DataTable";
 import { GuestSelector } from "./GuestSelector";
+import { TimePickerField } from "./TimePickerField";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -61,6 +62,7 @@ interface ConveyanceSectionProps {
   tripEndDate: string;
   travelModes: any[];
   travelSubOptions: Record<string, any[]>;
+  bookingErrors?: Record<number, string>;
 }
 
 export const ConveyanceSection: React.FC<ConveyanceSectionProps> = ({
@@ -71,7 +73,8 @@ export const ConveyanceSection: React.FC<ConveyanceSectionProps> = ({
   tripStartDate,
   tripEndDate,
   travelModes,
-  travelSubOptions
+  travelSubOptions,
+  bookingErrors = {},
 }) => {
   const [form, setForm] = useState<ConveyanceFormData>({
     ...getEmptyConveyance(),
@@ -495,14 +498,22 @@ export const ConveyanceSection: React.FC<ConveyanceSectionProps> = ({
                 error={errors.start_date}
               />
 
-              <FormInput
+              <TimePickerField
+                label="Start Time"
+                required
+                value={form.start_time}
+                onChange={(value) => setForm({ ...form, start_time: value })}
+                error={errors.start_time}
+              />
+
+              {/* <FormInput
                 label="Start Time"
                 required
                 type="time"
                 value={form.start_time}
                 onChange={(e) => setForm({ ...form, start_time: e.target.value })}
                 error={errors.start_time}
-              />
+              /> */}
 
               <FormInput
                 label="End Date"
@@ -515,14 +526,22 @@ export const ConveyanceSection: React.FC<ConveyanceSectionProps> = ({
                 error={errors.end_date}
               />
 
-              <FormInput
+              <TimePickerField
+                label="End Time"
+                required
+                value={form.end_time}
+                onChange={(value) => setForm({ ...form, end_time: value })}
+                error={errors.end_time}
+              />
+
+              {/* <FormInput
                 label="End Time"
                 required
                 type="time"
                 value={form.end_time}
                 onChange={(e) => setForm({ ...form, end_time: e.target.value })}
                 error={errors.end_time}
-              />
+              /> */}
 
               <FormInput
                 label="Estimated Cost (₹)"
@@ -535,6 +554,7 @@ export const ConveyanceSection: React.FC<ConveyanceSectionProps> = ({
                 error={errors.estimated_cost}
               />
 
+              {/* Club Booking */}
               <div className="md:col-span-3 space-y-4">
                 <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-muted/30">
                   <Checkbox
@@ -548,7 +568,7 @@ export const ConveyanceSection: React.FC<ConveyanceSectionProps> = ({
                     htmlFor="club_booking"
                     className="text-sm font-medium text-foreground cursor-pointer"
                   >
-                    Club Booking (checked by default)
+                    Club Booking (shared with other travelers)
                   </label>
                 </div>
 
@@ -563,7 +583,8 @@ export const ConveyanceSection: React.FC<ConveyanceSectionProps> = ({
                   />
                 )}
               </div>
-
+              
+              {/* Guests */}
               <div className="md:col-span-3">
                 <GuestSelector
                   selectedGuests={form.guests}
@@ -620,6 +641,7 @@ export const ConveyanceSection: React.FC<ConveyanceSectionProps> = ({
             onEdit={handleEdit}
             onDelete={handleDelete}
             emptyMessage="No conveyance added yet"
+            rowErrors={bookingErrors}
           />
         </>
       )}

@@ -8,6 +8,7 @@ import { CityCombobox } from "./CityCombobox";
 import { NotRequiredToggle } from "./NotRequiredToggle";
 import { DataTable } from "./DataTable";
 import { Button } from "@/components/ui/button";
+import { TimePickerField } from "./TimePickerField";
 import {
   CITIES,
   TRAVEL_MODES,
@@ -49,6 +50,7 @@ interface TicketingSectionProps {
   cities?: City[];
   travelModes?: TravelMode[];
   travelSubOptions?: Record<string, TravelSubOption[]>;
+  bookingErrors?: Record<number, string>;
 }
 
 export const TicketingSection: React.FC<TicketingSectionProps> = ({
@@ -61,6 +63,7 @@ export const TicketingSection: React.FC<TicketingSectionProps> = ({
   cities: propCities,
   travelModes: propModes,
   travelSubOptions: propSubOptions,
+  bookingErrors = {},
 }) => {
   const [form, setForm] = useState<TicketingFormData>({ ...getEmptyTicketing(), ticket_number: "" });
   const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -96,7 +99,9 @@ export const TicketingSection: React.FC<TicketingSectionProps> = ({
     if (!form.from_location) newErrors.from_location = "From location is required";
     if (!form.to_location) newErrors.to_location = "To location is required";
     if (!form.departure_date) newErrors.departure_date = "Departure date is required";
+    if (!form.departure_time) newErrors.departure_time = "Departure time is required";
     if (!form.arrival_date) newErrors.arrival_date = "Arrival date is required";
+    if (!form.arrival_time) newErrors.arrival_time = "Arrival time is required";
     // if (!form.estimated_cost) newErrors.estimated_cost = "Estimated cost is required";
 
     // Location validation
@@ -345,12 +350,20 @@ export const TicketingSection: React.FC<TicketingSectionProps> = ({
                 error={errors.departure_date}
               />
 
-              <FormInput
+              <TimePickerField
+                label="Departure Time"
+                required
+                value={form.departure_time}
+                onChange={(value) => setForm({ ...form, departure_time: value })}
+                error={errors.departure_time}
+              />
+
+              {/* <FormInput
                 label="Departure Time"
                 type="time"
                 value={form.departure_time}
                 onChange={(e) => setForm({ ...form, departure_time: e.target.value })}
-              />
+              /> */}
 
               <FormInput
                 label="Arrival Date"
@@ -363,12 +376,20 @@ export const TicketingSection: React.FC<TicketingSectionProps> = ({
                 error={errors.arrival_date}
               />
 
-              <FormInput
+              <TimePickerField
+                label="Arrival Time"
+                required
+                value={form.arrival_time}
+                onChange={(value) => setForm({ ...form, arrival_time: value })}
+                error={errors.arrival_time}
+              />
+
+              {/* <FormInput
                 label="Arrival Time"
                 type="time"
                 value={form.arrival_time}
                 onChange={(e) => setForm({ ...form, arrival_time: e.target.value })}
-              />
+              /> */}
 
               <FormInput
                 label="Estimated Cost (₹)"
@@ -426,6 +447,7 @@ export const TicketingSection: React.FC<TicketingSectionProps> = ({
             onEdit={handleEdit}
             onDelete={handleDelete}
             emptyMessage="No tickets added yet"
+            rowErrors={bookingErrors}
           />
         </>
       )}

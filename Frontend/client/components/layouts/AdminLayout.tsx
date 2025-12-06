@@ -4,6 +4,7 @@ import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { authAPI } from "@/src/api/auth";
 import { ROUTES } from "@/routes/routes";
+import OrangeLogo from "@/assets/Ultimatix-Logo.jpg";
 
 // UI imports
 import {
@@ -146,10 +147,12 @@ const getAdminSidebar = (primaryDashboard) => [
 // ------------------------------------------------------
 const Logo = ({ expanded }) => (
   <div className="flex items-center gap-3">
-    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-700 to-blue-600 flex items-center justify-center flex-shrink-0">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
+    {/* <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-700 to-blue-600 flex items-center justify-center flex-shrink-0"> */}
+    <div className="h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0">
+      {/* <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
         <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z" fill="currentColor" />
-      </svg>
+      </svg> */}
+      <img src={OrangeLogo} alt="Orange LOGO" />
     </div>
     <span
       className={cn(
@@ -157,7 +160,7 @@ const Logo = ({ expanded }) => (
         expanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"
       )}
     >
-      Travel Expenses Pro
+      Orange Travel Expense
     </span>
   </div>
 );
@@ -204,7 +207,7 @@ export function AdminLayout({ children }) {
     try {
       await authAPI.logout();
     } catch {}
-    navigate("/login");
+    navigate(ROUTES.login);
   };
 
   const navigateTo = (path) => navigate(path);
@@ -355,11 +358,11 @@ export function AdminLayout({ children }) {
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
 
-                  <DropdownMenuItem onClick={() => navigateTo(ROUTES.profile)}>
+                  <DropdownMenuItem onClick={() => navigate(ROUTES.profile)}>
                     <Users className="mr-2 h-4 w-4" /> Profile
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem onClick={() => navigateTo("/settings")}>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <Settings className="mr-2 h-4 w-4" /> Settings
                   </DropdownMenuItem>
 

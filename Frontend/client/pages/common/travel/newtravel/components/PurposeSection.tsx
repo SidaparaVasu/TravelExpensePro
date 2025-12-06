@@ -4,6 +4,7 @@ import { FormInput } from "./FormInput";
 import { FormTextarea } from "./FormTextarea";
 import { FormSelect } from "./FormSelect";
 import { CityCombobox } from "./CityCombobox";
+import { TimePickerField } from "./TimePickerField";
 import {
   CITIES,
   GL_CODES,
@@ -242,12 +243,20 @@ export const PurposeSection: React.FC<PurposeSectionProps> = ({
           error={errors.departure_date}
         />
 
-        <FormInput
+        {/* <FormInput
           label="Trip Start Time"
           required
           type="time"
           value={formData.start_time}
           onChange={(e) => handleFieldChange("start_time", e.target.value)}
+          error={errors.start_time}
+        /> */}
+
+        <TimePickerField
+          label="Trip Start Time"
+          required
+          value={formData.start_time}
+          onChange={(e) => handleFieldChange("start_time", e)}
           error={errors.start_time}
         />
 
@@ -262,12 +271,11 @@ export const PurposeSection: React.FC<PurposeSectionProps> = ({
           error={errors.return_date}
         />
 
-        <FormInput
+        <TimePickerField
           label="Trip End Time"
           required
-          type="time"
           value={formData.end_time}
-          onChange={(e) => handleFieldChange("end_time", e.target.value)}
+          onChange={(e) => handleFieldChange("end_time", e)}
           error={errors.end_time}
         />
 

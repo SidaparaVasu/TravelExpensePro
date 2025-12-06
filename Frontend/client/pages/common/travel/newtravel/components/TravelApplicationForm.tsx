@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Calendar, Plane, Home, Car, Send, RotateCcw, ChevronLeft, ChevronRight, Wallet, Save, Check } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Calendar, Plane, Home, Car, Send, RotateCcw, ChevronLeft, ChevronRight, Wallet, Save, Check, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PurposeSection } from "./PurposeSection";
 import { TicketingSection } from "./TicketingSection";
 import { AccommodationSection } from "./AccommodationSection";
@@ -14,6 +15,11 @@ import {
   getEmptyAccommodation,
   getEmptyConveyance,
 } from "../lib/travel-constants";
+import {
+  validateTicketingDates,
+  validateAccommodationDates,
+  validateConveyanceDates,
+} from "../lib/travel-validation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,16 +87,79 @@ export const TravelApplicationForm: React.FC = () => {
   const [ticketing, setTicketing] = useState<any[]>([]);
   const [ticketingNotRequired, setTicketingNotRequired] = useState(false);
   const [ticketingTravelModes, setTicketingTravelModes] = useState<any[]>([]);
+  const [ticketingErrors, setTicketingErrors] = useState<Record<number, string>>({});
 
   // Accommodation state
   // const [accommodation, setAccommodation] = useState<ReturnType<typeof getEmptyAccommodation>[]>([]);
   const [accommodation, setAccommodation] = useState<any[]>([]);
   const [accommodationNotRequired, setAccommodationNotRequired] = useState(false);
+  const [accommodationErrors, setAccommodationErrors] = useState<Record<number, string>>({});
 
   // Conveyance state
   // const [conveyance, setConveyance] = useState<ReturnType<typeof getEmptyConveyance>[]>([]);
   const [conveyance, setConveyance] = useState<any[]>([]);
   const [conveyanceNotRequired, setConveyanceNotRequired] = useState(false);
+  const [conveyanceErrors, setConveyanceErrors] = useState<Record<number, string>>({});
+
+  // Load API data on mount
+  useEffect(() => {
+      if (purposeData.departure_date && purposeData.return_date) {
+        // Validate ticketing
+        if (ticketing.length > 0 && !ticketingNotRequired) {
+          const ticketValidation = validateTicketingDates(
+            ticketing,
+            purposeData.departure_date,
+            purposeData.return_date
+          );
+          setTicketingErrors(ticketValidation.errors);
+          if (!ticketValidation.isValid) {
+            toast.error("Some ticket dates are outside the trip window. Please correct them.");
+          }
+        } else {
+          setTicketingErrors({});
+        }
+
+        // Validate accommodation
+        if (accommodation.length > 0 && !accommodationNotRequired) {
+          const accValidation = validateAccommodationDates(
+            accommodation,
+            purposeData.departure_date,
+            purposeData.return_date
+          );
+          setAccommodationErrors(accValidation.errors);
+          if (!accValidation.isValid) {
+            toast.error("Some accommodation dates are outside the trip window. Please correct them.");
+          }
+        } else {
+          setAccommodationErrors({});
+        }
+
+        // Validate conveyance
+        if (conveyance.length > 0 && !conveyanceNotRequired) {
+          const convValidation = validateConveyanceDates(
+            conveyance,
+            purposeData.departure_date,
+            purposeData.return_date
+          );
+          setConveyanceErrors(convValidation.errors);
+          if (!convValidation.isValid) {
+            toast.error("Some conveyance dates are outside the trip window. Please correct them.");
+          }
+        } else {
+          setConveyanceErrors({});
+        }
+      }
+    }, [purposeData.departure_date, purposeData.return_date, ticketing, accommodation, conveyance, ticketingNotRequired, accommodationNotRequired, conveyanceNotRequired]);
+
+  // Check if all bookings are valid
+  const hasBookingErrors = useMemo(() => {
+    return (
+      Object.keys(ticketingErrors).length > 0 ||
+      Object.keys(accommodationErrors).length > 0 ||
+      Object.keys(conveyanceErrors).length > 0
+    );
+  }, [ticketingErrors, accommodationErrors, conveyanceErrors]);
+
 
   // Load API data on mount
   useEffect(() => {
@@ -123,36 +192,6 @@ export const TravelApplicationForm: React.FC = () => {
 
     fetchData();
   }, []);
-
-  // --- Build Section-wise Travel Modes ---
-  const prepareSectionWiseTravelData = (modes, subOptions) => {
-    const ticketing = {};       // Flight + Train
-    const accommodation = {};   // Accommodation
-    const conveyance = {};      // All other conveyance modes
-
-    Object.entries(subOptions).forEach(([modeId, options]) => {
-      const mode = modes.find((m) => String(m.id) === modeId);
-      if (!mode) return;
-
-      switch (mode.name) {
-        case "Flight":
-        case "Train":
-          ticketing[modeId] = options;
-          break;
-
-        case "Accommodation":
-          accommodation[modeId] = options;
-          break;
-
-        default:
-          // Conveyance modes (Pick-up, Radio Taxi, Car at Disposal, Own Car, etc.)
-          conveyance[modeId] = options;
-          break;
-      }
-    });
-
-    return { ticketing, accommodation, conveyance };
-  };
 
   // Load saved data on mount
   useEffect(() => {
@@ -191,7 +230,7 @@ export const TravelApplicationForm: React.FC = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [purposeData, ticketing, ticketingNotRequired, accommodation, accommodationNotRequired, conveyance, conveyanceNotRequired, activeTab, draftApplicationId]);
 
-  // Warn on unsaved changes when leaving
+   // Warn on unsaved changes when leaving
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       const hasData =
@@ -208,15 +247,48 @@ export const TravelApplicationForm: React.FC = () => {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [purposeData, ticketing, accommodation, conveyance]);
 
+  // --- Build Section-wise Travel Modes ---
+  const prepareSectionWiseTravelData = (modes, subOptions) => {
+    const ticketing = {};       // Flight + Train
+    const accommodation = {};   // Accommodation
+    const conveyance = {};      // All other conveyance modes
+
+    Object.entries(subOptions).forEach(([modeId, options]) => {
+      const mode = modes.find((m) => String(m.id) === modeId);
+      if (!mode) return;
+
+      switch (mode.name) {
+        case "Flight":
+        case "Train":
+          ticketing[modeId] = options;
+          break;
+
+        case "Accommodation":
+          accommodation[modeId] = options;
+          break;
+
+        default:
+          // Conveyance modes (Pick-up, Radio Taxi, Car at Disposal, Own Car, etc.)
+          conveyance[modeId] = options;
+          break;
+      }
+    });
+
+    return { ticketing, accommodation, conveyance };
+  };
+
   const clearForm = () => {
     setPurposeData(getEmptyPurposeForm());
     setPurposeErrors({});
     setTicketing([]);
     setTicketingNotRequired(false);
+    setTicketingErrors({});
     setAccommodation([]);
     setAccommodationNotRequired(false);
+    setAccommodationErrors({});
     setConveyance([]);
     setConveyanceNotRequired(false);
+    setConveyanceErrors({});
     setActiveTab("purpose");
     setDraftApplicationId(null);
     localStorage.removeItem(STORAGE_KEY);
@@ -240,31 +312,55 @@ export const TravelApplicationForm: React.FC = () => {
   };
 
   const isTicketingValid = () => {
-    return ticketingNotRequired || ticketing.length > 0;
+    if (ticketingNotRequired) return true;
+    if (ticketing.length === 0) return false;
+    return Object.keys(ticketingErrors).length === 0;
   };
 
   const isAccommodationValid = () => {
-    return accommodationNotRequired || accommodation.length > 0;
+    if (accommodationNotRequired) return true;
+    if (accommodation.length === 0) return false;
+    return Object.keys(accommodationErrors).length === 0;
   };
 
   const isConveyanceValid = () => {
-    return conveyanceNotRequired || conveyance.length > 0;
+    if (conveyanceNotRequired) return true;
+    if (conveyance.length === 0) return false;
+    return Object.keys(conveyanceErrors).length === 0;
   };
 
-  const getTabStatus = (tabId: string): "complete" | "incomplete" | "active" => {
+  const isFormValid = useMemo(() => {
+    const purposeValid = isPurposeValid();
+    const ticketingValid = isTicketingValid();
+    const accommodationValid = isAccommodationValid();
+    const conveyanceValid = isConveyanceValid();
+    
+    const hasAtLeastOneBooking = 
+      ticketing.length > 0 || 
+      accommodation.length > 0 || 
+      conveyance.length > 0 ||
+      (ticketingNotRequired && accommodationNotRequired && conveyanceNotRequired);
+
+    return purposeValid && ticketingValid && accommodationValid && conveyanceValid && hasAtLeastOneBooking && !hasBookingErrors;
+  }, [purposeData, ticketing, accommodation, conveyance, ticketingNotRequired, accommodationNotRequired, conveyanceNotRequired, ticketingErrors, accommodationErrors, conveyanceErrors, hasBookingErrors]);
+
+  const getTabStatus = (tabId: string): "complete" | "incomplete" | "error" | "active" => {
     if (activeTab === tabId) return "active";
 
     switch (tabId) {
       case "purpose":
         return isPurposeValid() ? "complete" : "incomplete";
       case "ticketing":
+        if (Object.keys(ticketingErrors).length > 0) return "error";
         return isTicketingValid() ? "complete" : "incomplete";
       case "accommodation":
+        if (Object.keys(accommodationErrors).length > 0) return "error";
         return isAccommodationValid() ? "complete" : "incomplete";
       case "conveyance":
+        if (Object.keys(conveyanceErrors).length > 0) return "error";
         return isConveyanceValid() ? "complete" : "incomplete";
       // case "advance":
-      //   return "complete"; // Always complete as it's read-only
+      //   return "complete";
       default:
         return "incomplete";
     }
@@ -293,6 +389,12 @@ export const TravelApplicationForm: React.FC = () => {
 
     if (!hasTicketing && !hasAccommodation && !hasConveyance) {
       toast.error("At least one booking must exist or all sections must be marked as not required");
+      return false;
+    }
+
+    // Check for booking date errors
+    if (hasBookingErrors) {
+      toast.error("Some booking dates are outside the trip window. Please correct them before submitting.");
       return false;
     }
 
@@ -553,7 +655,11 @@ export const TravelApplicationForm: React.FC = () => {
                 <Save className="w-4 h-4 mr-2" />
                 {isSaving ? "Saving..." : "Save Draft"}
               </Button>
-              <Button onClick={handleSubmit} disabled={isSubmitting}>
+              <Button 
+                onClick={handleSubmit} 
+                disabled={isSubmitting || !isFormValid}
+                title={!isFormValid ? "Please complete all required fields and fix any errors" : "Submit application"}
+              >
                 <Send className="w-4 h-4 mr-2" />
                 {isSubmitting ? "Submitting..." : "Submit"}
               </Button>
@@ -561,6 +667,19 @@ export const TravelApplicationForm: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Booking Errors Alert */}
+      {hasBookingErrors && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <Alert className="border-destructive/50 bg-destructive/10">
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+            <AlertDescription className="text-destructive">
+              <strong>Booking Date Errors:</strong> Some booking dates are outside the trip window ({purposeData.departure_date} to {purposeData.return_date}). 
+              Please review and correct the highlighted bookings before submitting.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
 
       {/* Tab Navigation */}
       <nav className="bg-card border-b border-border sticky top-16 z-30">
@@ -571,6 +690,7 @@ export const TravelApplicationForm: React.FC = () => {
               const status = getTabStatus(tab.id);
               const isActive = status === "active";
               const isCompleted = status === "complete";
+              const isError = status === "error";
 
               return (
                 <button
@@ -580,9 +700,11 @@ export const TravelApplicationForm: React.FC = () => {
                     "flex items-center gap-2 px-6 py-4 font-medium transition-all border-b-2 whitespace-nowrap min-w-fit",
                     isActive
                       ? "text-primary border-primary bg-primary/5"
+                      : isError
+                      ? "text-destructive border-destructive hover:bg-destructive/5"
                       : isCompleted
-                        ? "text-green-600 border-green-500 hover:bg-muted/50"
-                        : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/50"
+                      ? "text-green-600 border-green-500 hover:bg-muted/50"
+                      : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/50"
                   )}
                 >
                   <div
@@ -590,12 +712,16 @@ export const TravelApplicationForm: React.FC = () => {
                       "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
                       isActive
                         ? "bg-primary text-primary-foreground"
+                        : isError
+                        ? "bg-destructive text-destructive-foreground"
                         : isCompleted
-                          ? "bg-green-500 text-white"
-                          : "bg-muted text-muted-foreground"
+                        ? "bg-green-500 text-white"
+                        : "bg-muted text-muted-foreground"
                     )}
                   >
-                    {isCompleted && !isActive ? (
+                    {isError ? (
+                      <AlertTriangle className="w-4 h-4" />
+                    ) : isCompleted && !isActive ? (
                       <Check className="w-4 h-4" />
                     ) : (
                       index + 1
@@ -643,6 +769,7 @@ export const TravelApplicationForm: React.FC = () => {
                 cities={cities}
                 travelModes={travelModes.filter(m => m.name === "Flight" || m.name === "Train")}
                 travelSubOptions={travelSubOptions.ticketing}
+                bookingErrors={ticketingErrors}
               />
             )}
 
@@ -658,6 +785,7 @@ export const TravelApplicationForm: React.FC = () => {
                 travelSubOptions={travelSubOptions.accommodation}
                 guestHouses={guestHouses}
                 arcHotels={arcHotels}
+                bookingErrors={accommodationErrors}
               />
             )}
 
@@ -671,6 +799,7 @@ export const TravelApplicationForm: React.FC = () => {
                 tripEndDate={purposeData.return_date}
                 travelModes={travelModes.filter(m => !["Flight", "Train", "Accommodation"].includes(m.name))}
                 travelSubOptions={travelSubOptions.conveyance}
+                bookingErrors={conveyanceErrors}
               />
             )}
 
@@ -706,9 +835,11 @@ export const TravelApplicationForm: React.FC = () => {
                     "w-2.5 h-2.5 rounded-full transition-colors cursor-pointer",
                     status === "active"
                       ? "bg-primary"
+                      : status === "error"
+                      ? "bg-destructive"
                       : status === "complete"
-                        ? "bg-green-500"
-                        : "bg-muted"
+                      ? "bg-green-500"
+                      : "bg-muted"
                   )}
                   onClick={() => setActiveTab(tab.id)}
                 />
@@ -722,7 +853,10 @@ export const TravelApplicationForm: React.FC = () => {
               <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
-            <Button onClick={handleSubmit} disabled={isSubmitting}>
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isSubmitting || !isFormValid}
+            >
               <Send className="w-4 h-4 mr-2" />
               {isSubmitting ? "Submitting..." : "Submit Application"}
             </Button>
