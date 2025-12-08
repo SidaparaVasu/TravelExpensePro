@@ -428,6 +428,8 @@ const BookingCard = ({ booking, type, guestHousesMap }: any) => {
       {/* type-specific grid */}
       {type === 'ticketing' && (
         <div className="grid grid-cols-2 gap-3 text-sm">
+          <DetailRow label="Ticket Name/No." value={`${details.ticket_number || ''}`} />
+          <DetailRow />
           <DetailRow label="From" value={details.from_location_name || details.from_location || '—'} />
           <DetailRow label="To" value={details.to_location_name || details.to_location || '—'} />
           <DetailRow label="Departure" value={`${details.departure_date || ''} ${details.departure_time || ''}`.trim() || '—'} />
@@ -515,7 +517,7 @@ const BookingCard = ({ booking, type, guestHousesMap }: any) => {
 const DetailRow = ({ label, value }: { label: string; value: any }) => (
   <div>
     <p className="text-[11px] text-slate-500">{label}</p>
-    <p className="text-sm font-medium text-slate-800 capitalize">{value ?? '—'}</p>
+    <p className="text-sm font-medium text-slate-800 capitalize">{value ?? ' '}</p>
   </div>
 );
 

@@ -167,13 +167,62 @@ export default function TravelApplicationList() {
     },
   });
 
+  function extractErrorMessage(error: any): string {
+    if (!error) return "Something went wrong.";
+
+    // 1️⃣ If backend returned the nested error as a Python string
+    if (typeof error === "string") {
+      const msg = parsePythonErrorString(error);
+      if (msg) return msg;
+      return error;
+    }
+
+    // 2️⃣ If it's an array
+    if (Array.isArray(error)) {
+      return extractErrorMessage(error[0]);
+    }
+
+    // 3️⃣ If it's an object
+    if (typeof error === "object") {
+      const firstKey = Object.keys(error)[0];
+      return extractErrorMessage(error[firstKey]);
+    }
+
+    return "Unexpected error occurred.";
+  }
+
+  function parsePythonErrorString(pyString: string): string | null {
+    // Extract content inside ErrorDetail(string='...') 
+    const regex = /ErrorDetail\(string='([^']+)'/;
+    const match = pyString.match(regex);
+
+    if (match && match[1]) {
+      return match[1];
+    }
+
+    // Extract plain text after "{'duplicate': "
+    const altRegex = /'([^']+)'/;
+    const altMatch = pyString.match(altRegex);
+
+    if (altMatch && altMatch[1]) {
+      return altMatch[1];
+    }
+
+    return null;
+  }
+
+
   const handleSubmitApplication = async (id: number) => {
     try {
       await submitApplication(id);
       toast({ title: 'Success', description: 'Application submitted successfully' });
     } catch (error: any) {
-      console.log("ERROR: ", error);
-      toast({ title: 'Error', description: error.validation_error || "Failed to submit application", variant: 'destructive' });
+      console.error("Failed to save draft:", error);
+      console.log("RAW ERROR:", error.response?.data);
+      console.log("RAW ERRORS:", error.response?.data?.errors);
+      const backendErrors = error.response?.data?.errors;
+      const message = extractErrorMessage(backendErrors);
+      toast({ title: 'Error', description: message || "Failed to submit application", variant: 'destructive' });
     }
   };
 
