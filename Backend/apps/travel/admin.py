@@ -1,12 +1,11 @@
 from django.contrib import admin
 from .models.application import *
-from .models.booking import Booking
+from .models.booking import *
 from .models.approval import *
 from .models.booking_extended import *
+from .models.audit import *
 
 # Register your models here.
-admin.site.register(TravelApproval)
-
 class TripDetailsInline(admin.TabularInline):
     model = TripDetails
     extra = 1
@@ -65,7 +64,7 @@ class TripDetailsAdmin(admin.ModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ('trip_details', 'booking_type', 'sub_option', 'status', 'estimated_cost')
+    list_display = ('id', 'trip_details', 'booking_type', 'sub_option', 'status', 'estimated_cost')
     list_filter = ('booking_type', 'status', 'created_at')
     search_fields = ('booking_reference', 'vendor_reference')
 
@@ -99,6 +98,39 @@ class TravelApprovalFlowAdmin(admin.ModelAdmin):
         })
     )
 
+@admin.register(BookingAssignment)
+class BookingAssignmentAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "booking",
+        "assigned_to",
+        "assigned_by",
+        "assignment_scope",
+        "assigned_at",
+        "accepted_at",
+        "completed_at",
+    )
+    list_filter = ("assignment_scope",)
+    search_fields = (
+        "booking__id",
+        "assigned_to__username",
+        "assigned_by__username",
+    )
+    ordering = ("-assigned_at",)
+
+
+@admin.register(BookingNote)
+class BookingNoteAdmin(admin.ModelAdmin):
+    list_display = ("id", "booking", "author", "created_at")
+    search_fields = ("booking__id", "author__username")
+    ordering = ("-created_at",)
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "action", "timestamp")
+    list_filter = ("action", "timestamp")
+    search_fields = ("user__username", "action")
+    ordering = ("-timestamp",)
 
 @admin.register(AccommodationBooking)
 class AccommodationBookingAdmin(admin.ModelAdmin):

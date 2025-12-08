@@ -6,11 +6,10 @@ from .views.booking import *
 from .views.booking_calendar import GuestHouseAvailabilityView
 from .views.approval_delegation import ApprovalDelegationView
 from .views.cancellation import *
-from .views.expense_estimate import TravelExpenseEstimateView
 from .views.dashboards import *
-from .views.validation import RealTimeValidationView
-from .views.search import AdvancedSearchView
 from .views.analytics import TravelAnalyticsView, ComplianceReportView
+from .views.travel_desk_views import *
+from .views.booking_agent_views import *
 
 urlpatterns = [
     # Travel Applications
@@ -21,10 +20,6 @@ urlpatterns = [
     path('applications/<int:pk>/validate/', TravelApplicationValidationView.as_view(), name='travel-application-validate'),
     path('applications/<int:application_id>/request-accommodation/', RequestAccommodationBookingView.as_view()),
 
-    # Real-time validation for front-end
-    path('validate/', RealTimeValidationView.as_view(), name='real-time-validation'),
-    path('search/advanced/', AdvancedSearchView.as_view()),
-
     # Approval Workflow
     path('manager-approvals/', ManagerApprovalsView.as_view(), name='manager-approvals'),
     path('approvals/pending/', ManagerPendingApprovalsView.as_view(), name='pending-approvals'),
@@ -33,6 +28,27 @@ urlpatterns = [
     path('approvals/<int:pk>/action/', ApprovalActionView.as_view(), name='approval-action'),
     path('approvals/<int:pk>/history/', ApprovalHistoryView.as_view(), name='approval-history'),
     path('approvals/dashboard/', ApprovalDashboardView.as_view(), name='approval-dashboard'),
+
+    # Travel Desk
+    path("travel-desk/applications/", TravelDeskApplicationListView.as_view(), name="travel-desk-applications"),
+    path("travel-desk/applications/<int:pk>/", TravelDeskApplicationDetailView.as_view(), name="travel-desk-application-detail"),
+    path("travel-desk/applications/<int:application_id>/bookings/", TravelDeskBookingsForApplicationView.as_view(), name="travel-desk-application-bookings"),
+    path("travel-desk/assign-bookings/", TravelDeskAssignBookingsView.as_view(), name="travel-desk-assign-bookings"),
+    path("travel-desk/bookings/<int:booking_id>/reassign/", TravelDeskReassignBookingView.as_view(), name="travel-desk-reassign-booking"),
+    path("travel-desk/bookings/<int:booking_id>/notes/", BookingNotesView.as_view(), name="travel-desk-booking-notes"),
+    path("travel-desk/applications/<int:app_id>/forward/", ForwardApplicationView.as_view(), name="travel-desk-forward-application"),
+    path("travel-desk/applications/<int:app_id>/cancel/", TravelDeskCancelApplicationView.as_view(), name="travel-desk-cancel-application"),
+
+    # Booking Agent
+    # urls.py
+    path("booking-agents/", BookingAgentsListView.as_view(), name="booking-agents"),
+    path("booking-agent/bookings/", BookingAgentBookingsListView.as_view(), name="agent-bookings-list"),
+    path("booking-agent/bookings/<int:pk>/", BookingAgentBookingDetailView.as_view(), name="agent-booking-detail"),
+    path("booking-agent/bookings/<int:pk>/status/", BookingAgentUpdateStatusView.as_view(), name="agent-booking-status"),
+    path("booking-agent/bookings/<int:pk>/upload-file/", BookingAgentFileUploadView.as_view(), name="agent-booking-upload-file"),
+    path("booking-agent/bookings/<int:pk>/notes/", BookingAgentNotesView.as_view(), name="agent-booking-notes"),
+    path("booking-agent/bookings/<int:pk>/accept/", BookingAgentAcceptBookingView.as_view(), name="agent-booking-accept"),
+    path("booking-agent/bookings/<int:pk>/complete/", BookingAgentCompleteBookingView.as_view(), name="agent-booking-complete"),
 
     # Booking
     path('bookings/', BookingListAPIView.as_view(), name='booking-list'),
@@ -48,13 +64,11 @@ urlpatterns = [
     path('applications/<int:pk>/cancel/', TravelCancellationRequestView.as_view()),
     path('applications/<int:pk>/partial-cancel/', PartialCancellationView.as_view()),
 
-    # Expense estimation
-    path('applications/<int:pk>/expense-estimate/', TravelExpenseEstimateView.as_view()),
-
     # Dashboard 
-    path('dashboard/employee/', EmployeeDashboardView.as_view()),
-    path('dashboard/manager/', ManagerDashboardView.as_view()),
-    path('dashboard/travel-desk/', TravelDeskDashboardEnhancedView.as_view()),
+    path('dashboard/employee/', EmployeeDashboardView.as_view(), name="employee-dashboard"),
+    path('dashboard/manager/', ManagerDashboardView.as_view(), name="manager-dashboard"),
+    path('dashboard/travel-desk/', TravelDeskDashboardView.as_view(), name="travel-desk-agent-dashboard"),
+    path("dashboard/booking-agent/", BookingAgentDashboardView.as_view(), name="booking-agent-dashboard"),
 
     # Analytics
     path('analytics/', TravelAnalyticsView.as_view()),

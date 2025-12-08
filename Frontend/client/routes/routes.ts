@@ -7,6 +7,7 @@ export const ROUTES = {
   adminDashboard: "/admin/dashboard",
   employeeDashboard: "/employee/dashboard",
   deskAgentDashboard: "/travel_desk/dashboard",
+  bookingAgentDashboard: "/booking_agent/dashboard",
 
   // ---------------- PROFILE ----------------
   profile: "/profile",
@@ -31,6 +32,9 @@ export const ROUTES = {
   claimApplicationPage: "/expense/submit-claim",
   claimDetailPage: (id: number | string) => `/expense/claims/${id}`,
   claimApprovalPage: "/expense/claim-approvals",
+
+  // ---------------- BOOKING AGENT ----------------
+  pendingBookingsPage: "/booking-agent/pending-requests",
 
   // ---------------- ADMIN: MASTER PAGES ----------------
   master: "/masters",

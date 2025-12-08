@@ -1,0 +1,103 @@
+import { apiClient } from './client';
+import type {
+  DashboardResponse,
+  ApplicationsListResponse,
+  ApplicationDetailResponse,
+  AssignBookingPayload,
+  ForwardApplicationPayload,
+  AddNotePayload,
+  ReassignBookingPayload,
+  CancelApplicationPayload,
+  BookingAgent,
+} from '@/src/types/travel-desk.types';
+
+export const travelDeskAPI = {
+  dashboard: {
+    get: async (): Promise<DashboardResponse> => {
+      const { data } = await apiClient.get('/travel/dashboard/travel-desk/');
+      return data;
+    },
+  },
+
+  applications: {
+    list: async (
+      page = 1,
+      search = '',
+      status = ''
+    ): Promise<ApplicationsListResponse> => {
+      const params = new URLSearchParams();
+      if (page > 1) params.append('page', page.toString());
+      if (search) params.append('search', search);
+      if (status) params.append('status', status);
+
+      const { data } = await apiClient.get(
+        `/travel/travel-desk/applications/${params.toString() ? `?${params}` : ''}`
+      );
+      console.log(data);
+      return data;
+    },
+
+    detail: async (applicationId: number): Promise<ApplicationDetailResponse> => {
+      const { data } = await apiClient.get(
+        `/travel/travel-desk/applications/${applicationId}/`
+      );
+      return data;
+    },
+
+    bookings: async (applicationId: number) => {
+      const { data } = await apiClient.get(
+        `/travel/travel-desk/applications/${applicationId}/bookings/`
+      );
+      return data;
+    },
+
+    cancel: async (applicationId: number, payload: CancelApplicationPayload) => {
+      const { data } = await apiClient.post(
+        `/travel/travel-desk/applications/${applicationId}/cancel/`,
+        payload
+      );
+      return data;
+    },
+
+    forward: async (applicationId: number, payload: ForwardApplicationPayload) => {
+      const { data } = await apiClient.post(
+        `/travel/travel-desk/applications/${applicationId}/forward/`,
+        payload
+      );
+      return data;
+    },
+  },
+
+  bookings: {
+    assign: async (payload: AssignBookingPayload) => {
+      const { data } = await apiClient.post(
+        `/travel/travel-desk/assign-bookings/`,
+        payload
+      );
+      return data;
+    },
+
+    addNote: async (bookingId: number, payload: AddNotePayload) => {
+      const { data } = await apiClient.post(
+        `/travel/travel-desk/bookings/${bookingId}/notes/`,
+        payload
+      );
+      return data;
+    },
+
+    reassign: async (bookingId: number, payload: ReassignBookingPayload) => {
+      const { data } = await apiClient.post(
+        `/travel/travel-desk/bookings/${bookingId}/reassign/`,
+        payload
+      );
+      return data;
+    },
+  },
+
+  agents: {
+    list: async (): Promise<{ data: BookingAgent[] }> => {
+      const { data } = await apiClient.get(`/travel/booking-agents/`);
+      return data;
+    },
+  },
+};

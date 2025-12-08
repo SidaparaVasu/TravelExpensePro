@@ -85,7 +85,7 @@ export default function CreateClaimApplicationPage() {
               estimated: Number(b.estimated_cost || 0),
               amount: Number(b.estimated_cost || 0),
               booking_file: b.booking_file,
-              has_receipt: false,
+              has_receipt: Boolean(b.booking_file),
               receipt_file: null,
               remarks: ""
             });

@@ -1,0 +1,185 @@
+from rest_framework import serializers
+from apps.travel.models import TravelApplication, TripDetails, Booking, BookingAssignment, BookingNote
+from apps.authentication.models import User
+
+class BookingAgentSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    organization_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ["id", "username", "full_name", "organization_name"]
+
+    def get_full_name(self, obj):
+        return obj.get_full_name() or obj.username
+
+    def get_organization_name(self, obj):
+        profile = getattr(obj, "external_profile", None)
+        return profile.organization_name if profile else None
+
+
+class AgentBookingSerializer(serializers.ModelSerializer):
+    assigned_agent_name = serializers.SerializerMethodField()
+    booking_type_name = serializers.CharField(source="booking_type.name", read_only=True)
+    sub_option_name = serializers.CharField(source="sub_option.name", read_only=True)   
+
+    class Meta:
+        model = Booking
+        fields = [
+            'id', 'booking_type', 'sub_option', 'booking_type_name', 'sub_option_name', 
+            'estimated_cost', 'actual_cost', 'vendor_reference', 'booking_reference',
+            'status', 'booking_details', 'booking_file',
+            'assigned_agent_name'
+        ]
+
+    def get_assigned_agent_name(self, obj):
+        assignment = getattr(obj, 'active_assignment', None)
+        if assignment and assignment.agent:
+            return assignment.agent.user.first_name + " " + assignment.agent.user.last_name
+        return None
+
+class AgentBookingListSerializer(serializers.ModelSerializer):
+    application_id = serializers.IntegerField(source="trip_details.travel_application.id", read_only=True)
+    travel_request_id = serializers.CharField(source="trip_details.travel_application.travel_request_id", read_only=True)
+    employee_name = serializers.SerializerMethodField()
+    trip_segment = serializers.SerializerMethodField()
+    booking_details = serializers.JSONField()
+    booking_type_name = serializers.CharField(source="booking_type.name", read_only=True)
+    sub_option_name = serializers.CharField(source="sub_option.name", read_only=True)
+    status_label = serializers.SerializerMethodField()
+    assigned_agent = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Booking
+        fields = [
+            "id", "application_id", "travel_request_id", "employee_name", "trip_segment", 
+            "booking_details", "booking_type", "booking_type_name", "sub_option", "sub_option_name",
+            "status", "status_label", "estimated_cost", "actual_cost",
+            "booking_reference", "vendor_reference", "booking_file",
+            "created_at", "updated_at",
+            "assigned_agent",
+        ]
+
+    def get_employee_name(self, obj):
+        emp = obj.trip_details.travel_application.employee
+        return emp.get_full_name() or emp.username
+
+    def get_trip_segment(self, obj):
+        td = obj.trip_details
+        return f"{td.from_location.city_name} → {td.to_location.city_name}"
+
+    def get_status_label(self, obj):
+        return obj.get_status_display()
+
+    def get_assigned_agent(self, obj):
+        assignment = (
+            BookingAssignment.objects
+            .filter(booking=obj)
+            .select_related("assigned_to__external_profile")
+            .first()
+        )
+        if not assignment or not assignment.assigned_to:
+            return None
+
+        user = assignment.assigned_to
+        ext = getattr(user, "external_profile", None)
+
+        return {
+            "id": user.id,
+            "name": user.get_full_name() or user.username,
+            "organization_name": ext.organization_name if ext else None,
+            "assigned_at": assignment.assigned_at,
+            "scope": assignment.assignment_scope,
+        }
+
+
+class AgentBookingDetailSerializer(serializers.ModelSerializer):
+    application_id = serializers.IntegerField(source="trip_details.travel_application.id", read_only=True)
+    travel_request_id = serializers.CharField(source="trip_details.travel_application.travel_request_id", read_only=True)
+    employee_name = serializers.SerializerMethodField()
+    employee_grade = serializers.CharField(source="trip_details.travel_application.employee_grade", read_only=True)
+    purpose = serializers.CharField(source="trip_details.travel_application.purpose", read_only=True)
+    trip_segment = serializers.SerializerMethodField()
+    booking_type_name = serializers.CharField(source="booking_type.name", read_only=True)
+    sub_option_name = serializers.CharField(source="sub_option.name", read_only=True)
+    status_label = serializers.SerializerMethodField()
+    assigned_agent = serializers.SerializerMethodField()
+    booking_details = serializers.JSONField()
+
+    class Meta:
+        model = Booking
+        fields = [
+            "id", "application_id", "travel_request_id", "employee_name", "employee_grade", 
+            "purpose", "trip_segment", "booking_type", "booking_type_name", "sub_option", "sub_option_name", 
+            "status", "status_label", "estimated_cost", "actual_cost", 
+            "booking_reference", "vendor_reference", 
+            "booking_file", "special_instruction", 
+            "created_at", "updated_at", "booked_at", "assigned_agent",
+            "booking_details",
+        ]
+
+    def get_employee_name(self, obj):
+        app = obj.trip_details.travel_application
+        user = app.employee
+        return user.get_full_name() or user.username
+
+    def get_trip_segment(self, obj):
+        td: TripDetails = obj.trip_details
+        return f"{td.from_location.city_name} → {td.to_location.city_name}"
+
+    def get_status_label(self, obj):
+        return obj.get_status_display()
+
+    def get_assigned_agent(self, obj):
+        assignment = (
+            BookingAssignment.objects
+            .filter(booking=obj)
+            .select_related("assigned_by")
+            .first()
+        )
+        if not assignment or not assignment.assigned_by:
+            return None
+        ag: User = assignment.assigned_by
+        return {
+            "id": ag.id,
+            "name": ag.get_full_name() or ag.username,
+            "assigned_at": assignment.assigned_at,
+            "scope": assignment.assignment_scope,
+        }
+
+
+class BookingStatusUpdateSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=Booking.BOOKING_STATUS_CHOICES)
+    remarks = serializers.CharField(required=False, allow_blank=True)
+    actual_cost = serializers.DecimalField(max_digits=12, decimal_places=2, required=False)
+    booking_reference = serializers.CharField(required=False, allow_blank=True)
+    vendor_reference = serializers.CharField(required=False, allow_blank=True)
+
+    def validate(self, attrs):
+        status = attrs.get("status")
+        remarks = attrs.get("remarks", "")
+        if status == "cancelled" and not remarks:
+            raise serializers.ValidationError({"remarks": "Cancellation reason is required"})
+        return attrs
+
+
+class BookingNoteSerializer(serializers.ModelSerializer):
+    author_name = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = BookingNote
+        fields = [
+            "id", "booking", "note", "author", "author_name", "created_at",
+        ]
+        read_only_fields = ["author", "author_name", "created_at"]
+
+    def get_author_name(self, obj):
+        if not obj.author:
+            return None
+        return obj.author.get_full_name() or obj.author.username
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            validated_data["author"] = request.user
+        return super().create(validated_data)

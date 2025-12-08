@@ -56,6 +56,18 @@
     --radius: 0.625rem; /* 10px */
     --radius: 0.35rem; /* 10px */
 
+    /* KPI Card Colors */
+    --kpi-blue: 217 91% 60%;
+    --kpi-blue-bg: 217 91% 97%;
+    --kpi-orange: 38 92% 50%;
+    --kpi-orange-bg: 38 92% 97%;
+    --kpi-green: 142 76% 36%;
+    --kpi-green-bg: 142 76% 97%;
+    --kpi-purple: 262 83% 58%;
+    --kpi-purple-bg: 262 83% 97%;
+    --kpi-red: 0 84% 60%;
+    --kpi-red-bg: 0 84% 97%;
+
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 223 34% 21%; /* #1C1F37 */
     --sidebar-primary: 217 91% 60%; /* #3B82F7 */
@@ -126,5 +138,92 @@
       "Segoe UI",
       Roboto,
       sans-serif;
+  }
+}
+
+@layer components {
+  /* KPI Card */
+  .kpi-card {
+    @apply bg-card rounded-xl shadow-sm border p-6 transition-all hover:shadow-md;
+  }
+
+  .kpi-icon {
+    @apply w-12 h-12 rounded-full flex items-center justify-center;
+  }
+
+  /* Table Header */
+  .table-header {
+    @apply bg-muted/50 border-b;
+  }
+
+  /* Action Buttons */
+  .action-btn {
+    @apply p-2 rounded-lg transition-colors;
+  }
+
+  .action-btn-view {
+    @apply text-primary hover:bg-primary/10;
+  }
+
+  .action-btn-forward {
+    @apply text-green-600 hover:bg-green-600/10;
+  }
+
+  .action-btn-cancel {
+    @apply text-red-600 hover:bg-red-600/10;
+  }
+
+  .action-btn-note {
+    @apply text-yellow-600 hover:bg-yellow-600/10;
+  }
+
+  .action-btn-reassign {
+    @apply text-blue-600 hover:bg-blue-600/10;
+  }
+
+  /* Status Badges */
+  .status-badge {
+    @apply px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .status-pending {
+    @apply bg-yellow-500/10 text-yellow-600;
+  }
+
+  .status-booked {
+    @apply bg-green-500/10 text-green-600;
+  }
+
+  .status-in-progress {
+    @apply bg-blue-500/10 text-blue-600;
+  }
+
+  .status-completed {
+    @apply bg-emerald-500/10 text-emerald-600;
+  }
+
+  .status-cancelled {
+    @apply bg-red-500/10 text-red-600;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    @apply fixed inset-0 bg-foreground/50 backdrop-blur-sm flex items-center justify-center z-50 p-4;
+  }
+
+  .modal-content {
+    @apply bg-card rounded-xl shadow-xl w-full max-h-[90vh] overflow-hidden;
+  }
+
+  .modal-header {
+    @apply sticky top-0 bg-card border-b px-6 py-4 flex items-center justify-between;
+  }
+
+  .modal-body {
+    @apply p-6 overflow-y-auto;
+  }
+
+  .modal-footer {
+    @apply sticky bottom-0 bg-card border-t px-6 py-4 flex justify-end gap-3;
   }
 }

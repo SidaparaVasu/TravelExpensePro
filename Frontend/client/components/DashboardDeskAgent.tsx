@@ -152,25 +152,6 @@ export default function DeskAgentDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/20">
-      {/* Header */}
-      <div className="bg-white border-b shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                TD
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-800">Travel Desk Agent</h1>
-                <p className="text-sm text-slate-600">Booking Operations</p>
-              </div>
-            </div>
-            <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
-              Logout
-            </button>
-          </div>
-        </div>
-      </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* KPIs */}
