@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission
+from apps.authentication.models import ExternalProfile 
 
 class IsAdminUser(BasePermission):
     """
@@ -44,14 +45,6 @@ class IsEmployee(BasePermission):
     
     message = "Employee access required"
 
-# To see owen travel application / reporting manager or current approver can see only
-# class IsOwnerOrApprover(BasePermission):
-#     """
-#     Only the user who created the application or the current approver can access it
-#     """
-#     def has_object_permission(self, request, view, obj):
-#         return obj.employee == request.user or obj.current_approver == request.user
-    
 
 class IsOwnerOrApprover(BasePermission):
     """
@@ -77,22 +70,6 @@ class IsOwnerOrApprover(BasePermission):
         return False
     
     message = "You don't have permission to access this travel application"
-
-# class HasCustomPermission(BasePermission):
-#     """
-#     Check custom permission by codename
-#     Usage: Set permission_required = 'permission_codename' on view
-#     """
-#     def has_permission(self, request, view):
-#         if not request.user or not request.user.is_authenticated:
-#             return False
-        
-#         required_permission = getattr(view, 'permission_required', None)
-#         if not required_permission:
-#             return False
-        
-#         user_permissions = request.user.get_user_permissions_list()
-#         return required_permission in user_permissions
 
 class HasCustomPermission(BasePermission):
     """
@@ -127,6 +104,30 @@ class IsTravelDesk(BasePermission):
     
     message = "Travel Desk access required"
 
+class IsBookingAgent(BasePermission):
+    """
+    Allow only external users whose external profile is booking_agent.
+    """
+
+    def has_permission(self, request, view):
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+
+        # If you have helper: user.is_external(), use that.
+        if hasattr(user, "user_type") and user.user_type != "external":
+            return False
+
+        profile = getattr(user, "external_profile", None)
+        if not profile:
+            # if you use a generic profile relation, adapt this line accordingly
+            profile = (
+                ExternalProfile.objects.filter(user=user).first()
+                if ExternalProfile is not None
+                else None
+            )
+
+        return bool(profile and profile.profile_type == "booking_agent")
 
 class IsSPOC(BasePermission):
     """Permission for SPOC users"""

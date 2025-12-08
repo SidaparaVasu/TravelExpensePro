@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from django.utils import timezone
 
 class Booking(models.Model):
     """
@@ -9,6 +10,7 @@ class Booking(models.Model):
     BOOKING_STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('requested', 'Requested'),
+        ('in_progress', 'In Progress'),
         ('confirmed', 'Confirmed'),
         ('cancelled', 'Cancelled'),
         ('completed', 'Completed'),
@@ -59,6 +61,12 @@ class Booking(models.Model):
     
     # Files
     booking_file = models.FileField(upload_to=' booking_files/', blank=True, null=True)
+
+    uploaded_by = models.ForeignKey(
+        'authentication.User', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="uploaded_booking_files"
+    )
+    uploaded_at = models.DateTimeField(null=True, blank=True)
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -87,3 +95,89 @@ class Booking(models.Model):
             return False
         except:
             return True
+        
+
+class BookingAssignment(models.Model):
+    """
+    Assignment of a single booking to a booking agent.
+    One booking -> one active assignment.
+    """
+    ASSIGNMENT_SCOPE_CHOICES = [
+        ('single_booking', 'Single Booking'),
+        ('full_application', 'Full Application'),
+    ]
+
+    booking = models.OneToOneField(
+        'Booking',
+        on_delete=models.CASCADE,
+        related_name='assignment',
+    )
+
+    assigned_by = models.ForeignKey(
+        'authentication.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='bookings_assigned',
+    )
+
+    assigned_to = models.ForeignKey(
+        'authentication.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='bookings_received',
+    )
+
+    assignment_scope = models.CharField(
+        max_length=20,
+        choices=ASSIGNMENT_SCOPE_CHOICES,
+        default='single_booking',
+        help_text="Whether this assignment was created individually or via full application forwarding.",
+    )
+
+    notes = models.TextField(blank=True)
+
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['assigned_to', 'assigned_at']),
+        ]
+
+    def __str__(self):
+        return f"Booking {self.booking_id} -> {self.assigned_to} ({self.assignment_scope})"
+
+    def mark_accepted(self):
+        if not self.accepted_at:
+            self.accepted_at = timezone.now()
+            self.save(update_fields=['accepted_at'])
+
+    def mark_completed(self):
+        if not self.completed_at:
+            self.completed_at = timezone.now()
+            self.save(update_fields=['completed_at'])
+
+
+class BookingNote(models.Model):
+    booking = models.ForeignKey(
+        'Booking',
+        on_delete=models.CASCADE,
+        related_name='notes',
+    )
+    author = models.ForeignKey(
+        'authentication.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    note = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Note for booking {self.booking_id} by {self.author}"

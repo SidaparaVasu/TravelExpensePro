@@ -23,10 +23,12 @@ function getPrimaryDashboard(roles: Array<{ role_type: string }>): string {
 
   const isAdminType = roleTypes.some(r => ADMIN_ROLES.includes(r));
   const isTravelDesk = roleTypes.includes("travel_desk");
+  const isBookingAgent = roleTypes.includes("booking_agent");
   const isEmployee = roleTypes.includes("employee");
 
   if (isAdminType) return "/admin/dashboard";
   if (isTravelDesk) return "/travel_desk/dashboard";
+  if (isBookingAgent) return "/booking_agent/dashboard";
   if (isEmployee) return "/employee/dashboard";
 
   return "/employee/dashboard";

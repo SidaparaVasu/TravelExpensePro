@@ -56,7 +56,7 @@ class ExternalProfileInline(admin.StackedInline):
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ('username', 'email', 'first_name', 'last_name', 'user_type', 'grade', 'get_reporting_manager', 'get_roles', 'is_active')
+    list_display = ('id', 'username', 'email', 'first_name', 'last_name', 'user_type', 'grade', 'get_reporting_manager', 'get_roles', 'is_active')
     list_filter = ('user_type', 'organizational_profile__grade', 'is_staff', 'is_superuser', 'is_active')
     search_fields = ('username', 'email', 'first_name', 'last_name')
     ordering = ('username',)

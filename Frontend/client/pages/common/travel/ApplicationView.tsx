@@ -275,7 +275,7 @@ const TripCard = ({ trip, parentPurpose, guestHousesMap }: any) => {
   // group bookings
   const ticketing = (trip.bookings || []).filter((b: any) => /flight|train/i.test(b.booking_type_name || ''));
   const accommodation = (trip.bookings || []).filter((b: any) => /accommodation/i.test(b.booking_type_name || ''));
-  const conveyance = (trip.bookings || []).filter((b: any) => /car|conveyance|taxi/i.test(b.booking_type_name || ''));
+  const conveyance = (trip.bookings || []).filter((b: any) => /car|conveyance|taxi|pick-up|drop|own|personal/i.test(b.booking_type_name || ''));
 
   return (
     <motion.div layout initial={false} animate={open ? "expanded" : "collapsed"} variants={containerVariants}>

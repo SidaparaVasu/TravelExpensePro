@@ -110,6 +110,28 @@ class TravelApplication(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     submitted_at = models.DateTimeField(null=True, blank=True)
+
+    # Travel desk / booking workflow
+    travel_desk_user = models.ForeignKey(
+        'authentication.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='travel_desk_applications',
+        help_text="Primary travel desk owner handling this application.",
+    )
+
+    booking_forwarded_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the application was first forwarded to booking agent(s).",
+    )
+
+    booking_completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When all bookings were confirmed.",
+    )
     
     # Approval Tracking
     current_approver = models.ForeignKey(
@@ -323,67 +345,43 @@ class TravelApplication(models.Model):
         # Notify travel desk
         pass  # Implement email logic when notifications ready
 
+    def mark_booking_in_progress(self, travel_desk_user=None):
+        """
+        Move application from pending_travel_desk -> booking_in_progress.
+        Called when Travel Desk forwards bookings to booking agent(s).
+        """
+        if self.status != 'pending_travel_desk':
+            raise ValidationError("Can only mark as booking in progress from 'pending_travel_desk' status.")
 
-    # def calculate_da_entitlement(self):
-    #     """Calculate DA/Incidentals for entire travel"""
-    #     from apps.travel.business_logic.calculations import calculate_da_incidentals
-        
-    #     total_da = Decimal('0')
-    #     total_incidentals = Decimal('0')
-        
-    #     trip_breakdown = []
-        
-    #     for trip in self.trip_details.all():
-    #         duration_days = trip.get_duration_days()
-    #         duration_hours = duration_days * 24
-    #         city_category = trip.get_city_category()
-            
-    #         # Calculate for this trip
-    #         da_calc = calculate_da_incidentals(
-    #             self.employee,
-    #             city_category,
-    #             duration_days,
-    #             duration_hours
-    #         )
-            
-    #         if 'da_amount' in da_calc:
-    #             total_da += da_calc['da_amount']
-    #             total_incidentals += da_calc['incidental_amount']
-                
-    #             trip_breakdown.append({
-    #                 'trip_id': trip.id,
-    #                 'from_to': f"{trip.from_location.location_name} → {trip.to_location.location_name}",
-    #                 'duration_days': duration_days,
-    #                 'city_category': city_category,
-    #                 'da_amount': float(da_calc['da_amount']),
-    #                 'incidental_amount': float(da_calc['incidental_amount'])
-    #             })
-        
-    #     return {
-    #         'total_da': float(total_da),
-    #         'total_incidentals': float(total_incidentals),
-    #         'grand_total': float(total_da + total_incidentals),
-    #         'trip_breakdown': trip_breakdown
-    #     }
+        self.status = 'booking_in_progress'
+        if travel_desk_user:
+            self.travel_desk_user = travel_desk_user
+        if not self.booking_forwarded_at:
+            self.booking_forwarded_at = timezone.now()
 
-    # def save(self, *args, **kwargs):
-    #     """Override save to validate status transitions"""
-    #     if self.pk:  # Existing instance (update)
-    #         try:
-    #             old_instance = TravelApplication.objects.get(pk=self.pk)
-    #             if old_instance.status != self.status:
-    #                 # Status is being changed - validate transition
-    #                 is_valid, error_message = self.can_transition_to(self.status)
-    #                 if not is_valid:
-    #                     raise ValidationError({
-    #                         'status': error_message
-    #                     })
-    #         except TravelApplication.DoesNotExist:
-    #             # Should not happen, but handle gracefully
-    #             pass
-        
-    #     super().save(*args, **kwargs)
+        self.save(update_fields=['status', 'travel_desk_user', 'booking_forwarded_at'])
 
+    def refresh_booking_status_from_children(self):
+        """
+        Recompute application-level booking status based on child bookings.
+        If all bookings are confirmed -> set status to 'booked'.
+        """
+        trips = self.trip_details.all()
+        if not trips.exists():
+            return
+
+        all_bookings = []
+        for trip in trips:
+            all_bookings.extend(list(trip.bookings.all()))
+
+        if not all_bookings:
+            return
+
+        # All confirmed -> mark booked
+        if all(b.status == 'confirmed' for b in all_bookings):
+            self.status = 'booked'
+            self.booking_completed_at = timezone.now()
+            self.save(update_fields=['status', 'booking_completed_at'])
 
 
 class TripDetails(models.Model):
@@ -460,38 +458,4 @@ class TripDetails(models.Model):
         """Get destination city category for DA calculation"""
         # return self.to_location.city.category.name
         # return self.to_location.category.name
-        return self.to_location.category.name if self.to_location.category else None
-    
-
-
-class TravelApproval(models.Model):
-    APPROVAL_STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-    ]
-
-    travel_application = models.OneToOneField(TravelApplication, on_delete=models.CASCADE, related_name='approval')
-    manager = models.ForeignKey('authentication.User', on_delete=models.SET_NULL, null=True, related_name='approvals_to_review')
-    status = models.CharField(max_length=20, choices=APPROVAL_STATUS_CHOICES, default='pending')
-    notes = models.TextField(blank=True, null=True)
-    approved_at = models.DateTimeField(blank=True, null=True)
-
-    def __str__(self):
-        return f"Approval for {self.travel_application.id} by {self.manager.username} | {self.travel_application.status} | {self.status}"
-    
-    def save(self, *args, **kwargs):
-        # first save this approval
-        super().save(*args, **kwargs)
-
-        if self.status == "approved":
-            self.travel_application.status = "approved_manager"
-            self.travel_application.save(update_fields=["status"])
-        elif self.status == "rejected":
-            self.travel_application.status = "rejected_manager"
-            self.travel_application.save(update_fields=["status"])
-        elif self.status == "pending":
-            self.travel_application.status = "pending_manager"
-            self.travel_application.save(update_fields=["status"])
-
-        
+        return self.to_location.category.name if self.to_location.category else None     

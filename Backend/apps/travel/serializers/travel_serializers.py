@@ -7,6 +7,7 @@ from ..business_logic.validators import *
 class BookingSerializer(serializers.ModelSerializer):
     booking_type_name = serializers.CharField(source='booking_type.name', read_only=True)
     sub_option_name = serializers.CharField(source='sub_option.name', read_only=True)
+    booking_details = serializers.JSONField()
 
     class Meta:
         model = Booking

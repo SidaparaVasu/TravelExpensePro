@@ -13,10 +13,15 @@ class AuditLog(models.Model):
         ('reject', 'Rejected'),
         ('submit', 'Submitted'),
         ('cancel', 'Cancelled'),
+
+        # Travel Desk / Booking Agent workflow
+        ('assign_booking', 'Booking Assigned'),
+        ('update_booking_status', 'Booking Status Updated'),
+        ('forward_to_travel_desk', 'Forwarded to Travel Desk'),
     ]
     
     user = models.ForeignKey('authentication.User', on_delete=models.SET_NULL, null=True)
-    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    action = models.CharField(max_length=30, choices=ACTION_CHOICES)
     timestamp = models.DateTimeField(auto_now_add=True)
     
     # Generic relation to any model

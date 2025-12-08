@@ -1,0 +1,612 @@
+from django.db.models import Q, F, Avg, ExpressionWrapper, DurationField
+from django.utils.timezone import now, timedelta
+from django.utils import timezone
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.pagination import PageNumberPagination
+
+from apps.authentication.permissions import IsTravelDesk, IsAdminUser
+from apps.travel.models import Booking, BookingAssignment, BookingNote, TravelApplication
+from apps.travel.serializers.booking_agent_serializers import *
+from apps.travel.services import refresh_application_booking_status
+from apps.authentication.permissions import IsBookingAgent
+from apps.travel.models.audit import AuditLog
+from utils.response_formatter import success_response, error_response
+from utils.pagination import StandardResultsSetPagination
+
+
+class BookingAgentsListView(APIView):
+    """
+    GET /booking-agents/
+    Returns list of all booking agent users.
+    """
+
+    permission_classes = [IsAuthenticated, IsTravelDesk | IsAdminUser]
+
+    def get(self, request):
+        try:
+            # Get all users who are booking agents
+            agents = (
+                User.objects
+                .filter(external_profile__profile_type="booking_agent", is_active=True)
+                .select_related("external_profile")
+            )
+
+            serializer = BookingAgentSerializer(agents, many=True)
+
+            return success_response(
+                message="Booking agents fetched successfully",
+                data=serializer.data
+            )
+
+        except Exception as e:
+            return error_response(
+                message="Failed to fetch booking agents",
+                data={"detail": str(e)}
+            )
+
+
+class BookingAgentDashboardView(APIView):
+    permission_classes = [IsAuthenticated, IsBookingAgent]
+
+    def get(self, request):
+        user = request.user
+
+        # All bookings assigned to this agent
+        assigned_qs = BookingAssignment.objects.filter(
+            assigned_to=user
+        ).select_related("booking")
+
+        assigned_ids = assigned_qs.values_list("booking_id", flat=True)
+
+        # Base queryset of bookings
+        bookings = Booking.objects.filter(id__in=assigned_ids)
+
+        # ---------------------------
+        # 1. STATUS COUNTS
+        # ---------------------------
+        stats = {
+            "total_assigned": bookings.count(),
+            "pending": bookings.filter(status="requested").count(),
+            "in_progress": bookings.filter(status="in_progress").count(),
+            "confirmed": bookings.filter(status="confirmed").count(),
+            "cancelled": bookings.filter(status="cancelled").count(),
+        }
+
+        # ---------------------------
+        # 2. SLA: Overdue Bookings
+        # (requested for more than 4 hours)
+        # ---------------------------
+        sla_hours = 4
+        sla_deadline = now() - timedelta(hours=sla_hours)
+
+        overdue = assigned_qs.filter(
+            assigned_at__lt=sla_deadline,
+            accepted_at__isnull=True
+        ).count()
+
+        stats["overdue_pending"] = overdue
+
+        # ---------------------------
+        # 3. Average Response Time (assignment → accepted)
+        # ---------------------------
+        response_time = assigned_qs.exclude(accepted_at=None).annotate(
+            diff=ExpressionWrapper(
+                F("accepted_at") - F("assigned_at"),
+                output_field=DurationField()
+            )
+        ).aggregate(avg=Avg("diff"))["avg"]
+
+        stats["avg_response_hours"] = (
+            round(response_time.total_seconds() / 3600, 2)
+            if response_time else None
+        )
+
+        # ---------------------------
+        # 4. Average Confirmation Time (assignment → confirmed)
+        # ---------------------------
+        confirmed_times = bookings.filter(
+            status="confirmed",
+            assignment__assigned_to=user
+        ).annotate(
+            diff=ExpressionWrapper(
+                F("booked_at") - F("assignment__assigned_at"),
+                output_field=DurationField()
+            )
+        ).aggregate(avg=Avg("diff"))["avg"]
+
+        stats["avg_confirmation_hours"] = (
+            round(confirmed_times.total_seconds() / 3600, 2)
+            if confirmed_times else None
+        )
+
+        # ---------------------------
+        # 5. Average Completion Time (confirmed → completed)
+        # ---------------------------
+        completed_times = bookings.filter(
+            status="completed",
+        ).annotate(
+            diff=ExpressionWrapper(
+                F("assignment__completed_at") - F("booked_at"),
+                output_field=DurationField()
+            )
+        ).aggregate(avg=Avg("diff"))["avg"]
+
+        stats["avg_completion_hours"] = (
+            round(completed_times.total_seconds() / 3600, 2)
+            if completed_times else None
+        )
+
+        # ---------------------------
+        # 6. Recent Bookings (last 10)
+        # ---------------------------
+        recent = bookings.order_by("-updated_at")[:10]
+
+        return success_response(
+            message="Dashboard data",
+            data={
+                "stats": stats,
+                "recent": AgentBookingSerializer(recent, many=True).data
+            }
+        )
+
+
+class BookingAgentBookingsListView(APIView):
+    """
+    GET /travel/agent/bookings/
+    List bookings assigned to the logged-in booking agent.
+    """
+
+    permission_classes = [IsAuthenticated, IsBookingAgent]
+
+    def get(self, request):
+        user = request.user
+
+        qs = Booking.objects.filter(
+            assignment__assigned_to=user,
+        ).select_related(
+            "trip_details__travel_application",
+            "trip_details__from_location",
+            "trip_details__to_location",
+            "booking_type",
+            "sub_option",
+        )
+
+        status_filter = request.query_params.get("status")
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+
+        search = request.query_params.get("search")
+        if search:
+            qs = qs.filter(
+                Q(trip_details__travel_application__travel_request_id__icontains=search)
+                | Q(trip_details__travel_application__employee__first_name__icontains=search)
+                | Q(trip_details__travel_application__employee__last_name__icontains=search)
+            )
+
+        qs = qs.order_by("status", "created_at")
+
+        paginator = StandardResultsSetPagination()
+        page = paginator.paginate_queryset(qs, request)
+        serializer = AgentBookingListSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+
+class BookingAgentBookingDetailView(APIView):
+    """
+    GET /travel/agent/bookings/<id>/
+    Detailed view of a booking for the assigned agent.
+    """
+
+    permission_classes = [IsAuthenticated, IsBookingAgent]
+
+    def get(self, request, pk):
+        user = request.user
+        booking = (
+            Booking.objects
+            .select_related(
+                "trip_details__travel_application__employee",
+                "trip_details__from_location",
+                "trip_details__to_location",
+                "booking_type",
+                "sub_option",
+            )
+            .filter(id=pk, assignment__assigned_to=user)
+            .first()
+        )
+
+        if not booking:
+            return error_response(message="Booking not found", data={"id": ["Invalid booking id"]})
+
+        serializer = AgentBookingDetailSerializer(booking)
+        return success_response(data=serializer.data)
+
+
+ALLOWED_AGENT_STATUSES = ["confirmed", "cancelled"]
+class BookingAgentUpdateStatusView(APIView):
+    permission_classes = [IsAuthenticated, IsBookingAgent]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, pk):
+        user = request.user
+
+        # ----------------------------
+        # Validate booking belongs to agent
+        # ----------------------------
+        booking = (
+            Booking.objects
+            .select_related("assignment", "trip_details__travel_application")
+            .filter(id=pk, assignment__assigned_to=user)
+            .first()
+        )
+
+        if not booking:
+            return error_response(
+                message="Booking not found or not assigned to you.",
+                data={"id": ["Invalid booking id"]}
+            )
+
+        # ----------------------------
+        # Normalize and validate status
+        # ----------------------------
+        new_status = request.data.get("status", "").strip().lower()
+        remarks = request.data.get("remarks", "")
+
+        if new_status not in ALLOWED_AGENT_STATUSES:
+            return error_response(
+                message="Invalid status",
+                data={"status": ["Status must be 'confirmed' or 'cancelled'"]},
+            )
+
+        # ----------------------------
+        # 1. File Upload (optional)
+        # ----------------------------
+        file_obj = request.FILES.get("booking_file")
+        if file_obj:
+            booking.booking_file = file_obj
+            booking.uploaded_by = user
+            booking.uploaded_at = timezone.now()
+
+        # ----------------------------
+        # 2. Update Booking Status
+        # ----------------------------
+        booking.status = new_status
+
+        if new_status == "confirmed":
+            booking.booked_at = timezone.now()
+
+        booking.save()
+
+        # ----------------------------
+        # 3. Add Booking Note
+        # ----------------------------
+        if remarks:
+            BookingNote.objects.create(
+                booking=booking,
+                author=user,
+                note=remarks
+            )
+
+        # ----------------------------
+        # 4. Update Application Status
+        # ----------------------------
+        application = booking.trip_details.travel_application
+
+        all_bookings = Booking.objects.filter(
+            trip_details__travel_application=application
+        )
+
+        # If all bookings are confirmed → mark application as "booked"
+        if all_bookings.count() > 0 and all_bookings.filter(status="confirmed").count() == all_bookings.count():
+            application.status = "booked"
+            application.save(update_fields=["status"])
+
+        # ----------------------------
+        # 5. Audit Log
+        # ----------------------------
+        AuditLog.objects.create(
+            user=user,
+            action="update_booking_status",
+            content_object=booking,
+            changes={
+                "booking_id": booking.id,
+                "new_status": new_status,
+                "remarks": remarks,
+            }
+        )
+
+        # ----------------------------
+        # 6. Return Response
+        # ----------------------------
+        return success_response(
+            message="Booking updated successfully",
+            data={
+                "booking_id": booking.id,
+                "status": new_status,
+                "file_uploaded": bool(file_obj),
+                "application_status": application.status,
+            }
+        )
+
+
+class BookingAgentFileUploadView(APIView):
+    """
+    POST /travel/agent/bookings/<id>/upload-file/
+    Multipart: file=<file>
+    """
+
+    permission_classes = [IsAuthenticated, IsBookingAgent]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, pk):
+        user = request.user
+        booking = Booking.objects.filter(
+            id=pk,
+            assignment__assined_to=user,
+        ).select_related("trip_details__travel_application").first()
+
+        if not booking:
+            return error_response(message="Booking not found", data={"id": ["Invalid booking id"]})
+
+        file_obj = request.FILES.get("file")
+        if not file_obj:
+            return error_response(message="No file uploaded", data={"file": ["This field is required"]})
+
+        # overwrite is acceptable for current deadline
+        booking.booking_file = file_obj
+        booking.uploaded_by = user
+        booking.uploaded_at = timezone.now()
+        booking.save(update_fields=["booking_file", "uploaded_by", "uploaded_at"])
+
+        AuditLog.objects.create(
+            user=user,
+            action="update_booking_status",
+            content_object=booking,
+            changes={
+                "file_uploaded": file_obj.name,
+            },
+        )
+
+        return success_response(
+            message="File uploaded successfully",
+            data={
+                "id": booking.id,
+                "file_url": booking.booking_file.url if booking.booking_file else None,
+            },
+        )
+
+
+class BookingAgentNotesView(APIView):
+    """
+    GET /travel/agent/bookings/<id>/notes/
+    POST /travel/agent/bookings/<id>/notes/
+    Booking agent can add/view notes on a booking.
+    """
+
+    permission_classes = [IsAuthenticated, IsBookingAgent]
+
+    def get(self, request, pk):
+        user = request.user
+        # ensure agent has access to this booking
+        has_access = Booking.objects.filter(
+            id=pk,
+            assignment__assigned_to=user,
+        ).exists()
+        if not has_access:
+            return error_response(message="Booking not found", data={"id": ["Invalid booking id"]})
+
+        notes = BookingNote.objects.filter(booking_id=pk).select_related("author").order_by("-created_at")
+        serializer = BookingNoteSerializer(notes, many=True)
+        return success_response(data=serializer.data)
+
+    def post(self, request, pk):
+        user = request.user
+        booking = Booking.objects.filter(
+            id=pk,
+            assignment__assigned_to=user,
+        ).first()
+        if not booking:
+            return error_response(message="Booking not found", data={"id": ["Invalid booking id"]})
+
+        payload = {**request.data, "booking": pk}
+        serializer = BookingNoteSerializer(data=payload, context={"request": request})
+        if not serializer.is_valid():
+            return error_response(message="Validation error", data=serializer.errors)
+
+        note = serializer.save()
+
+        AuditLog.objects.create(
+            user=user,
+            action="update_booking_status",
+            content_object=booking,
+            changes={"note": note.note},
+        )
+
+        return success_response(
+            message="Note added successfully",
+            data=BookingNoteSerializer(note).data,
+        )
+
+class BookingAgentAcceptBookingView(APIView):
+    """
+    POST /travel/booking-agent/bookings/<id>/accept/
+    Booking agent accepts the assigned booking.
+    """
+
+    permission_classes = [IsAuthenticated, IsBookingAgent]
+
+    def post(self, request, pk):
+        user = request.user
+
+        # Fetch booking that is assigned to this agent
+        booking = (
+            Booking.objects
+            .select_related("assignment")
+            .filter(id=pk, assignment__assigned_to=user)
+            .first()
+        )
+
+        if not booking:
+            return error_response(
+                message="Booking not found or not assigned to you.",
+                data={"id": ["Invalid booking id"]}
+            )
+
+        assignment = booking.assignment
+
+        # Already accepted
+        if assignment.accepted_at:
+            return success_response(
+                message="Booking already accepted.",
+                data={"accepted_at": assignment.accepted_at}
+            )
+
+        # Booking must be in requested state
+        if booking.status not in ["requested"]:
+            return error_response(
+                message="Booking cannot be accepted in current status.",
+                data={"status": [f"Current status: {booking.status}"]}
+            )
+
+        # Accept it
+        assignment.mark_accepted()
+
+        # Move booking → in_progress
+        booking.status = "in_progress"
+        booking.save(update_fields=["status"])
+
+        # Audit
+        AuditLog.objects.create(
+            user=user,
+            action="update_booking_status",
+            content_object=booking,
+            changes={
+                "booking_id": booking.id,
+                "new_status": "in_progress",
+                "accepted_at": assignment.accepted_at
+            }
+        )
+
+        # Notify Travel Desk
+        # notify_travel_desk(
+        #     message=f"Booking #{booking.id} has been accepted by agent {user.get_full_name()}"
+        # )
+
+        return success_response(
+            message="Booking accepted successfully.",
+            data={
+                "booking_id": booking.id,
+                "status": "in_progress",
+                "accepted_at": assignment.accepted_at
+            }
+        )
+
+
+class BookingAgentCompleteBookingView(APIView):
+    """
+    POST /travel/booking-agent/bookings/<pk>/complete/
+
+    Payload (multipart/form-data):
+      - remarks: optional text
+      - completion_file: optional file (ticket / final doc)
+
+    Rules:
+      - Only the assigned booking agent can complete the booking
+      - Booking must currently be in 'confirmed' status
+      - When ALL bookings for the application are completed,
+        application status is set to 'completed'
+    """
+
+    permission_classes = [IsAuthenticated, IsBookingAgent]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, pk):
+        user = request.user
+
+        # 1) Fetch booking that belongs to this agent
+        booking = (
+            Booking.objects
+            .select_related("assignment", "trip_details__travel_application")
+            .filter(id=pk, assignment__assigned_to=user)
+            .first()
+        )
+
+        if not booking:
+            return error_response(
+                message="Booking not found or not assigned to you.",
+                data={"id": ["Invalid booking id"]}
+            )
+
+        # 2) Status validation
+        if booking.status != "confirmed":
+            return error_response(
+                message="Booking cannot be completed in current status.",
+                data={"status": [f"Current status is '{booking.status}', must be 'confirmed' before completion."]}
+            )
+
+        remarks = request.data.get("remarks", "").strip()
+
+        # Optional completion file – for now we reuse booking.booking_file
+        file_obj = request.FILES.get("completion_file")
+        if file_obj:
+            booking.booking_file = file_obj
+            booking.uploaded_by = user
+            booking.uploaded_at = timezone.now()
+
+        # 3) Mark booking as completed
+        booking.status = "completed"
+        booking.save()
+
+        # 4) Add note if provided
+        if remarks:
+            BookingNote.objects.create(
+                booking=booking,
+                created_by=user,
+                note=remarks,
+            )
+
+        application = booking.trip_details.travel_application
+
+        # 5) If all bookings for this application are completed -> mark app as completed
+        all_bookings_qs = Booking.objects.filter(
+            trip_details__travel_application=application
+        )
+
+        if (
+            all_bookings_qs.exists()
+            and all_bookings_qs.filter(status="completed").count() == all_bookings_qs.count()
+        ):
+            application.status = "completed"
+            application.save(update_fields=["status"])
+
+        # 6) Audit log
+        AuditLog.objects.create(
+            user=user,
+            action="update_booking_status",
+            content_object=booking,
+            changes={
+                "booking_id": booking.id,
+                "new_status": "completed",
+                "remarks": remarks,
+            },
+        )
+
+        # 7) (Optional) Notifications – keep as hooks for later
+        # notify_travel_desk(
+        #     message=f"Booking #{booking.id} has been marked completed by {user.get_full_name() or user.username}"
+        # )
+        # notify_employee(
+        #     application.employee,
+        #     message=f"All bookings under your travel request {application.travel_request_id} are completed."
+        # )
+
+        return success_response(
+            message="Booking marked as completed successfully.",
+            data={
+                "booking_id": booking.id,
+                "status": "completed",
+                "file_uploaded": bool(file_obj),
+                "application_status": application.status,
+            },
+        )

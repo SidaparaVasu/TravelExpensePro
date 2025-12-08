@@ -1,0 +1,204 @@
+import React from 'react';
+import { Eye, Send, XCircle, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { StatusBadge } from './StatusBadge';
+import { formatFullDate, formatCurrency } from '../utils/format';
+
+const TableRowSkeleton = () => (
+  <TableRow>
+    {[...Array(8)].map((_, i) => (
+      <TableCell key={i}>
+        <div className="h-4 bg-muted rounded animate-pulse w-full" />
+      </TableCell>
+    ))}
+  </TableRow>
+);
+
+export const ApplicationsTable = ({
+  applications,
+  isLoading,
+  expandedRow,
+  onExpandRow,
+  onView,
+  onForward,
+  onCancel,
+}) => {
+  return (
+    <div className="bg-white rounded-md border shadow-[0_2px_2px_0_rgba(59,130,247,0.30)] overflow-hidden">
+
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/40">
+              {/* <TableHead className="w-[50px]" /> */}
+              <TableHead>Travel Request ID</TableHead>
+              <TableHead>Employee</TableHead>
+              <TableHead>Route</TableHead>
+              <TableHead>Departure</TableHead>
+              <TableHead className="text-center">Status</TableHead>
+              <TableHead className="text-center">Bookings</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {isLoading ? (
+              [...Array(5)].map((_, i) => <TableRowSkeleton key={i} />)
+            ) : applications.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
+                  No applications found
+                </TableCell>
+              </TableRow>
+            ) : (
+              applications.map((app) => (
+                <React.Fragment key={app.id}>
+
+                  <TableRow className="hover:bg-muted/50 transition">
+                    {/* <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="p-1 h-8 w-8 hover:bg-slate-100 hover:text-black"
+                        onClick={() => onExpandRow(expandedRow === app.id ? null : app.id)}
+                      >
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform ${expandedRow === app.id ? 'rotate-180' : ''
+                            }`}
+                        />
+                      </Button>
+                    </TableCell> */}
+
+                    <TableCell>
+                      <span className="font-mono text-sm font-medium">
+                        {`TSF-TR-2025-${String(app.id).padStart(6, '0')}`}
+                      </span>
+                    </TableCell>
+
+                    <TableCell>
+                      <p className="font-medium">{app.employee_name}</p>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="text-sm">
+                        <p>
+                          {app.from_location}
+                          <span className="mx-2 text-muted-foreground">→</span>
+                          {app.to_location}
+                        </p>
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <span className="text-sm">{formatFullDate(app.departure_date)}</span>
+                    </TableCell>
+
+                    <TableCell className="text-center">
+                      <StatusBadge status={app.status} />
+                    </TableCell>
+
+                    <TableCell className="text-center">
+                      <div className="flex flex-row items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-sm font-semibold">
+                          {app.total_bookings}
+                        </span>
+                        {app.pending_bookings > 0 ? (
+                          <span className="text-[11px] text-red-400">
+                            ({app.pending_bookings} pending)
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground">
+                            ({app.pending_bookings} pending)
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="text-center">
+                      <div className="flex justify-center gap-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm"
+                              className="bg-blue-100 hover:bg-blue-100 text-blue-600 hover:text-blue-600"
+                              onClick={() => onView(app)}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>View</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm"
+                              className="bg-green-100 hover:bg-green-100 text-green-600 hover:text-green-600"
+                              onClick={() => onForward(app)}>
+                              <Send className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Forward</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm"
+                              className="bg-orange-100 hover:bg-orange-100 text-orange-600 hover:text-orange-600"
+                              onClick={() => onCancel(app)}>
+                              <XCircle className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Cancel</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+
+                  {expandedRow === app.id && (
+                    <TableRow>
+                      <TableCell colSpan={8} className="bg-muted/30 p-4">
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+                            {app.trip_details?.[0]?.bookings?.map((booking) => (
+                              <div
+                                key={booking.id}
+                                className="bg-white p-4 rounded-xl border shadow-sm hover:shadow-md transition"
+                              >
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <p className="font-medium text-sm">{booking.booking_type_name}</p>
+                                    <p className="text-xs text-muted-foreground">{booking.sub_option_name}</p>
+                                  </div>
+
+                                  <p className="text-sm font-semibold">
+                                    ₹{parseFloat(booking.estimated_cost).toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+
+                          </div>
+
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+
+                </React.Fragment>
+              ))
+            )}
+          </TableBody>
+
+        </Table>
+      </div>
+    </div>
+  );
+};
