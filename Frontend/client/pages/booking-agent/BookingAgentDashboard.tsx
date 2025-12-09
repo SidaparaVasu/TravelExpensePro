@@ -20,6 +20,7 @@ import { BookingStatsChart } from "@/pages/booking-agent/components/BookingStats
 import { ViewBookingModal } from "@/pages/booking-agent/components/ViewBookingModal";
 import { bookingAgentAPI, type Booking } from "@/src/api/bookingAgentAPI";
 import { formatHours } from "./utils/format";
+import { ROUTES } from "@/routes/routes";
 
 const BookingAgentDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -157,7 +158,7 @@ const BookingAgentDashboard: React.FC = () => {
             </h2>
             <button
               className="text-base font-bold text-primary underline"
-              onClick={() => navigate("/booking-agent/bookings")}
+              onClick={() => navigate(ROUTES.pendingBookingsPage)}
             >
               View All
             </button>
