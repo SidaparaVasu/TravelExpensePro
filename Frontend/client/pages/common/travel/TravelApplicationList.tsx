@@ -201,6 +201,8 @@ export default function TravelApplicationList() {
       rejected_manager: 'destructive',
       rejected_chro: 'destructive',
       rejected_ceo: 'destructive',
+      booking_in_progress: 'default',
+      booked: 'brown',
       completed: 'success',
     };
 
@@ -215,7 +217,9 @@ export default function TravelApplicationList() {
       rejected_manager: 'Rejected By Manager',
       rejected_chro: 'Rejected By CHRO',
       rejected_ceo: 'Rejected By CEO',
-      completed: 'Success',
+      booking_in_progress: 'In-Progress',
+      booked: 'Booked',
+      completed: 'Completed',
     };
 
     return (
