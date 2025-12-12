@@ -242,7 +242,7 @@ export const ViewBookingModal: React.FC<ViewBookingModalProps> = ({
               rel="noopener noreferrer"
               className="text-primary text-sm underline flex items-center gap-2"
             >
-              <FileText className="w-4 h-4" /> View Uploaded File {booking.booking_file}
+              <FileText className="w-4 h-4" /> View Uploaded File
             </a>
           )}
         </div>
