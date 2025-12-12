@@ -26,6 +26,7 @@ import {
   getSubOptionLabel,
 } from "../utils/format";
 import type { Booking } from "@/src/api/bookingAgentAPI";
+import { docViewer } from "@/src/api/document_viewer";
 
 interface ViewBookingModalProps {
   isOpen: boolean;
@@ -253,8 +254,7 @@ export const ViewBookingModal: React.FC<ViewBookingModalProps> = ({
           {/* File */}
           {booking.booking_file && (
             <a
-              href={booking.booking_file}
-              target="_blank"
+              onClick={() => docViewer.onViewFile(booking.booking_file)}
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-primary text-sm underline hover:no-underline"
             >

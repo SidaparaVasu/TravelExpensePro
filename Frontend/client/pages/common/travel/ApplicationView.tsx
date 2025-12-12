@@ -13,6 +13,7 @@ import {
   FileText, Plane, MapPin, CalendarDays, Home, Car, Users, User, SendHorizontal, Trash2, Info, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { ROUTES } from "@/routes/routes";
+import { docViewer } from "@/src/api/document_viewer";
 
 function formatDateToDDMMYYYY(dateStr) {
   if (!dateStr) return "";
@@ -404,12 +405,6 @@ const BookingSection = ({ title, icon: Icon, bookings, type, guestHousesMap }: a
 const BookingCard = ({ booking, type, guestHousesMap }: any) => {
   const details = booking.booking_details || {};
 
-  const openDocument = () => {
-    if (!booking.booking_file) return;
-    const url = `/api/file/?path=${encodeURIComponent(booking.booking_file)}`;
-    window.open(url, "_blank");
-  };
-
   return (
     <div className="rounded-md border border-slate-200 bg-white p-4 hover:shadow-sm transition-shadow">
 
@@ -569,11 +564,12 @@ const BookingCard = ({ booking, type, guestHousesMap }: any) => {
         <div className="mt-4 flex justify-end">
           <button
             type="button"
-            onClick={openDocument}
+            onClick={() => docViewer.onViewFile(booking.booking_file)}
             title="View Document"
             className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 hover:bg-slate-50 transition"
           >
             <FileText className="w-4 h-4 text-slate-700" />
+            {booking.booking_file}
           </button>
         </div>
       )}
