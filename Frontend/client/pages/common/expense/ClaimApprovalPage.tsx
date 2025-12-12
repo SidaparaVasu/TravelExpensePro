@@ -5,17 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from '@/components/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from "@/components/ui/select";
 
 import {
     Table,
@@ -38,10 +31,7 @@ import {
 import {
     Search,
     Filter,
-    CheckCircle,
     XCircle,
-    Clock,
-    IndianRupeeIcon
 } from "lucide-react";
 
 import { expenseAPI } from "@/src/api/expense";
@@ -206,36 +196,6 @@ export default function ClaimApprovalsPage() {
         } finally {
             setModalLoading(false);
         }
-    };
-
-    const getStatusBadge = (status: string) => {
-        const s = status || "unknown";
-
-        const variants: Record<string, string> = {
-            pending: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50",
-            manager_pending: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50",
-            approved: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50",
-            rejected: "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-50",
-            submitted: "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-50",
-            paid: "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-50",
-            closed: "bg-zinc-100 text-zinc-700 border-zinc-200 hover:bg-zinc-50",
-        };
-
-        const label =
-            s === "manager_pending"
-                ? "Pending"
-                : s
-                    .replace(/_/g, " ")
-                    .replace(/\b\w/g, (c) => c.toUpperCase());
-
-        return (
-            <Badge
-                className={`rounded-full px-3 py-1 text-xs font-medium border ${variants[s] || "bg-slate-100 text-slate-700 border-slate-200"
-                    }`}
-            >
-                {label}
-            </Badge>
-        );
     };
 
     // ----------------------------------
@@ -465,7 +425,7 @@ export default function ClaimApprovalsPage() {
 
                                             {/* Status */}
                                             <TableCell className="whitespace-nowrap text-center">
-                                                {getStatusBadge(cl.status_code)}
+                                                <StatusBadge statusType="claim" status={cl.status_code} />
                                             </TableCell>
 
                                             {/* Actions */}

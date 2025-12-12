@@ -1,0 +1,120 @@
+[
+  {
+    "model": "notifications.emailtemplatemaster",
+    "pk": 1,
+    "fields": {
+      "template_key": "travel.submitted",
+      "template_name": "Travel Request Submitted",
+      "subject": "New Travel Request Submitted — #{{ request_id }}",
+      "body_html": "<p>Dear {{ approver_name }},</p>\n<p>{{ employee_name }} has submitted a new travel request for the following purpose:</p>\n<p><strong>{{ purpose }}</strong></p>\n<p>Please review and take the necessary action.</p>\n<p>Request ID: <strong>{{ request_id }}</strong></p>\n<p>Thank you,<br>Travel Management System</p>",
+      "body_text": "Dear {{ approver_name }}, {{ employee_name }} submitted a travel request. Purpose: {{ purpose }}. Request ID: {{ request_id }}.",
+      "cc_emails": [],
+      "bcc_emails": [],
+      "is_active": true,
+      "created_at": "2025-12-11T13:13:00Z",
+      "updated_at": "2025-12-11T13:13:00Z"
+    }
+  },
+
+  {
+    "model": "notifications.emailtemplatemaster",
+    "pk": 2,
+    "fields": {
+      "template_key": "travel.approved",
+      "template_name": "Travel Request Approved",
+      "subject": "Your Travel Request #{{ request_id }} Has Been Approved",
+      "body_html": "<p>Dear {{ employee_name }},</p>\n<p>Your travel request has been <strong>approved</strong> by {{ approver_name }}.</p>\n<p>Purpose: <strong>{{ purpose }}</strong></p>\n<p>Request ID: <strong>{{ request_id }}</strong></p>\n<p>You may proceed with the next steps.</p>\n<p>Thank you,<br>Travel Management System</p>",
+      "body_text": "Dear {{ employee_name }}, your travel request {{ request_id }} is approved.",
+      "cc_emails": [],
+      "bcc_emails": [],
+      "is_active": true,
+      "created_at": "2025-12-11T13:13:00Z",
+      "updated_at": "2025-12-11T13:13:00Z"
+    }
+  },
+
+  {
+    "model": "notifications.emailtemplatemaster",
+    "pk": 3,
+    "fields": {
+      "template_key": "travel.rejected",
+      "template_name": "Travel Request Rejected",
+      "subject": "Your Travel Request #{{ request_id }} Has Been Rejected",
+      "body_html": "<p>Dear {{ employee_name }},</p>\n<p>Your travel request (ID <strong>{{ request_id }}</strong>) has been <strong>rejected</strong> by {{ approver_name }}.</p>\n<p><strong>Reason:</strong> {{ notes }}</p>\n<p>Please contact your approver if you need clarification.</p>\n<p>Thank you,<br>Travel Management System</p>",
+      "body_text": "Dear {{ employee_name }}, your travel request {{ request_id }} is rejected. Notes: {{ notes }}.",
+      "cc_emails": [],
+      "bcc_emails": [],
+      "is_active": true,
+      "created_at": "2025-12-11T13:13:00Z",
+      "updated_at": "2025-12-11T13:13:00Z"
+    }
+  },
+
+  {
+    "model": "notifications.emailtemplatemaster",
+    "pk": 4,
+    "fields": {
+      "template_key": "travel.booking.confirmed",
+      "template_name": "Travel Booking Confirmed",
+      "subject": "Your Travel Booking Is Confirmed — #{{ request_id }}",
+      "body_html": "<p>Dear {{ employee_name }},</p>\n<p>Your travel booking has been successfully <strong>confirmed</strong>.</p>\n<p><strong>Details:</strong></p>\n<ul>\n<li>Request ID: {{ request_id }}</li>\n<li>Booking Agent: {{ booking_agent_name }}</li>\n<li>Ticket / PNR: {{ ticket_number }}</li>\n</ul>\n<p>Wish you a safe journey!</p>\n<p>Thank you,<br>Travel Management System</p>",
+      "body_text": "Your travel booking for request {{ request_id }} is confirmed. PNR: {{ ticket_number }}.",
+      "cc_emails": [],
+      "bcc_emails": [],
+      "is_active": true,
+      "created_at": "2025-12-11T13:13:00Z",
+      "updated_at": "2025-12-11T13:13:00Z"
+    }
+  },
+
+  {
+    "model": "notifications.emailtemplatemaster",
+    "pk": 5,
+    "fields": {
+      "template_key": "travel.booking.cancelled",
+      "template_name": "Travel Booking Cancelled",
+      "subject": "Your Travel Booking Was Cancelled — #{{ request_id }}",
+      "body_html": "<p>Dear {{ employee_name }},</p>\n<p>Your travel booking for request <strong>{{ request_id }}</strong> has been <strong>cancelled</strong>.</p>\n<p><strong>Reason:</strong> {{ cancel_reason }}</p>\n<p>If this is unexpected, please reach out to your booking agent.</p>\n<p>Thank you,<br>Travel Management System</p>",
+      "body_text": "Your travel booking for request {{ request_id }} was cancelled. Reason: {{ cancel_reason }}.",
+      "cc_emails": [],
+      "bcc_emails": [],
+      "is_active": true,
+      "created_at": "2025-12-11T13:13:00Z",
+      "updated_at": "2025-12-11T13:13:00Z"
+    }
+  },
+
+  {
+    "model": "notifications.emailtemplatemaster",
+    "pk": 6,
+    "fields": {
+      "template_key": "travel.settlement.reminder",
+      "template_name": "Settlement Reminder",
+      "subject": "Reminder: Travel Settlement Pending — #{{ request_id }}",
+      "body_html": "<p>Dear {{ employee_name }},</p>\n<p>This is a reminder to complete the settlement for your travel request <strong>{{ request_id }}</strong>.</p>\n<p>You must complete the settlement before <strong>{{ settlement_due_date }}</strong>.</p>\n<p>Please submit the bills and supporting documents as soon as possible.</p>\n<p>Thank you,<br>Travel Management System</p>",
+      "body_text": "Reminder: Settlement pending for request {{ request_id }}. Due date: {{ settlement_due_date }}.",
+      "cc_emails": [],
+      "bcc_emails": [],
+      "is_active": true,
+      "created_at": "2025-12-11T13:13:00Z",
+      "updated_at": "2025-12-11T13:13:00Z"
+    }
+  },
+
+  {
+    "model": "notifications.emailtemplatemaster",
+    "pk": 7,
+    "fields": {
+      "template_key": "travel.settlement.expired",
+      "template_name": "Settlement Validity Expired",
+      "subject": "Settlement Period Expired — #{{ request_id }}",
+      "body_html": "<p>Dear {{ employee_name }},</p>\n<p>The settlement period for your travel request <strong>{{ request_id }}</strong> has <strong>expired</strong>.</p>\n<p>Your claim can no longer be submitted unless a valid late submission reason is provided.</p>\n<p>Please contact the finance or travel team if you need further assistance.</p>\n<p>Thank you,<br>Travel Management System</p>",
+      "body_text": "Settlement period expired for request {{ request_id }}.",
+      "cc_emails": [],
+      "bcc_emails": [],
+      "is_active": true,
+      "created_at": "2025-12-11T13:13:00Z",
+      "updated_at": "2025-12-11T13:13:00Z"
+    }
+  }
+]

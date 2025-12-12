@@ -23,6 +23,14 @@ CATEGORY_A_CITIES = [
 def log(message):
     print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {message}")
 
+def normalize_text(value):
+    if not value:
+        return value
+    import unicodedata
+    value = unicodedata.normalize('NFKD', value)
+    value = value.encode('ascii', 'ignore').decode('utf-8')
+    return value.strip()
+
 def populate_india_location_data():
     from django.db import transaction
 
@@ -92,7 +100,7 @@ def populate_india_location_data():
                 cities_list = cities_data["data"]
 
             for city_name in cities_list:
-                city_name_clean = city_name.strip()
+                city_name_clean = normalize_text(city_name)
                 city_obj, created = CityMaster.objects.get_or_create(
                     city_name=city_name_clean,
                     state=state_obj,

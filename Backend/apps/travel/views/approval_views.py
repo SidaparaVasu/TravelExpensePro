@@ -192,10 +192,35 @@ class ApprovalActionView(APIView):
             )
     
     def send_approval_notification(self, travel_app, approval_flow, action):
-        """Send email notification"""
+        """Send email notification for approval/rejection"""
         try:
-            from apps.notifications.services import EmailNotificationService
-            EmailNotificationService.send_approval_notification(travel_app, approval_flow, action)
+            from apps.notifications.center import NotificationCenter
+
+            employee = travel_app.employee
+            approver = approval_flow.approver
+
+            # Choose event name based on action
+            event_name = "travel.approved" if action == "approved" else "travel.rejected"
+
+            payload = {
+                "employee_id": employee.id,
+                "approver_id": approver.id,
+                "employee_name": employee.get_full_name(),
+                "approver_name": approver.get_full_name(),
+                "request_id": travel_app.get_travel_request_id(),
+                "purpose": travel_app.purpose,
+            }
+
+            # Add notes only for rejection
+            if action == "rejected":
+                payload["notes"] = approval_flow.notes
+
+            NotificationCenter.notify(
+                event_name=event_name,
+                reference={"type": "TravelRequest", "id": travel_app.id},
+                payload=payload
+            )
+
         except Exception as e:
             logger.warning(f"Failed to send email notification: {str(e)}")
 

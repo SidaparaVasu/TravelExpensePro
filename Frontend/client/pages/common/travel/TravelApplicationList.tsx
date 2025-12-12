@@ -26,7 +26,7 @@ import {
   ClipboardList,
   SquarePen,
 } from "lucide-react";
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { Plus, SendHorizontal, Eye, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useParams } from "react-router-dom";
@@ -187,46 +187,6 @@ export default function TravelApplicationList() {
         toast({ title: 'Error', description: 'Failed to delete application', variant: 'destructive' });
       }
     }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, any> = {
-      draft: 'secondary',
-      submitted: 'default',
-      pending_manager: 'default',
-      pending_ceo: 'default',
-      pending_chro: 'default',
-      pending_travel_desk: 'pending',
-      approved_manager: 'success',
-      rejected_manager: 'destructive',
-      rejected_chro: 'destructive',
-      rejected_ceo: 'destructive',
-      booking_in_progress: 'default',
-      booked: 'brown',
-      completed: 'success',
-    };
-
-    const badgeMapper: Record<string, string> = {
-      draft: 'Draft',
-      submitted: 'Submitted',
-      pending_manager: 'Pending By Manager',
-      pending_ceo: 'Pending by CEO',
-      pending_chro: 'Pending by CHRO',
-      pending_travel_desk: 'Pending By Travel Desk',
-      approved_manager: 'Approved By Manager',
-      rejected_manager: 'Rejected By Manager',
-      rejected_chro: 'Rejected By CHRO',
-      rejected_ceo: 'Rejected By CEO',
-      booking_in_progress: 'In-Progress',
-      booked: 'Booked',
-      completed: 'Completed',
-    };
-
-    return (
-      <Badge variant={variants[status] || "default"}>
-        {badgeMapper[status] || status}
-      </Badge>
-    );
   };
 
   const formatDateRange = (startDate: string, endDate: string) => {
@@ -415,7 +375,7 @@ export default function TravelApplicationList() {
                       {/* <TableCell>{app.trip_details.length} trip(s)</TableCell> */}
                       <TableCell className='max-w-2xs'>{formatDateRange(app.trip_details[0].departure_date, app.trip_details[0].return_date)}</TableCell>
                       <TableCell>₹{parseFloat(app.estimated_total_cost).toLocaleString()}</TableCell>
-                      <TableCell className="text-center">{getStatusBadge(app.status)}</TableCell>
+                      <TableCell className="text-center"><StatusBadge statusType="travel" status={app.status} /></TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           {app.status === 'draft' && (

@@ -9,7 +9,6 @@ import {
   FileText, 
   AlertCircle,
   CheckCircle2,
-  Calendar
 } from 'lucide-react';
 import { expenseAPI } from '@/src/api/expense';
 import { Button } from '@/components/ui/button';

@@ -403,8 +403,21 @@ class TravelApplicationSubmitView(APIView):
 
         # 9) Send email notification
         try:
-            from apps.notifications.services import EmailNotificationService
-            EmailNotificationService.send_travel_request_submitted(travel_app)
+            from apps.notifications.center import NotificationCenter
+            NotificationCenter.notify(
+                event_name="travel.submitted",
+                reference={"type": "TravelRequest", "id": 999},
+                payload={
+                    "employee_id": request.user.id,
+                    "approver_id": travel_app.current_approver.id,
+                    "request_id": travel_app.get_travel_request_id(),
+                    "employee_name": request.user.get_full_name(),
+                    "approver_name": travel_app.current_approver.get_full_name(),
+                    "purpose": travel_app.purpose,
+                    "urgency": "high"
+                }
+            )
+
         except Exception as e:
             logger.warning(f"[SubmitView] Email sending failed: {e}")
 

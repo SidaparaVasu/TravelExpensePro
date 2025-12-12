@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from '@/components/StatusBadge';
 import {
   Select,
   SelectContent,
@@ -277,62 +277,6 @@ export default function TravelRequestApprovals() {
     } finally {
       setUpdatingId(null); // re-enable buttons
     }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, any> = {
-      draft: 'secondary',
-      submitted: 'default',
-      pending_manager: 'default',
-      pending_ceo: 'default',
-      pending_chro: 'default',
-      pending_travel_desk: 'pending',
-      approved_manager: 'success',
-      rejected_manager: 'destructive',
-      rejected_chro: 'destructive',
-      rejected_ceo: 'destructive',
-      completed: 'success',
-    };
-
-    const badgeMapper: Record<string, string> = {
-      draft: 'Draft',
-      submitted: 'Submitted',
-      pending_manager: 'Pending By Manager',
-      pending_ceo: 'Pending by CEO',
-      pending_chro: 'Pending by CHRO',
-      pending_travel_desk: 'Pending By Travel Desk',
-      approved_manager: 'Approved By Manager',
-      rejected_manager: 'Rejected By Manager',
-      rejected_chro: 'Rejected By CHRO',
-      rejected_ceo: 'Rejected By CEO',
-      completed: 'Success',
-    };
-
-    return (
-      <Badge variant={variants[status] || "default"}>
-        {badgeMapper[status] || status}
-      </Badge>
-    );
-  };
-
-  const getPriorityBadge = (priority: string) => {
-    const variants = {
-      high: "bg-green-100 text-green-600 border-green-200 hover:bg-green-100",
-      medium: "bg-orange-50 text-orange-500 border-yellow-200 hover:bg-orange-50",
-      low: "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-100",
-    };
-
-    const labels = {
-      high: "High",
-      medium: "Medium",
-      low: "Low",
-    };
-
-    return (
-      <Badge className={`${variants[priority as keyof typeof variants]} rounded-sm px-3 py-1`}>
-        {labels[priority as keyof typeof labels]}
-      </Badge>
-    );
   };
 
   const formatDateRange = (startDate: string, endDate: string) => {
@@ -617,10 +561,10 @@ export default function TravelRequestApprovals() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {getStatusBadge(request.status)}
+                        <StatusBadge statusType="travel" status={request.status} />
                       </TableCell>
                       <TableCell>
-                        {getPriorityBadge("high")}
+                        <StatusBadge statusType="approval" status="HIGH" />
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">

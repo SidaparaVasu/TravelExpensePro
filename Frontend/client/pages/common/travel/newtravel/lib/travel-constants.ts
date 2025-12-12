@@ -1,15 +1,15 @@
 // Mock data for the travel application (used as fallback when API fails)
 export const CITIES = [
-  { id: 1, city_name: "Mumbai", state_name: "Maharashtra", country_name: "India", category_id: 1 },
-  { id: 2, city_name: "Delhi", state_name: "Delhi", country_name: "India", category_id: 1 },
-  { id: 3, city_name: "Bangalore", state_name: "Karnataka", country_name: "India", category_id: 1 },
-  { id: 4, city_name: "Chennai", state_name: "Tamil Nadu", country_name: "India", category_id: 2 },
-  { id: 5, city_name: "Kolkata", state_name: "West Bengal", country_name: "India", category_id: 2 },
-  { id: 6, city_name: "Hyderabad", state_name: "Telangana", country_name: "India", category_id: 1 },
-  { id: 7, city_name: "Pune", state_name: "Maharashtra", country_name: "India", category_id: 2 },
-  { id: 8, city_name: "Ahmedabad", state_name: "Gujarat", country_name: "India", category_id: 2 },
-  { id: 9, city_name: "Jaipur", state_name: "Rajasthan", country_name: "India", category_id: 3 },
-  { id: 10, city_name: "Lucknow", state_name: "Uttar Pradesh", country_name: "India", category_id: 3 },
+  { id: 1, city_name: "Mumbai", city_code: "MUM", state_name: "Maharashtra", country_name: "India", category_id: 1 },
+  { id: 2, city_name: "Delhi", city_code: "DEL", state_name: "Delhi", country_name: "India", category_id: 1 },
+  { id: 3, city_name: "Bangalore", city_code: "BLR", state_name: "Karnataka", country_name: "India", category_id: 1 },
+  { id: 4, city_name: "Chennai", city_code: "CHN", state_name: "Tamil Nadu", country_name: "India", category_id: 2 },
+  { id: 5, city_name: "Kolkata", city_code: "KOL", state_name: "West Bengal", country_name: "India", category_id: 2 },
+  { id: 6, city_name: "Hyderabad", city_code: "HYD", state_name: "Telangana", country_name: "India", category_id: 1 },
+  { id: 7, city_name: "Pune", city_code: "PUN", state_name: "Maharashtra", country_name: "India", category_id: 2 },
+  { id: 8, city_name: "Ahmedabad", city_code: "AHM", state_name: "Gujarat", country_name: "India", category_id: 2 },
+  { id: 9, city_name: "Jaipur", city_code: "JAI", state_name: "Rajasthan", country_name: "India", category_id: 3 },
+  { id: 10, city_name: "Lucknow", city_code: "LKN", state_name: "Uttar Pradesh", country_name: "India", category_id: 3 },
 ];
 
 export const GL_CODES = [

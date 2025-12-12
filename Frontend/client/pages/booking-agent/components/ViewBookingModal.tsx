@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "./StatusBadge";
+import { StatusBadge } from "@/components/StatusBadge";
 import {
   formatDateToDDMMYYYY,
   formatTime,
@@ -123,7 +123,8 @@ export const ViewBookingModal: React.FC<ViewBookingModalProps> = ({
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
           {/* Status & Cost */}
           <div className="flex items-center justify-between">
-            <StatusBadge status={booking.status} />
+            {/* <StatusBadge status={booking.status} /> */}
+            <StatusBadge statusType="booking" status={booking.status} />
             <div className="text-right">
               <p className="text-xs text-muted-foreground">Estimated Cost</p>
               <p className="text-xl font-semibold">{formatCurrency(booking.estimated_cost)}</p>

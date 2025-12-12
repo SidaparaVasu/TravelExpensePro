@@ -131,8 +131,7 @@ class CityListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['state', 'category']
-    search_fields = ['city_name']
-    pagination_class = FlexiblePagination
+    search_fields = ['city_name', 'city_code']
     pagination_class = None
 
 class CityDetailView(RetrieveUpdateDestroyAPIView):
@@ -140,10 +139,6 @@ class CityDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = CitySerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
 
-class CityDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = CityMaster.objects.select_related('state__country', 'category').all()
-    serializer_class = CitySerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
 
 class CityCategoriesListCreateView(ListCreateAPIView):
     queryset = CityCategoriesMaster.objects.all()
@@ -211,9 +206,19 @@ class TravelModeDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
     pagination_class = NoPagination
 
+class ActiveTravelModeListView(ListAPIView):
+    """
+    Returns only active travel modes (for user dropdown)
+    """
+    serializer_class = TravelModeSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = NoPagination
+
+    def get_queryset(self):
+        return TravelModeMaster.objects.filter(is_active=True)
+
 class TravelSubOptionListCreateView(ListCreateAPIView):
-    # queryset = TravelSubOptionMaster.objects.select_related('mode').filter(is_active=True)
-    queryset = TravelSubOptionMaster.objects.select_related('mode').filter(is_active=True)
+    queryset = TravelSubOptionMaster.objects.select_related('mode').all()
     serializer_class = TravelSubOptionSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
@@ -225,6 +230,19 @@ class TravelSubOptionDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = TravelSubOptionSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
     pagination_class = NoPagination
+
+class ActiveTravelSubOptionListView(ListAPIView):
+    """
+    Returns only active travel sub-options (for user dropdown)
+    """
+    serializer_class = TravelSubOptionSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['mode']
+    pagination_class = NoPagination
+
+    def get_queryset(self):
+        return TravelSubOptionMaster.objects.select_related("mode").filter(is_active=True)
 
 class GradeEntitlementListCreateView(ListCreateAPIView):
     queryset = GradeEntitlementMaster.objects.select_related(

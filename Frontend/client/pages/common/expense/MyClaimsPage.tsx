@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Filter, ClipboardList, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { StatusBadge } from '@/pages/common/expense/components/StatusBadge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -354,7 +354,7 @@ export default function MyClaimsPage() {
                         ₹{Number(claim.final_amount_payable).toLocaleString()}
                       </TableCell>
                       <TableCell className="text-center">
-                        <StatusBadge status={claim.status_code} />
+                        <StatusBadge statusType="claim" status={claim.status_code} />
                       </TableCell>
                       <TableCell>
                         {claim.created_on ? formatISODate(claim.created_on) : "-"}
