@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { travelAPI } from "@/lib/api/travel";
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { useToast } from '@/components/ui/use-toast';
 import { useTravelStore } from '@/src/store/travelStore';
 import {
@@ -162,9 +163,7 @@ const HeaderCard = ({ application, onSubmit, onDelete }: any) => {
                     {application.travel_request_id}
                   </CardTitle>
 
-                  <Badge className={`uppercase text-xs px-2 py-0.5 ml-3 ${statusColorClass(application.status)}`}>
-                    {application.status.replace("_", " ")}
-                  </Badge>
+                  <StatusBadge statusType="travel" status={application.status} />
                 </div>
 
                 <p className="text-xs text-slate-500">
@@ -188,9 +187,7 @@ const HeaderCard = ({ application, onSubmit, onDelete }: any) => {
                     )}
                 </>
               ) : (
-                <Badge className={`uppercase text-xs px-2 py-0.5 ml-3 ${statusColorClass('settled')}`}>
-                  {application.status.replace("_", " ")}
-                </Badge>
+                <StatusBadge statusType="booking" status={application.status_code} />
               )}
             </div>
           </div>
@@ -406,75 +403,119 @@ const BookingSection = ({ title, icon: Icon, bookings, type, guestHousesMap }: a
    ========================== */
 const BookingCard = ({ booking, type, guestHousesMap }: any) => {
   const details = booking.booking_details || {};
+
+  const openDocument = () => {
+    if (!booking.booking_file) return;
+    const url = `/api/file/?path=${encodeURIComponent(booking.booking_file)}`;
+    window.open(url, "_blank");
+  };
+
   return (
     <div className="rounded-md border border-slate-200 bg-white p-4 hover:shadow-sm transition-shadow">
+
+      {/* Header */}
       <div className="flex justify-between items-start mb-3">
+        {/* Left side: title */}
         <div className="min-w-0">
-          <h5 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+          <h5 className="text-sm font-semibold text-slate-800 flex flex-col items-left gap-2">
             <span className="truncate">{booking.booking_type_name}</span>
-            {booking.sub_option_name && <Badge variant="outline" className="text-xs">{booking.sub_option_name}</Badge>}
+            {booking.sub_option_name && (
+              <Badge variant="outline" className="text-xs">
+                {booking.sub_option_name}
+              </Badge>
+            )}
           </h5>
-          {booking.booking_reference && <p className="text-xs text-slate-500 mt-1">Ref: {booking.booking_reference}</p>}
+
+          {booking.booking_reference && (
+            <p className="text-xs text-slate-500 mt-1">
+              Ref: {booking.booking_reference}
+            </p>
+          )}
         </div>
 
-        <div className="text-right">
+        {/* Right side: cost + status badge */}
+        <div className="text-right flex flex-col items-end gap-1">
           <p className="text-sm font-semibold text-blue-600">
-            ₹{Number(booking.estimated_cost || 0).toLocaleString('en-IN')}
+            ₹{Number(booking.estimated_cost || 0).toLocaleString("en-IN")}
           </p>
-          <p className="text-xs text-slate-500">{booking.status ? capitalize(booking.status) : ''}</p>
+
+          {/* StatusBadge replaces plain text */}
+          <StatusBadge
+            statusType="booking"
+            status={booking.status}
+          />
         </div>
       </div>
 
-      {/* type-specific grid */}
-      {type === 'ticketing' && (
+      {/* Type-specific detail grid */}
+      {type === "ticketing" && (
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <DetailRow label="Ticket Name/No." value={`${details.ticket_number || ''}`} />
-          <DetailRow />
-          <DetailRow label="From" value={details.from_location_name || details.from_location || '—'} />
-          <DetailRow label="To" value={details.to_location_name || details.to_location || '—'} />
-          <DetailRow label="Departure" value={`${details.departure_date || ''} ${details.departure_time || ''}`.trim() || '—'} />
-          <DetailRow label="Arrival" value={`${details.arrival_date || ''} ${details.arrival_time || ''}`.trim() || '—'} />
+          <DetailRow label="From" value={details.from_location_name || details.from_location || "—"} />
+          <DetailRow label="To" value={details.to_location_name || details.to_location || "—"} />
+          <DetailRow
+            label="Departure"
+            value={`${details.departure_date || ""} ${details.departure_time || ""}`.trim() || "—"}
+          />
+          <DetailRow
+            label="Arrival"
+            value={`${details.arrival_date || ""} ${details.arrival_time || ""}`.trim() || "—"}
+          />
         </div>
       )}
 
-      {type === 'accommodation' && (
+      {type === "accommodation" && (
         <>
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <DetailRow label="Place" value={details.place || '—'} />
-            <DetailRow label="Check-in" value={`${details.check_in_date || ''} ${details.check_in_time || ''}`.trim() || '—'} />
-            <DetailRow label="Check-out" value={`${details.check_out_date || ''} ${details.check_out_time || ''}`.trim() || '—'} />
-            <DetailRow label="Status" value={booking.status || '—'} />
+            <DetailRow label="Place" value={details.place || "—"} />
+            <DetailRow
+              label="Check-in"
+              value={`${details.check_in_date || ""} ${details.check_in_time || ""}`.trim() || "—"}
+            />
+            <DetailRow
+              label="Check-out"
+              value={`${details.check_out_date || ""} ${details.check_out_time || ""}`.trim() || "—"}
+            />
+            <DetailRow label="Status" value={booking.status || "—"} />
           </div>
 
-          {Array.isArray(details.guest_house_preferences) && details.guest_house_preferences.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-slate-200">
-              <p className="text-xs font-medium text-slate-600 mb-2">Guest House Preferences</p>
-              <div className="flex flex-wrap gap-2">
-                {details.guest_house_preferences.map((pref: any, idx: number) => (
-                  <Badge key={idx} className="text-xs">
-                    {guestHousesMap?.get(pref) ?? `Preference ${idx + 1}: ID ${pref}`}
-                  </Badge>
-                ))}
+          {Array.isArray(details.guest_house_preferences) &&
+            details.guest_house_preferences.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-slate-200">
+                <p className="text-xs font-medium text-slate-600 mb-2">
+                  Guest House Preferences
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+                  {details.guest_house_preferences.map((pref: any, idx: number) => (
+                    <Badge key={idx} className="text-xs">
+                      {guestHousesMap?.get(pref) ?? `Preference ${idx + 1}`}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </>
       )}
 
-      {type === 'conveyance' && (
+      {type === "conveyance" && (
         <>
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <DetailRow label="From" value={details.from_location_name || details.from_location || '—'} />
-            <DetailRow label="To" value={details.to_location_name || details.to_location || '—'} />
-            <DetailRow label="Report At" value={details.report_at || '—'} />
-            <DetailRow label="Drop At" value={details.drop_location || details.drop_location || '—'} />
-            <DetailRow label="Date & Time" value={`${details.start_date || ''} ${details.start_time || ''}`.trim() || '—'} />
-            <DetailRow label="Club Booking" value={details.club_booking ? 'Yes' : 'No'} />
+            <DetailRow label="From" value={details.from_location_name || details.from_location || "—"} />
+            <DetailRow label="To" value={details.to_location_name || details.to_location || "—"} />
+            <DetailRow label="Report At" value={details.report_at || "—"} />
+            <DetailRow label="Drop At" value={details.drop_location || "—"} />
+            <DetailRow
+              label="Date & Time"
+              value={`${details.start_date || ""} ${details.start_time || ""}`.trim() || "—"}
+            />
+            <DetailRow label="Club Booking" value={details.club_booking ? "Yes" : "No"} />
           </div>
 
           {!details.club_booking && details.club_reason && (
             <div className="mt-3 pt-3 border-t border-slate-200">
-              <p className="text-xs font-medium text-slate-600 mb-1">Reason for not clubbing</p>
+              <p className="text-xs font-medium text-slate-600 mb-1">
+                Reason for not clubbing
+              </p>
               <p className="text-sm text-slate-700">{details.club_reason}</p>
             </div>
           )}
@@ -483,14 +524,27 @@ const BookingCard = ({ booking, type, guestHousesMap }: any) => {
             <div className="mt-3 pt-3 border-t border-slate-200">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="w-4 h-4 text-slate-600" />
-                <p className="text-xs font-medium text-slate-600">Guests ({booking.guests.length})</p>
+                <p className="text-xs font-medium text-slate-600">
+                  Guests ({booking.guests.length})
+                </p>
               </div>
+
               <div className="flex flex-wrap gap-2">
                 {booking.guests.map((guest: any, idx: number) => (
-                  <Badge key={idx} className={guest.employee_id ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}>
+                  <Badge
+                    key={idx}
+                    className={
+                      guest.employee_id
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-green-100 text-green-700"
+                    }
+                  >
                     <div className="flex items-center gap-2">
                       <User className="w-3 h-3" />
-                      <span className="text-xs">{guest.name}{guest.employee_id ? ` (${guest.employee_id})` : ''}</span>
+                      <span className="text-xs">
+                        {guest.name}
+                        {guest.employee_id ? ` (${guest.employee_id})` : ""}
+                      </span>
                     </div>
                   </Badge>
                 ))}
@@ -503,13 +557,30 @@ const BookingCard = ({ booking, type, guestHousesMap }: any) => {
       {/* Special instructions */}
       {booking.special_instruction && (
         <div className="mt-3 pt-3 border-t border-slate-200">
-          <p className="text-xs font-medium text-slate-600 mb-1">Special Instructions</p>
+          <p className="text-xs font-medium text-slate-600 mb-1">
+            Special Instructions
+          </p>
           <p className="text-sm text-slate-700">{booking.special_instruction}</p>
+        </div>
+      )}
+
+      {/* View Document Icon */}
+      {booking.booking_file && (
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            onClick={openDocument}
+            title="View Document"
+            className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 hover:bg-slate-50 transition"
+          >
+            <FileText className="w-4 h-4 text-slate-700" />
+          </button>
         </div>
       )}
     </div>
   );
 };
+
 
 /* ==========================
    DetailRow small
@@ -517,7 +588,7 @@ const BookingCard = ({ booking, type, guestHousesMap }: any) => {
 const DetailRow = ({ label, value }: { label: string; value: any }) => (
   <div>
     <p className="text-[11px] text-slate-500">{label}</p>
-    <p className="text-sm font-medium text-slate-800 capitalize">{value ?? ' '}</p>
+    <p className="text-sm font-medium text-slate-800 capitalize">{value ?? '—'}</p>
   </div>
 );
 
