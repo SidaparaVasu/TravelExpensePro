@@ -10,7 +10,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { StatusBadge } from './StatusBadge';
+// import { StatusBadge } from './StatusBadge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { formatDateTime, formatCurrency, getBookingTypeLabel, getSubOptionLabel } from '../utils/format';
 import type { Booking } from '@/src/api/bookingAgentAPI';
 
@@ -127,7 +128,8 @@ export const BookingsTable: React.FC<BookingsTableProps> = ({
 
                   {/* Status */}
                   <TableCell className="text-center">
-                    <StatusBadge status={booking.status} />
+                    {/* <StatusBadge status={booking.status} /> */}
+                    <StatusBadge statusType="booking" status={booking.status} />
                   </TableCell>
 
                   {/* Estimated Cost */}

@@ -194,6 +194,9 @@ CACHES = {
     }
 }
 
+NOTIFICATION_EMAIL_PROVIDER = env('NOTIFICATION_EMAIL_PROVIDER', default='smtp')
+SENDGRID_API_KEY = env('SENDGRID_API_KEY', default='')
+
 # Celery Configuration
 CELERY_BROKER_URL = f"redis://{env('REDIS_HOST', default='redis')}:{env('REDIS_PORT', default='6379')}/0"
 CELERY_RESULT_BACKEND = 'django-db'  # Store results in Django database

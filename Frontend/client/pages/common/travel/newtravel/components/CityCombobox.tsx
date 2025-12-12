@@ -6,6 +6,7 @@ import { MapPin, Check } from "lucide-react";
 interface City {
   id: number;
   city_name: string;
+  city_code: string;
   state_name?: string;
   country_name?: string;
 }
@@ -35,14 +36,40 @@ export const CityCombobox: React.FC<CityComboboxProps> = ({
 }) => {
   const [query, setQuery] = useState("");
 
+  const normalize = (str: string) =>
+    str.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
   const filteredCities = useMemo(() => {
     if (!query) return cities.slice(0, 20);
-    return cities.filter((city) => {
-      // const searchStr = `${city.city_name} ${city.state_name} ${city.country_name}`.toLowerCase();
-      const searchStr = `${city.city_name} ${city.state_name || ""} ${city.country_name || ""}`.toLowerCase();
-      return searchStr.includes(query.toLowerCase());
-    }).slice(0, 20);
+
+    const q = normalize(query);
+
+    return cities
+      .map((city) => {
+        const name = normalize(city.city_name);
+        const code = normalize(city.city_code);
+        const state = normalize(city.state_name || "");
+        const country = normalize(city.country_name || "");
+
+        // Priority scoring
+        let score = 0;
+
+        if (code.startsWith(q)) score += 100;         // Highest: code prefix
+        else if (name.startsWith(q)) score += 70;     // High: city name prefix
+        else if (code.includes(q)) score += 50;       // Medium: code contains
+        else if (name.includes(q)) score += 40;       // Medium: name contains
+        else if (state.includes(q)) score += 20;      // Lower: state contains
+        else if (country.includes(q)) score += 10;    // Lowest: country contains
+        else score = 0;
+
+        return { city, score };
+      })
+      .filter((obj) => obj.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 20)
+      .map((obj) => obj.city);
   }, [cities, query]);
+
 
   const selectedCity = useMemo(() => {
     return cities.find((c) => c.id === value) || null;
@@ -112,11 +139,11 @@ export const CityCombobox: React.FC<CityComboboxProps> = ({
                   {({ selected }) => (
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className={cn("block font-medium", selected && "text-primary")}>
+                        <span className={cn("block font-medium flex items-center justify-left", selected && "text-primary")}>
                           {city.city_name}
                         </span>
                         {(city.state_name || city.country_name) && (
-                          <span className="block text-xs text-muted-foreground">
+                          <span className="block text-xs">
                             {[city.state_name, city.country_name].filter(Boolean).join(", ")}
                           </span>
                         )}

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
@@ -34,7 +35,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import {
-  StatusBadge,
+  // StatusBadge,
   ForwardModal,
   AddNoteModal,
   ViewBookingModal,
@@ -578,7 +579,8 @@ export const ApplicationDrawer: React.FC<ApplicationDrawerProps> = ({
                                   </TableCell>
 
                                   <TableCell className="text-center">
-                                    <StatusBadge status={booking.status} />
+                                    {/* <StatusBadge status={booking.status} /> */}
+                                    <StatusBadge statusType="booking" status={booking.status} />
                                   </TableCell>
 
                                   <TableCell className="text-center">

@@ -175,6 +175,7 @@ export const TravelApplicationForm: React.FC = () => {
         ]);
 
         setCities(citiesData);
+        console.log(citiesData);
         setGLCodes(glCodesData);
         setTravelModes(travelModesData.modes);
         const { ticketing, accommodation, conveyance } =

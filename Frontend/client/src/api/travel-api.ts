@@ -27,6 +27,7 @@ export interface GLCode {
 export interface City {
   id: number;
   city_name: string;
+  city_code: string;
   state_name?: string;
   country_name?: string;
   category_id?: number;
@@ -74,11 +75,11 @@ export const travelAPI = {
   // Travel Modes & Sub-options
   getTravelModes: async (): Promise<{ modes: TravelMode[]; subOptions: Record<string, TravelSubOption[]> }> => {
     try {
-      const { data } = await apiClient.get('/master/travel-modes/');
+      const { data } = await apiClient.get('/master/travel-modes-active/');
       const modes = data.data || data || [];
       // console.log('Travel Modes: ', modes);
       // Get sub-options
-      const subOptionsRes = await apiClient.get('/master/travel-sub-options/');
+      const subOptionsRes = await apiClient.get('/master/travel-sub-options-active/');
       const subOptions = subOptionsRes.data.data || subOptionsRes.data || [];
       // console.log('Travel Sub Modes: ', subOptionsRes);
       // Group sub-options by mode
@@ -91,7 +92,7 @@ export const travelAPI = {
         groupedSubOptions[modeId].push(sub);
       });
       
-      console.log('groupedSubOptions: ', groupedSubOptions);
+      // console.log('groupedSubOptions: ', groupedSubOptions);
       return { modes, subOptions: groupedSubOptions };
     } catch (error) {
       console.error('Failed to fetch travel modes:', error);
@@ -103,7 +104,7 @@ export const travelAPI = {
   getGuestHouses: async (): Promise<GuestHouse[]> => {
     try {
       const response = await apiClient.get('/master/guest-houses/');
-      console.log('Guest Houses: ', response);
+      // console.log('Guest Houses: ', response);
       return response.data.data.results || response.data || [];
     } catch (error) {
       console.error('Failed to fetch guest houses:', error);
@@ -115,7 +116,7 @@ export const travelAPI = {
   getARCHotels: async (): Promise<ARCHotel[]> => {
     try {
       const response = await apiClient.get('/master/arc-hotels/');
-      console.log('ARC Hotels: ', response);
+      // console.log('ARC Hotels: ', response);
       return response.data.data.results || response.data || [];
     } catch (error) {
       console.error('Failed to fetch ARC hotels:', error);

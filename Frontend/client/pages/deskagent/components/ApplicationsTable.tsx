@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { StatusBadge } from './StatusBadge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { formatFullDate, formatCurrency } from '../utils/format';
 
 const TableRowSkeleton = () => (
@@ -103,7 +103,8 @@ export const ApplicationsTable = ({
                     </TableCell>
 
                     <TableCell className="text-center">
-                      <StatusBadge status={app.status} />
+                      {/* <StatusBadge status={app.status} /> */}
+                      <StatusBadge statusType="travel" status={app.status} />
                     </TableCell>
 
                     <TableCell className="text-center">

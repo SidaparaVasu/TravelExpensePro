@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from utils.document_viewer import view_document_by_path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -16,6 +17,8 @@ urlpatterns = [
     path('api/master/', include('apps.master_data.urls')),
     path('api/travel/', include('apps.travel.urls')),
     path('api/expense/', include('apps.expenses.urls')),
+
+    path("api/file/", view_document_by_path, name="view-file"),
     
     # Legacy API support (gradually migrate these)
     # path('api/legacy/', include('apps.api.urls')),

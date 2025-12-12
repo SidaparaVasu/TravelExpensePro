@@ -1,5 +1,5 @@
 import React from "react";
-import { StatusBadge } from "./StatusBadge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Plane, Train, Car, Bus, CarTaxiFront, Building2, ArrowRight } from "lucide-react";
 import type { Booking } from "@/src/api/bookingAgentAPI";
 import { getBookingTypeLabel } from "../utils/format";
@@ -108,7 +108,8 @@ function RecentBookingItemBase({ booking, onClick }: RecentBookingItemProps) {
           </div>
         </div>
       </div>
-      <StatusBadge status={booking.status} />
+      {/* <StatusBadge status={booking.status} /> */}
+      <StatusBadge statusType="booking" status={booking.status} />
     </div>
   );
 }

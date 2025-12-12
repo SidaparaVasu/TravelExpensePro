@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, DollarSign, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -132,6 +131,7 @@ export default function ClaimDetailPage() {
                         <TableCell>
                           {item.has_receipt ? (
                             <Badge className="text-xs bg-green-100 hover:bg-green-100 text-green-700" variant='success'>Receipt</Badge>
+                            
                           ) : item.is_self_certified ? (
                             <Badge className="text-xs bg-yellow-100 hover:bg-yellow-100 text-yellow-700" variant='success'>Self-Cert</Badge>
                           ) : (
