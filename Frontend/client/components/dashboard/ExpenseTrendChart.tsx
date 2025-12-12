@@ -52,7 +52,7 @@ export function ExpenseTrendChart({
       xAxis: [
         { type: "category", data: months, axisTick: { alignWithLabel: true } },
       ],
-      yAxis: [{ type: "value", axisLabel: { formatter: "${value}" } }],
+      yAxis: [{ type: "value", axisLabel: { formatter: "₹{value}" } }],
       series: [
         {
           name: seriesName,

@@ -206,7 +206,7 @@ class UserCreateView(ListCreateAPIView):
 # User views
 class UserListCreateView(ListCreateAPIView):
     serializer_class = UserListSerializer
-    queryset = User.objects.select_related(
+    queryset = User.objects.filter(is_superuser=False).select_related(
         "organizational_profile",
         "external_profile",
         "company",

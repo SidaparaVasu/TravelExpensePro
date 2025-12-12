@@ -1,8 +1,13 @@
 from celery import shared_task
 from django.utils import timezone
+from travel.models import TravelApplication
 from .models import NotificationLog, NotificationEvent
 from .providers import EmailProviderFactory
 from .center import NotificationCenter
+from django_celery_beat.models import ClockedSchedule, PeriodicTask
+from django.utils import timezone
+import json
+import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -40,39 +45,52 @@ def send_notification_task(self, log_id, channel, subject, body_text, body_html,
 
 
 @shared_task
-def notification_reminder_worker():
-    """Periodic worker that checks NotificationEvent rows and sends reminders when due."""
-    now = timezone.now()
-    events = NotificationEvent.objects.filter(is_resolved=False, next_reminder_at__lte=now)
-    for ev in events:
-        rule = ev.rule
-        if not rule:
-            ev.is_resolved = True
-            ev.save()
-            continue
+def mark_travel_as_completed(travel_id):
+    try:
+        travel = TravelApplication.objects.get(id=travel_id)
 
-        # Prepare payload and send notifications similar to NotificationCenter.notify but do not create another NotificationEvent
-        payload = ev.data
-        # send to the same channels
-        for channel in rule.channels:
-            recipients = NotificationCenter._resolve_recipients(rule.recipient_resolver, payload)
-            for r in recipients:
-                contact = NotificationCenter._get_contact_for_channel(r, channel)
-                if not contact:
-                    continue
-                log = NotificationLog.objects.create(
-                    event_name=ev.event_name,
-                    channel=channel,
-                    recipient=contact,
-                    subject=rule.template.subject if rule.template else ev.event_name,
-                    body=rule.template.body_text if rule.template else '',
-                    payload=payload,
-                    status='queued',
-                )
-                send_notification_task.apply_async(
-                    args=[log.id, channel, log.subject, log.body or '', (rule.template.body_html if rule.template else ''), payload],
-                    queue='notifications'
-                )
+        # if already completed or cancelled, do nothing
+        if travel.status in ["Completed", "Cancelled"]:
+            return
 
-        # advance reminder schedule
-        ev.advance_reminder()
+        # ensure end date has passed
+        if timezone.now().date() >= travel.end_date:
+            travel.status = "Completed"
+            travel.is_claimable = True  # Assuming such a field exists
+            travel.save()
+
+            # optionally trigger settlement reminder here
+            from notifications.center import NotificationCenter
+            NotificationCenter.notify(
+                "travel.settlement.reminder",
+                {"type": "TravelRequest", "id": travel.id},
+                {
+                    "employee_id": travel.employee.id,
+                    "employee_name": travel.employee.get_full_name(),
+                    "request_id": travel.get_travel_request_id(),
+                    "settlement_due_date": travel.get_settlement_due_date()
+                }
+            )
+    except TravelApplication.DoesNotExist:
+        pass
+
+
+def schedule_travel_completion(travel_app):
+    # When to run the job? End date at midnight or immediately after.
+    run_datetime = timezone.make_aware(
+        datetime.datetime.combine(travel_app.end_date, datetime.time(hour=1))
+    )
+
+    # Create clocked schedule
+    clocked, _ = ClockedSchedule.objects.get_or_create(
+        clocked_time=run_datetime
+    )
+
+    # Create one-off task
+    PeriodicTask.objects.create(
+        name=f"travel_complete_{travel_app.id}",
+        task="notifications.tasks.mark_travel_as_completed",
+        one_off=True,
+        clocked=clocked,
+        args=json.dumps([travel_app.id])
+    )

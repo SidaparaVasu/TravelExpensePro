@@ -97,8 +97,17 @@ export function UserFormModal({ isOpen, onClose, onSubmit, user, isLoading }: Us
         if (isOpen) {
             loadMasterData();
             if (user) {
-                // Prefill values (convert numbers to strings)
-                setActiveTab(user.user_type);
+                // Map names -> IDs directly using masterData
+                const company = masterData.companies.find(c => c.name === user.company_name);
+                const department = masterData.departments.find(d => d.dept_name === user.department_name);
+                const designation = masterData.designations.find(d => d.designation_name === user.designation_name);
+                const employeeType = masterData.employeeTypes.find(e => e.type === user.employee_type_name);
+                const grade = masterData.grades.find(g => g.name === user.grade_name);
+                const baseLocation = masterData.locations.find(l => l.location_name === user.base_location_name);
+                const manager = masterData.managers.find(
+                    m => `${m.first_name} ${m.last_name}` === user.reporting_manager_name
+                );
+
                 setFormData({
                     username: user.username || '',
                     password: '',
@@ -107,27 +116,42 @@ export function UserFormModal({ isOpen, onClose, onSubmit, user, isLoading }: Us
                     last_name: user.last_name || '',
                     email: user.email || '',
                     gender: user.gender || 'N',
-                    is_active: user.is_active ?? true,
-                    employee_id: user.employee_id || '',
-                    company: user.company ? String(user.company) : '',
-                    department: user.department ? String(user.department) : '',
-                    designation: user.designation ? String(user.designation) : '',
-                    employee_type: user.employee_type ? String(user.employee_type) : '',
-                    grade: user.grade ? String(user.grade) : '',
-                    base_location: user.base_location ? String(user.base_location) : '',
-                    reporting_manager: user.reporting_manager ? String(user.reporting_manager) : '',
-                    organization_name: '',
-                    organization_type: '',
-                    contact_phone: '',
-                    external_reference_id: '',
+                    is_active: user.is_active,
+
+                    // Direct mapping for organizational profile
+                    employee_id: user.profile_summary?.employee_id || '',
+
+                    company: company ? String(company.id) : '',
+                    department: department ? String(department.department_id) : '',
+                    designation: designation ? String(designation.designation_id) : '',
+                    employee_type: employeeType ? String(employeeType.id) : '',
+                    grade: grade ? String(grade.id) : '',
+                    base_location: baseLocation ? String(baseLocation.location_id) : '',
+                    reporting_manager: manager ? String(manager.id) : '',
+
+                    // External (if needed)
+                    organization_name: user.organization_name || '',
+                    organization_type: user.profile_category || '',
+                    contact_phone: user.phone || '',
+                    external_reference_id: user.vendor_email || '',
                 });
 
-                // If company exists, build filtered lists so selects show proper options
-                if (user.company) {
-                    // Wait for master data loaded; if not loaded yet, loadMasterData will set these later
-                    // We'll set them after loadMasterData completes (it uses setMasterData + console logs)
+                // Build dependent dropdowns immediately
+                if (company) {
+                    setFilteredDepartments(
+                        masterData.departments.filter(d => String(d.company) === String(company.id))
+                    );
                 }
-            } else {
+
+                if (department) {
+                    setFilteredDesignations(
+                        masterData.designations.filter(des => String(des.department) === String(department.department_id))
+                    );
+                }
+
+                setActiveTab(user.user_type);
+            }
+            else {
                 resetForm();
             }
         }

@@ -16,9 +16,9 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 # Optional: Configure task routes
 app.conf.task_routes = {
-    'Main.tasks.send_email': {'queue': 'emails'},
-    'Main.tasks.send_sms': {'queue': 'sms'},
-    'Main.tasks.send_notification': {'queue': 'notifications'},
+    'notifications.tasks.send_notification_task': {'queue': 'notifications'},
+    'notifications.tasks.notification_reminder_worker': {'queue': 'notifications'},
+    'notifications.tasks.mark_travel_as_completed': {'queue': 'notifications'},
 }
 
 @app.task(bind=True)

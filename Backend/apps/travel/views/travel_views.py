@@ -401,6 +401,10 @@ class TravelApplicationSubmitView(APIView):
         travel_app.set_settlement_due_date()
         travel_app.save()
 
+        # Schedule auto-completion
+        from notifications.tasks import schedule_travel_completion
+        schedule_travel_completion(travel_app)
+
         # 9) Send email notification
         try:
             from apps.notifications.center import NotificationCenter
