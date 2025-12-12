@@ -569,7 +569,6 @@ const BookingCard = ({ booking, type, guestHousesMap }: any) => {
             className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 hover:bg-slate-50 transition"
           >
             <FileText className="w-4 h-4 text-slate-700" />
-            {booking.booking_file}
           </button>
         </div>
       )}
